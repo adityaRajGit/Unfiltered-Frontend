@@ -1,3 +1,4 @@
+import CorporateTherapySection from "@/component/home/CorporateTherapy";
 import HeroSection from "@/component/home/HeroSection";
 import Section2 from "@/component/home/Section2";
 import Section3 from "@/component/home/Section3";
@@ -13,6 +14,7 @@ export default function Home() {
       <Section2 />
       <WhyChooseUs />
       <Section3 />
+      <CorporateTherapySection />
       <Section4 />
       <Section5 />
       <Section6 />

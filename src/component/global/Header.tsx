@@ -52,7 +52,7 @@ export const Header = () => {
 
     const navItems = [
         { name: 'Home', href: '/' },
-        { name: 'Care', href: '/care' },
+        { name: 'Corporate', href: '/pages/corporate' },
         { name: 'Community', href: '/community' },
         { name: 'Therapy', href: '/counsellor' },
         { name: 'About', href: '/pages/about' },
