@@ -1,22 +1,40 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { FaEdit, FaCalendarAlt, FaClock, FaVideo, FaUserMd, FaMapMarkerAlt, FaPhone, FaEnvelope, FaGlobe, FaChevronDown, FaStar, FaHistory } from 'react-icons/fa';
+import { FaEdit, FaCalendarAlt, FaClock, FaVideo, FaUserMd, FaPhone, FaEnvelope, FaChevronDown, FaStar, FaHistory } from 'react-icons/fa';
 import Link from 'next/link';
+import { useDispatch } from 'react-redux';
+import { getUserDetails, updateUserDetails } from '@/store/userSlice';
+import { toast } from 'react-toastify';
+import { TOKEN } from '@/utils/enum';
+import { decodeToken } from '@/utils/decodeToken';
+import { useRouter } from 'next/navigation';
+import { LoadingSpinnerWithOverlay } from '../global/Loading';
+import { getInitials } from '@/utils/GetInitials';
+import { useRef } from 'react';
+
+interface User {
+  name: string;
+  email: string;
+  phone: string;
+  profile_pic: string;
+  bio: string;
+}
 
 const UserProfilePage = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [isEditing, setIsEditing] = useState(false);
-  const [userData, setUserData] = useState({
-    name: "Priya Sharma",
-    email: "priya.sharma@example.com",
-    description: "Mental wellness enthusiast, practicing mindfulness daily. Currently focusing on managing work-related stress.",
-    profilePic: "/user-profile.jpg",
-    phone: "+91 98765 43210",
-    location: "Bangalore, India",
-    languages: ["English", "Hindi", "Kannada"]
-  });
-  const [tempUserData, setTempUserData] = useState({ ...userData });
+  const [userId, setUserId] = useState('');
+  const [user, setUser] = useState<User | null>(null);
+  const [tempUserData, setTempUserData] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch()
+  const router = useRouter()
+  const storedToken = typeof window !== 'undefined' ? localStorage.getItem(TOKEN) : null;
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
 
   const therapists = [
     {
@@ -102,37 +120,115 @@ const UserProfilePage = () => {
 
   const handleEditToggle = () => {
     if (isEditing) {
-      setUserData({ ...tempUserData });
+      if (!tempUserData) return;
+      updateProfile()
     }
     setIsEditing(!isEditing);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+    if (!tempUserData) return;
     setTempUserData({ ...tempUserData, [name]: value });
   };
 
-  const handleLanguageChange = (index: number, value: string) => {
-    const newLanguages = [...tempUserData.languages];
-    newLanguages[index] = value;
-    setTempUserData({ ...tempUserData, languages: newLanguages });
-  };
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
 
-  const addLanguage = () => {
-    if (tempUserData.languages.length < 5) {
-      setTempUserData({
-        ...tempUserData,
-        languages: [...tempUserData.languages, ""]
-      });
+      // Create preview URL
+      const objectUrl = URL.createObjectURL(selectedFile);
+      setPreviewUrl(objectUrl);
+
+      // Update tempUserData with preview URL for UI
+      if (tempUserData) {
+        setTempUserData({ ...tempUserData, profile_pic: objectUrl });
+      }
     }
   };
 
-  const removeLanguage = (index: number) => {
-    if (tempUserData.languages.length > 1) {
-      const newLanguages = tempUserData.languages.filter((_, i) => i !== index);
-      setTempUserData({ ...tempUserData, languages: newLanguages });
+  async function updateProfile() {
+    setLoading(true);
+
+    try {
+      // Create FormData object
+      const formData = new FormData();
+
+      // Append all user data fields
+      if (tempUserData) {
+        formData.append('name', tempUserData.name);
+        formData.append('email', tempUserData.email);
+        formData.append('phone', tempUserData.phone);
+        formData.append('bio', tempUserData.bio);
+      }
+
+      // Append new profile picture if selected
+      if (file) {
+        formData.append('profile_pic', file);
+      }
+
+      // Dispatch update action with FormData
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const response = await dispatch(updateUserDetails(userId as any, formData as any) as any);
+
+      if (response?.error) {
+        toast.error(response.error.message);
+      } else {
+        // Refresh user data
+        getUser(userId);
+        toast.success('Profile updated successfully!');
+
+        // Clean up preview URL
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+          setPreviewUrl(null);
+          setFile(null);
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to update profile');
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
-  };
+  }
+
+  async function getUser(id: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(getUserDetails(id as any) as any);
+    if (response?.error) {
+      setLoading(false)
+      toast.error(response.error.message)
+    } else {
+      setLoading(false)
+      setUser(response.payload.data.user)
+      setTempUserData(response.payload.data.user)
+    }
+  }
+
+  useEffect(() => {
+    if (storedToken !== null) {
+      const decodedToken = decodeToken(storedToken as string);
+      if (decodedToken?.userId) {
+        getUser(decodedToken.userId._id);
+        setUserId(decodedToken.userId._id);
+      } else {
+        router.push('/');
+      }
+    } else {
+      router.push('/');
+    }
+  }, [storedToken, router]);
+
+
+  if (loading) {
+    return (
+      <div className='min-h-screen'>
+        <LoadingSpinnerWithOverlay />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white py-8 px-4">
@@ -141,7 +237,7 @@ const UserProfilePage = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4 md:mb-0">My Profile</h1>
           <div className="flex space-x-3">
-            <button 
+            <button
               onClick={handleEditToggle}
               className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition-colors"
             >
@@ -160,49 +256,79 @@ const UserProfilePage = () => {
               <div className="px-6 pb-6 relative">
                 <div className="flex justify-center -mt-12 mb-4">
                   <div className="relative">
-                    <div className="w-24 h-24 rounded-full border-4 border-white overflow-hidden bg-gray-200">
-                      <Image
-                        src={userData.profilePic}
-                        alt="Profile"
-                        width={96}
-                        height={96}
-                        className="object-cover w-full h-full"
+                    <div className="w-24 h-24 rounded-full border-4 border-white overflow-hidden bg-gray-200 flex items-center justify-center">
+                      {/* Show preview if available */}
+                      {previewUrl ? (
+                        <Image
+                          src={previewUrl}
+                          alt="Profile preview"
+                          width={96}
+                          height={96}
+                          className="object-cover w-full h-full"
+                        />
+                      ) : user?.profile_pic ? (
+                        <Image
+                          src={user.profile_pic}
+                          alt="Profile"
+                          width={96}
+                          height={96}
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <span className="text-teal-600 font-bold text-sm uppercase">
+                          {getInitials(user?.name || '')}
+                        </span>
+                      )}
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        className="hidden"
                       />
+
                     </div>
                     {isEditing && (
-                      <button className="absolute bottom-2 right-0 bg-teal-500 rounded-full p-2 text-white hover:bg-teal-600">
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute bottom-2 right-0 bg-teal-500 rounded-full p-2 text-white hover:bg-teal-600"
+                      >
                         <FaEdit className="text-sm" />
                       </button>
                     )}
                   </div>
                 </div>
-                
+
                 <div className="text-center mb-6">
                   {isEditing ? (
                     <input
                       type="text"
                       name="name"
-                      value={tempUserData.name}
+                      value={tempUserData?.name}
                       onChange={handleInputChange}
                       className="text-xl font-bold text-center mb-1 bg-teal-50 rounded-lg px-3 py-2 w-full max-w-xs mx-auto"
                     />
                   ) : (
-                    <h2 className="text-xl font-bold text-gray-900">{userData.name}</h2>
+                    <h2 className="text-xl font-bold text-gray-900">{user?.name}</h2>
                   )}
-                  
+
                   {isEditing ? (
                     <textarea
-                      name="description"
-                      value={tempUserData.description}
+                      name="bio"
+                      value={tempUserData?.bio}
                       onChange={handleInputChange}
+                      placeholder={"Write a short bio about yourself to help others get to know you."}
                       rows={3}
-                      className="text-gray-600 text-center bg-teal-50 rounded-lg px-3 py-2 w-full max-w-xs mx-auto"
+                      className="text-gray-600 text-center resize-none h-32 bg-teal-50 rounded-lg px-3 py-2 w-full max-w-xs mx-auto"
                     />
                   ) : (
-                    <p className="text-gray-600 mt-2">{userData.description}</p>
+                    user?.bio
+                      ? <p className="text-gray-600 mt-2">{user.bio}</p>
+                      : <p className="text-gray-600 mt-2">Write a short bio about yourself to help others get to know you.</p>
+
                   )}
                 </div>
-                
+
                 <div className="space-y-4">
                   <div className="flex items-center">
                     <FaEnvelope className="text-teal-600 mr-3" />
@@ -210,94 +336,33 @@ const UserProfilePage = () => {
                       <input
                         type="email"
                         name="email"
-                        value={tempUserData.email}
+                        value={tempUserData?.email}
                         onChange={handleInputChange}
                         className="flex-1 bg-teal-50 rounded-lg px-3 py-2"
                       />
                     ) : (
-                      <span className="text-gray-700">{userData.email}</span>
+                      <span className="text-gray-700">{user?.email}</span>
                     )}
                   </div>
-                  
+
                   <div className="flex items-center">
                     <FaPhone className="text-teal-600 mr-3" />
                     {isEditing ? (
                       <input
                         type="tel"
                         name="phone"
-                        value={tempUserData.phone}
+                        minLength={0}
+                        maxLength={10}
+                        value={tempUserData?.phone}
+                        placeholder={'Add a phone number.'}
                         onChange={handleInputChange}
                         className="flex-1 bg-teal-50 rounded-lg px-3 py-2"
                       />
                     ) : (
-                      <span className="text-gray-700">{userData.phone}</span>
+                      user?.phone
+                        ? <span className="text-gray-700">{user?.phone}</span>
+                        : <span className="text-gray-700">Add a phone number.</span>
                     )}
-                  </div>
-                  
-                  <div className="flex items-center">
-                    <FaMapMarkerAlt className="text-teal-600 mr-3" />
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="location"
-                        value={tempUserData.location}
-                        onChange={handleInputChange}
-                        className="flex-1 bg-teal-50 rounded-lg px-3 py-2"
-                      />
-                    ) : (
-                      <span className="text-gray-700">{userData.location}</span>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-start">
-                    <FaGlobe className="text-teal-600 mr-3 mt-1" />
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 mb-2">Preferred Languages</h3>
-                      <div className="space-y-2">
-                        {tempUserData.languages.map((lang, index) => (
-                          <div key={index} className="flex items-center space-x-2">
-                            {isEditing ? (
-                              <>
-                                <select
-                                  value={lang}
-                                  onChange={(e) => handleLanguageChange(index, e.target.value)}
-                                  className="bg-teal-50 rounded-lg px-3 py-2 flex-1"
-                                >
-                                  <option value="English">English</option>
-                                  <option value="Hindi">Hindi</option>
-                                  <option value="Kannada">Kannada</option>
-                                  <option value="Tamil">Tamil</option>
-                                  <option value="Telugu">Telugu</option>
-                                  <option value="Malayalam">Malayalam</option>
-                                  <option value="Marathi">Marathi</option>
-                                  <option value="Bengali">Bengali</option>
-                                </select>
-                                {tempUserData.languages.length > 1 && (
-                                  <button 
-                                    onClick={() => removeLanguage(index)}
-                                    className="text-red-500 hover:text-red-700"
-                                  >
-                                    Remove
-                                  </button>
-                                )}
-                              </>
-                            ) : (
-                              <span className="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-sm">
-                                {lang}
-                              </span>
-                            )}
-                          </div>
-                        ))}
-                        {isEditing && tempUserData.languages.length < 5 && (
-                          <button 
-                            onClick={addLanguage}
-                            className="text-teal-600 hover:text-teal-800 flex items-center text-sm"
-                          >
-                            + Add another language
-                          </button>
-                        )}
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -311,7 +376,7 @@ const UserProfilePage = () => {
                   {therapists.length} therapists
                 </span>
               </div>
-              
+
               <div className="space-y-6">
                 {therapists.map((therapist) => (
                   <div key={therapist.id} className="flex items-center border-b border-gray-100 pb-6 last:border-0 last:pb-0">
@@ -389,7 +454,7 @@ const UserProfilePage = () => {
                             />
                           </div>
                         </div>
-                        
+
                         <div className="flex-1">
                           <div className="flex flex-wrap justify-between gap-4">
                             <div>
@@ -402,17 +467,16 @@ const UserProfilePage = () => {
                                 <span>{appointment.time}</span>
                               </div>
                               <div className="mt-2">
-                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                  appointment.status === 'paid' 
-                                    ? 'bg-green-100 text-green-800' 
-                                    : 'bg-yellow-100 text-yellow-800'
-                                }`}>
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${appointment.status === 'paid'
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-yellow-100 text-yellow-800'
+                                  }`}>
                                   {appointment.status === 'paid' ? 'Confirmed' : 'Payment Pending'}
                                 </span>
                                 <span className="ml-2 text-sm text-gray-700">{appointment.amount}</span>
                               </div>
                             </div>
-                            
+
                             <div className="flex flex-col sm:items-end">
                               <Link
                                 href={appointment.meetLink}
@@ -430,7 +494,7 @@ const UserProfilePage = () => {
                       </div>
                     </div>
                   ))}
-                  
+
                   {appointments.upcoming.length === 0 && (
                     <div className="text-center py-12">
                       <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
@@ -464,7 +528,7 @@ const UserProfilePage = () => {
                             />
                           </div>
                         </div>
-                        
+
                         <div className="flex-1">
                           <div className="flex flex-wrap justify-between gap-4">
                             <div>
@@ -487,7 +551,7 @@ const UserProfilePage = () => {
                                 </div>
                               </div>
                             </div>
-                            
+
                             <div className="flex flex-col sm:items-end">
                               <button className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors mb-2">
                                 <FaHistory className="mr-2" />
@@ -502,7 +566,7 @@ const UserProfilePage = () => {
                       </div>
                     </div>
                   ))}
-                  
+
                   {appointments.past.length === 0 && (
                     <div className="text-center py-12">
                       <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">

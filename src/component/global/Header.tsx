@@ -6,6 +6,7 @@ import { FaUser, FaSignInAlt, FaTimes } from 'react-icons/fa';
 import { TOKEN } from '@/utils/enum';
 import { decodeToken } from '@/utils/decodeToken';
 import Image from 'next/image';
+import { getInitials } from '@/utils/GetInitials';
 
 interface UserData {
     name: string;
@@ -58,13 +59,6 @@ export const Header = () => {
         { name: 'About', href: '/pages/about' },
         { name: 'FAQ', href: '/pages/faq' },
     ];
-
-    const getInitials = (fullName: string): string => {
-        if (!fullName) return '';
-        const parts = fullName.trim().split(' ').filter(Boolean);
-        if (parts.length === 1) return parts[0][0].toUpperCase();
-        return (parts[0][0] + parts[1][0]).toUpperCase();
-    };
 
 
     useEffect(() => {

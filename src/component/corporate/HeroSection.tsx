@@ -7,14 +7,20 @@ function HeroSection() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     <div className="text-center lg:text-left">
                         <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-                            Elevate Workplace
-                            <span className="block mt-2 bg-clip-text text-transparent bg-gradient-to-r from-teal-600 to-teal-800">
-                                Mental Wellness
+                            Corporate Wellness
+                            <span className="block pb-3 bg-clip-text text-transparent bg-gradient-to-r from-teal-600 to-teal-800">
+                                Programs
                             </span>
                         </h1>
-                        <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto lg:mx-0">
-                            Transform your organization with tailored mental health programs designed to boost productivity, enhance culture, and support your most valuable asset—your people.
-                        </p>
+                        <div className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto lg:mx-0">
+                            <p className="font-semibold mb-2">Workplace Mental Health: A Global Priority</p>
+                            <p className="mb-4">
+                                Mental health in the workplace is a critical issue affecting millions worldwide. According to the World Health Organization, 15% of working-age adults live with a mental disorder, and depression and anxiety cost the global economy US$ 1 trillion annually in lost productivity.
+                            </p>
+                            <p>
+                                At StayUnfiltered, we recognize the importance of addressing mental health in the workplace. Our corporate wellness programs are designed to support employees mental well-being, leading to a healthier, more productive workforce.
+                            </p>
+                        </div>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                             <button
                                 //   onClick={scrollToContact}

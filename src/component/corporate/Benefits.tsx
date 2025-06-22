@@ -1,5 +1,3 @@
-
-
 function Benefits() {
     return (
         <section className="py-16 px-4">
@@ -13,7 +11,7 @@ function Benefits() {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
                     {[
                         {
                             title: "Enhanced Productivity",
@@ -70,6 +68,67 @@ function Benefits() {
                             </div>
                         </div>
                     ))}
+                </div>
+
+                {/* Global Impact Section */}
+                <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-3xl p-8 md:p-12">
+                    <div className="text-center mb-10">
+                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                            Global Impact of Workplace Mental Health
+                        </h2>
+                        <p className="text-xl text-gray-700 max-w-3xl mx-auto">
+                            Mental health challenges affect workplaces worldwide with significant economic consequences
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-8">
+                            {[
+                                {
+                                    stat: "US$ 1 trillion",
+                                    description: "Annual lost productivity cost due to mental health conditions (WHO)",
+                                    color: "bg-teal-500"
+                                },
+                                {
+                                    stat: "£56 billion",
+                                    description: "Annual cost to UK employers from poor mental health (Spill.chat)",
+                                    color: "bg-cyan-500"
+                                },
+                                {
+                                    stat: "80%",
+                                    description: "Indian workforce reporting mental health issues in past year (Deloitte)",
+                                    color: "bg-emerald-500"
+                                },
+                                {
+                                    stat: "$4 for every $1",
+                                    description: "Return on investment from effective mental health programs (Talkspace)",
+                                    color: "bg-teal-600"
+                                }
+                            ].map((item, index) => (
+                                <div key={index} className="flex items-start">
+                                    <div className={`${item.color} w-3 h-3 rounded-full mt-2 mr-4`}></div>
+                                    <div>
+                                        <p className="text-2xl font-bold text-gray-900 mb-1">{item.stat}</p>
+                                        <p className="text-gray-700">{item.description}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="bg-white rounded-2xl shadow-lg p-8 flex items-center justify-center">
+                            <div className="text-center">
+                                <div className="inline-flex items-center justify-center bg-gradient-to-br from-teal-500 to-teal-700 w-24 h-24 rounded-full mb-6">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-2xl font-bold text-gray-900 mb-3">Global Mental Health Crisis</h3>
+                                <p className="text-gray-700">
+                                    Workplace mental health has become a critical global issue affecting productivity, retention, and economic growth across all industries and regions.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

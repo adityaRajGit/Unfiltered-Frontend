@@ -1,16 +1,52 @@
 "use client"
+import TherapistProfile from '@/component/account/TherapistAccount';
 import UserProfilePage from '@/component/account/UserAccount'
-import { useState } from 'react'
+import { LoadingSpinnerWithOverlay } from '@/component/global/Loading';
+import { decodeToken } from '@/utils/decodeToken';
+import { TOKEN } from '@/utils/enum';
+import { useEffect, useState } from 'react'
+
+interface User {
+    userId: {
+        name: string;
+        email: string;
+        _id: string;
+        phone: string;
+        username: string;
+        profile_pic: string;
+        role: string
+    };
+    iat: number;
+    role: string;
+}
 
 function Page() {
-    const [userRole] = useState('user')
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
+    const storedToken = typeof window !== 'undefined' ? localStorage.getItem(TOKEN) : null;
+
+    useEffect(() => {
+        if (storedToken !== null) {
+            const decodedToken = decodeToken(storedToken as string);
+            if (decodedToken?.userId) {
+                setUser(decodedToken);
+            }
+        }
+        setLoading(false);
+    }, [storedToken])
+
+    if (loading) {
+        return (
+            <LoadingSpinnerWithOverlay />
+        )
+    }
 
     return (
         <>
             {
-                userRole === 'user'
+                user?.userId?.role === 'user'
                     ? <UserProfilePage />
-                    : null
+                    : <TherapistProfile />
             }
         </>
     )

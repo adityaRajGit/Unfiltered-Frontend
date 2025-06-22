@@ -29,6 +29,22 @@ const loginTherapist = createAsyncThunk("therapist/login", async (data) => {
     }
 })
 
+const getTherapistDetails = createAsyncThunk("therapist/details", async (id) => {
+    try {
+        const response = await axios.get(`${backend}/therapist/${id}`, {
+            headers: {
+                Authorization: `Bearer ${JSON.parse(localStorage.getItem(TOKEN))}`
+            }
+        })
+        return response.data
+    } catch (error) {
+        if (error.response) {
+            throw error.response.data.data.message
+        }
+        throw error.message || "An unexpected error occurred"
+    }
+})
+
 
 const initialState = {
     therapist: null,
@@ -68,8 +84,20 @@ const therapistSlice = createSlice({
                 state.loading = false
                 state.error = action.error || "An error occurred";
             })
+            .addCase(getTherapistDetails.pending, (state) => {
+                state.loading = true
+                state.error = null
+            })
+            .addCase(getTherapistDetails.fulfilled, (state, action) => {
+                state.loading = false
+                state.therapist = action.payload.data.therapist
+            })
+            .addCase(getTherapistDetails.rejected, (state, action) => {
+                state.loading = false
+                state.error = action.error || "An error occurred"
+            })
     }
 })
 
-export { signupTherapist, loginTherapist }
+export { signupTherapist, loginTherapist, getTherapistDetails }
 export default therapistSlice.reducer

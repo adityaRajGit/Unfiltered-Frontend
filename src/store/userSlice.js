@@ -52,6 +52,37 @@ const googleLogin = createAsyncThunk("user/googleLogin", async (data) => {
     }
 });
 
+const getUserDetails = createAsyncThunk("user/details", async (id) => {
+    try {
+        const response = await axios.get(`${backend}/user/${id}`, {
+            headers: {
+                Authorization: `Bearer ${JSON.parse(localStorage.getItem(TOKEN))}`
+            }
+        })
+        return response.data
+    } catch (error) {
+        if (error.response) {
+            throw error.response.data.data.message
+        }
+        throw error.message || "An unexpected error occurred"
+    }
+})
+
+const updateUserDetails = createAsyncThunk("user/update-details", async (id, formData) => {
+    try {
+        const response = await axios.post(`${backend}/user/${id}/update`, formData, {
+            headers: {
+                Authorization: `Bearer ${JSON.parse(localStorage.getItem(TOKEN))}`
+            }
+        })
+        return response.data
+    } catch (error) {
+        if (error.response) {
+            throw error.response.data.data.message
+        }
+        throw error.message || "An unexpected error occurred"
+    }
+})
 
 const initialState = {
     user: null,
@@ -118,8 +149,32 @@ const userSlice = createSlice({
                 state.loading = false;
                 state.error = action.error || "Google login failed";
             })
+            .addCase(getUserDetails.pending, (state) => {
+                state.loading = true
+                state.error = null
+            })
+            .addCase(getUserDetails.fulfilled, (state, action) => {
+                state.loading = false
+                state.user = action.payload.data.user
+            })
+            .addCase(getUserDetails.rejected, (state, action) => {
+                state.loading = false
+                state.error = action.error || "An error occurred"
+            })
+            .addCase(updateUserDetails.pending, (state) => {
+                state.loading = true
+                state.error = null
+            })
+            .addCase(updateUserDetails.fulfilled, (state, action) => {
+                state.loading = false
+                state.user = action.payload.data.user
+            })
+            .addCase(updateUserDetails.rejected, (state, action) => {
+                state.loading = false
+                state.error = action.error || "An error occurred"
+            })
     }
 })
 
-export { signup, login, googleSignup, googleLogin }
+export { signup, login, googleSignup, googleLogin, getUserDetails, updateUserDetails }
 export default userSlice.reducer

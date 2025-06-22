@@ -8,7 +8,8 @@ function ContactForm() {
         email: '',
         company: '',
         employees: '',
-        message: ''
+        message: '',
+        phone: ''
     });
     const [submitted, setSubmitted] = useState(false);
 
@@ -26,7 +27,8 @@ function ContactForm() {
                 email: '',
                 company: '',
                 employees: '',
-                message: ''
+                message: '',
+                phone: ''
             });
             setSubmitted(false);
         }, 4000);
@@ -85,8 +87,8 @@ function ContactForm() {
                                     <p className="text-lg">We&apos;ve received your inquiry and will contact you shortly.</p>
                                 </div>
                             ) : (
-                                <form onSubmit={handleSubmit} className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <form onSubmit={handleSubmit} className="space-y-3">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
                                         <div>
                                             <label htmlFor="name" className="block text-gray-700 font-medium mb-2">Your Name</label>
                                             <input
@@ -107,6 +109,22 @@ function ContactForm() {
                                                 id="email"
                                                 name="email"
                                                 value={formData.email}
+                                                onChange={handleChange}
+                                                required
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                                placeholder="john@company.com"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 gap-6">
+                                        <div>
+                                            <label htmlFor="phone" className="block text-gray-700 font-medium mb-2">Phone Number</label>
+                                            <input
+                                                type="text"
+                                                id="phone"
+                                                name="phone"
+                                                value={formData.phone}
                                                 onChange={handleChange}
                                                 required
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"

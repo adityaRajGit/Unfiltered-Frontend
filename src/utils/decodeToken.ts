@@ -8,6 +8,7 @@ interface MyTokenPayload {
         phone: string;
         username: string;
         profile_pic: string;
+        role: string
     };
     iat: number;
     role: string;
