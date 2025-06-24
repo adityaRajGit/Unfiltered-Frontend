@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { FaHeart, FaUsers, FaChevronRight } from "react-icons/fa";
+import { FaChevronRight } from "react-icons/fa";
 
 function HeroSection() {
   return (
