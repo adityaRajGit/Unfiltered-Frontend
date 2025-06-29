@@ -68,21 +68,32 @@ const getUserDetails = createAsyncThunk("user/details", async (id) => {
     }
 })
 
-const updateUserDetails = createAsyncThunk("user/update-details", async (id, formData) => {
-    try {
-        const response = await axios.post(`${backend}/user/${id}/update`, formData, {
-            headers: {
-                Authorization: `Bearer ${JSON.parse(localStorage.getItem(TOKEN))}`
+const updateUserDetails = createAsyncThunk(
+    'user/update-details',
+    async (payload) => {
+        // payload should be an object: { id: string, formData: FormData }
+        try {
+            const token = JSON.parse(localStorage.getItem(TOKEN) || '""');
+            const response = await axios.post(
+                `${backend}/user/${payload.id}/update`,
+                payload.formData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
+            return response.data;
+        } catch (error) {
+            if (error.response) {
+                throw error.response.data.data.message
             }
-        })
-        return response.data
-    } catch (error) {
-        if (error.response) {
-            throw error.response.data.data.message
+            throw error.message || "An unexpected error occurred"
         }
-        throw error.message || "An unexpected error occurred"
     }
-})
+);
+
 
 const initialState = {
     user: null,
@@ -93,7 +104,13 @@ const initialState = {
 const userSlice = createSlice({
     name: "user",
     initialState,
-    reducers: {},
+    reducers: {
+        logoutUser: (state) => {
+            state.user = null;
+            state.error = null;
+            state.loading = false;
+        }
+    },
     extraReducers: (builder) => {
         builder
             .addCase(signup.pending, (state) => {
@@ -176,5 +193,6 @@ const userSlice = createSlice({
     }
 })
 
+export const { logoutUser } = userSlice.actions;
 export { signup, login, googleSignup, googleLogin, getUserDetails, updateUserDetails }
 export default userSlice.reducer

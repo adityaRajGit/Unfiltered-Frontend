@@ -215,8 +215,8 @@ function Section3() {
                 {/* Additional Stats */}
                 <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
                     <div className="bg-teal-50 rounded-xl p-6 border border-teal-100">
-                        <div className="text-4xl font-bold text-teal-700 mb-2">85%</div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Users from Tier 2/3 Cities</h3>
+                        <div className="text-4xl font-bold text-teal-700 mb-2">89%</div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Users from Tier 1/2 Cities</h3>
                         <p className="text-gray-600">Bridging the urban-rural mental healthcare gap</p>
                     </div>
 

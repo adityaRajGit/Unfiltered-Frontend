@@ -13,7 +13,7 @@ interface User {
         _id: string;
         phone: string;
         username: string;
-        profile_pic: string;
+        profile_image: string;
         role: string
     };
     iat: number;

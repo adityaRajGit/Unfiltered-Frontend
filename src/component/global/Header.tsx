@@ -7,6 +7,10 @@ import { TOKEN } from '@/utils/enum';
 import { decodeToken } from '@/utils/decodeToken';
 import Image from 'next/image';
 import { getInitials } from '@/utils/GetInitials';
+import { useDispatch, useSelector } from 'react-redux';
+import { getUserDetails, logoutUser } from '@/store/userSlice';
+import { getTherapistDetails, logoutTherapist } from '@/store/therapistSlice';
+
 
 interface UserData {
     name: string;
@@ -14,8 +18,9 @@ interface UserData {
     _id: string;
     phone: string;
     username: string;
-    profile_pic: string;
+    profile_image: string;
 }
+
 
 export const Header = () => {
     const [user, setUser] = useState(false);
@@ -27,6 +32,12 @@ export const Header = () => {
     const router = useRouter()
     const dropdownRef = useRef<HTMLDivElement>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);
+    const pathname = usePathname();
+    const dispatch = useDispatch()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const userDataFromStore = useSelector((state: any) => state.user.user);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const therapistDataFromStore = useSelector((state: any) => state.therapist.therapist);
 
 
     const toggleDropdown = () => {
@@ -38,14 +49,32 @@ export const Header = () => {
         setTimeout(() => {
             localStorage.removeItem(TOKEN);
             setUser(false);
-            setUserData(null);
+            dispatch(logoutTherapist())
+            dispatch(logoutUser())
             setIsDropdownOpen(false);
             setLoading(false);
             router.push('/');
         }, 1000)
     };
 
-    const pathname = usePathname();
+    async function getUser(id: string) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response = await dispatch(getUserDetails(id as any) as any);
+        if (response?.error) {
+            setLoading(false)
+        } else {
+            setLoading(false)
+        }
+    }
+    async function getTherapist(id: string) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response = await dispatch(getTherapistDetails(id as any) as any)
+        if (response?.error) {
+            setLoading(false)
+        } else {
+            setLoading(false)
+        }
+    }
 
     useEffect(() => {
         setIsMenuOpen(false);
@@ -53,20 +82,32 @@ export const Header = () => {
 
     const navItems = [
         { name: 'Home', href: '/' },
-        { name: 'Corporate', href: '/pages/corporate' },
+        { name: 'Corporate Wellness', href: '/pages/corporate' },
         { name: 'Community', href: '/community' },
         { name: 'Therapy', href: '/counsellor' },
         { name: 'About', href: '/pages/about' },
         { name: 'FAQ', href: '/pages/faq' },
     ];
 
+    useEffect(() => {
+        if (userDataFromStore) {
+            setUserData(userDataFromStore)
+        }
+        if (therapistDataFromStore) {
+            setUserData(therapistDataFromStore)
+        }
+    }, [userDataFromStore, therapistDataFromStore])
 
     useEffect(() => {
         if (storedToken !== null) {
             const decodedToken = decodeToken(storedToken as string);
             if (decodedToken?.userId) {
                 setUser(true);
-                setUserData(decodedToken?.userId);
+                if (decodedToken?.userId?.role === 'user') {
+                    getUser(decodedToken?.userId?._id)
+                } else {
+                    getTherapist(decodedToken?.userId?._id)
+                }
             }
         }
         setLoading(false);
@@ -236,8 +277,8 @@ export const Header = () => {
                                 onClick={toggleDropdown}
                                 className="w-9 h-9 rounded-full bg-gray-100 border-2 border-teal-500 overflow-hidden flex items-center justify-center focus:outline-none"
                             >
-                                {userData?.profile_pic ? (
-                                    <Image src={userData.profile_pic} width={100} height={100} alt="Profile" className="w-full h-full object-cover" />
+                                {userData?.profile_image ? (
+                                    <Image src={userData.profile_image} width={100} height={100} alt="Profile" className="w-full h-full object-cover" />
                                 ) : (
                                     <span className="text-teal-600 font-bold text-sm uppercase">
                                         {getInitials(userData?.name || '')}
@@ -249,8 +290,8 @@ export const Header = () => {
                                 <div ref={dropdownRef} className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                                     <div className="p-4 border-b border-gray-100 flex items-center space-x-3">
                                         <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 border border-teal-500 flex items-center justify-center">
-                                            {userData?.profile_pic ? (
-                                                <Image src={userData.profile_pic} width={100} height={100} alt="Profile" className="w-full h-full object-cover" />
+                                            {userData?.profile_image ? (
+                                                <Image src={userData.profile_image} width={100} height={100} alt="Profile" className="w-full h-full object-cover" />
                                             ) : (
                                                 <span className="text-teal-600 font-bold text-lg uppercase">
                                                     {getInitials(userData?.name || '')}

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { LoadingSpinnerWithOverlay } from '../global/Loading';
-import { getTherapistDetails } from '@/store/therapistSlice';
+import { getTherapistDetails, updateTherapistDetails } from '@/store/therapistSlice';
 import { toast } from 'react-toastify';
 import { FaEdit, FaPlus, FaTimes, FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
 import { getInitials } from '@/utils/GetInitials';
@@ -14,7 +14,7 @@ import { getInitials } from '@/utils/GetInitials';
 interface Therapist {
   name: string;
   email: string;
-  profile_pic: string;
+  profile_image: string;
   phone: string;
   academic_background: {
     years_of_experience: string;
@@ -22,7 +22,6 @@ interface Therapist {
   };
   specialization: string[];
   experience: string[];
-  services: string[];
   location: {
     city: string;
     country: string;
@@ -35,8 +34,6 @@ interface Therapist {
   }
   languages: string[];
 }
-
-type TherapistArrayFields = keyof Pick<Therapist, 'specialization' | 'experience' | 'services' | 'languages'>;
 
 type Appointment = {
   id: string;
@@ -53,10 +50,10 @@ type Appointment = {
 export default function TherapistProfile() {
   const [activeTab, setActiveTab] = useState<'future' | 'past'>('future');
   const [loading, setLoading] = useState(true);
-  // const [therapistId, setTherapistId] = useState('');
+  const [therapistId, setTherapistId] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [tempTherapistData, setTempTherapistData] = useState<Therapist | null>(null);
-  const [, setFile] = useState<File | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dispatch = useDispatch()
@@ -66,7 +63,7 @@ export default function TherapistProfile() {
   const [therapist, setTherapist] = useState<Therapist | null>(null);
 
   // Demo appointments data
-  const futureAppointments: Appointment[] =  [
+  const futureAppointments: Appointment[] = [
     {
       id: "1",
       client: {
@@ -128,7 +125,6 @@ export default function TherapistProfile() {
       toast.error(response.error.message)
     } else {
       setLoading(false)
-      console.log(response.payload.data.therapist)
       setTherapist(response.payload.data.therapist);
       setTempTherapistData(response.payload.data.therapist);
     }
@@ -137,55 +133,80 @@ export default function TherapistProfile() {
   async function updateProfile() {
     setLoading(true);
 
-    // try {
-    //   // Create FormData object
-    //   const formData = new FormData();
+    try {
+      // Create FormData object
+      const formData = new FormData();
 
-    //   // Append all therapist data fields
-    //   Object.keys(tempTherapistData).forEach(key => {
-    //     if (key === 'academic_background' || key === 'session_details' || key === 'location') {
-    //       // Stringify nested objects
-    //       formData.append(key, JSON.stringify(tempTherapistData[key]));
-    //     } else if (Array.isArray(tempTherapistData[key])) {
-    //       // Stringify arrays
-    //       formData.append(key, JSON.stringify(tempTherapistData[key]));
-    //     } else {
-    //       // Append regular fields
-    //       formData.append(key, tempTherapistData[key]);
-    //     }
-    //   });
+      // Append all user data fields
+      if (tempTherapistData) {
+        if (tempTherapistData.name) formData.append('name', tempTherapistData.name);
+        if (tempTherapistData.email) formData.append('email', tempTherapistData.email);
+        if (tempTherapistData.phone) formData.append('phone', tempTherapistData.phone);
+        if (tempTherapistData.bio) formData.append('bio', tempTherapistData.bio);
 
-    //   // Append new profile picture if selected
-    //   if (file) {
-    //     formData.append('profile_pic', file);
-    //   }
+        // Academic Background
+        const academic = tempTherapistData.academic_background;
+        if (academic && (academic.years_of_experience || academic.qualification?.length)) {
+          formData.append('academic_background', JSON.stringify(academic));
+        }
 
-    //   // Dispatch update action with FormData
-    //   const response = await dispatch(updateTherapistDetails({ 
-    //     therapistId, 
-    //     therapistData: formData 
-    //   }) as any);
+        // Specialization
+        if (tempTherapistData.specialization?.length) {
+          formData.append('specialization', JSON.stringify(tempTherapistData.specialization));
+        }
 
-    //   if (response?.error) {
-    //     toast.error(response.error.message);
-    //   } else {
-    //     // Refresh therapist data
-    //     getTherapist(therapistId);
-    //     toast.success('Profile updated successfully!');
-    //     setIsEditing(false);
+        // Experience
+        if (tempTherapistData.experience?.length) {
+          formData.append('experience', JSON.stringify(tempTherapistData.experience));
+        }
 
-    //     // Clean up preview URL
-    //     if (previewUrl) {
-    //       URL.revokeObjectURL(previewUrl);
-    //       setPreviewUrl(null);
-    //       setFile(null);
-    //     }
-    //   }
-    // } catch (error) {
-    //   toast.error('Failed to update profile');
-    // } finally {
-    //   setLoading(false);
-    // }
+        // Location
+        const location = tempTherapistData.location;
+        if (location?.city || location?.country) {
+          formData.append('location', JSON.stringify(location));
+        }
+
+        // Session Details
+        const session = tempTherapistData.session_details;
+        if (session && (session.duration || session.cost || session.currency)) {
+          formData.append('session_details', JSON.stringify(session));
+        }
+
+        // Languages
+        if (tempTherapistData.languages?.length) {
+          formData.append('languages', JSON.stringify(tempTherapistData.languages));
+        }
+      }
+
+      // Append new profile picture if selected
+      if (file) {
+        formData.append('img', file);
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const response = await dispatch(updateTherapistDetails({ id: therapistId, formData } as any) as any);
+
+      if (response?.error) {
+        toast.error(response.error.message);
+      } else {
+        // Refresh user data
+        getTherapist(therapistId);
+        setIsEditing(false);
+        toast.success('Profile updated successfully!');
+
+        // Clean up preview URL
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+          setPreviewUrl(null);
+          setFile(null);
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to update profile');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -220,35 +241,147 @@ export default function TherapistProfile() {
     });
   };
 
-  const handleArrayChange = (field: TherapistArrayFields, index: number, value: string) => {
+  const handleArrayChange = (field: keyof Therapist, index: number, value: string) => {
     if (!tempTherapistData) return;
-    const newArray = [...tempTherapistData[field]];
-    newArray[index] = value;
-    setTempTherapistData({ ...tempTherapistData, [field]: newArray });
-  };
 
-  const addArrayItem = (field: TherapistArrayFields, defaultValue = '') => {
-    if (!tempTherapistData) return;
+    const currentArray = tempTherapistData[field] || [];
+    if (!Array.isArray(currentArray)) return;
+
+    const updatedArray = [...currentArray];
+    updatedArray[index] = value;
+
     setTempTherapistData({
       ...tempTherapistData,
-      [field]: [...tempTherapistData[field], defaultValue],
+      [field]: updatedArray
     });
   };
 
-  const removeArrayItem = (field: TherapistArrayFields, index: number) => {
+  const addArrayItem = (field: keyof Therapist, defaultValue = '') => {
     if (!tempTherapistData) return;
-    const newArray = [...tempTherapistData[field]];
-    newArray.splice(index, 1);
-    setTempTherapistData({ ...tempTherapistData, [field]: newArray });
+
+    // Get current value - it could be undefined or array
+    const currentValue = tempTherapistData[field];
+
+    // Handle different cases
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let updatedArray: any[] = [];
+    if (Array.isArray(currentValue)) {
+      updatedArray = [...currentValue, defaultValue];
+    } else if (currentValue === undefined) {
+      updatedArray = [defaultValue];
+    } else {
+      // Handle non-array case if needed
+      return;
+    }
+
+    setTempTherapistData({
+      ...tempTherapistData,
+      [field]: updatedArray
+    });
   };
 
+  const removeArrayItem = (field: keyof Therapist, index: number) => {
+    if (!tempTherapistData) return;
+
+    const currentArray = tempTherapistData[field] || [];
+    if (!Array.isArray(currentArray)) return;
+
+    const updatedArray = [...currentArray];
+    updatedArray.splice(index, 1);
+
+    setTempTherapistData({
+      ...tempTherapistData,
+      [field]: updatedArray
+    });
+  };
+
+  const handleNestedArrayChange = (
+    parentKey: keyof Therapist,
+    childKey: string,
+    index: number,
+    value: string
+  ) => {
+    if (!tempTherapistData) return;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const parentObject = tempTherapistData[parentKey] as Record<string, any> | undefined;
+    if (!parentObject) return;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const childArray = parentObject[childKey] as any[] | undefined;
+    if (!Array.isArray(childArray)) return;
+
+    const newArray = [...childArray];
+    newArray[index] = value;
+
+    setTempTherapistData({
+      ...tempTherapistData,
+      [parentKey]: {
+        ...parentObject,
+        [childKey]: newArray
+      }
+    });
+  };
+
+  const addNestedArrayItem = (
+    parentKey: keyof Therapist,
+    childKey: string,
+    defaultValue = ''
+  ) => {
+    if (!tempTherapistData) return;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const parentObject = tempTherapistData[parentKey] as Record<string, any> | undefined;
+
+    const updatedParent = parentObject ? { ...parentObject } : {};
+
+    const childArray = Array.isArray(updatedParent[childKey])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ? [...updatedParent[childKey] as any[]]
+      : [];
+
+    // Add new item
+    const newArray = [...childArray, defaultValue];
+
+    setTempTherapistData({
+      ...tempTherapistData,
+      [parentKey]: {
+        ...updatedParent,
+        [childKey]: newArray
+      }
+    });
+  };
+
+  const removeNestedArrayItem = (
+    parentKey: keyof Therapist,
+    childKey: string,
+    index: number
+  ) => {
+    if (!tempTherapistData) return;
+
+    const parentObject = tempTherapistData[parentKey];
+    if (!parentObject || typeof parentObject !== 'object') return;
+
+    // Type assertion for the child object
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const childObject = (parentObject as Record<string, any>)[childKey];
+    if (!Array.isArray(childObject)) return;
+
+    const newArray = [...childObject];
+    newArray.splice(index, 1);
+
+    setTempTherapistData({
+      ...tempTherapistData,
+      [parentKey]: {
+        ...parentObject,
+        [childKey]: newArray
+      }
+    });
+  };
 
   useEffect(() => {
     if (storedToken !== null) {
       const decodedToken = decodeToken(storedToken as string);
       if (decodedToken?.userId) {
         getTherapist(decodedToken.userId._id)
-        // setTherapistId(decodedToken.userId._id)
+        setTherapistId(decodedToken.userId._id)
       } else {
         router.push('/')
       }
@@ -269,7 +402,7 @@ export default function TherapistProfile() {
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-teal-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header with Edit Button */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row sm:justify-between gap-5 sm:items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Therapist Profile</h1>
           {isEditing ? (
             <div className="flex space-x-3">
@@ -287,20 +420,22 @@ export default function TherapistProfile() {
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700"
-            >
-              <FaEdit className="mr-2" />
-              Edit Profile
-            </button>
+            <div>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700"
+              >
+                <FaEdit className="mr-2" />
+                Edit Profile
+              </button>
+            </div>
           )}
         </div>
 
         {/* Profile Header */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-teal-100">
           <div className="px-6 py-8 sm:flex sm:items-center sm:justify-between">
-            <div className="flex items-center">
+            <div className="flex flex-col gap-4 sm:flex-row items-center">
               <div className="flex-shrink-0 relative">
                 <div className="bg-gradient-to-br from-teal-500 to-teal-700 rounded-full p-1">
                   <div className="bg-white p-1 rounded-full">
@@ -312,12 +447,12 @@ export default function TherapistProfile() {
                         src={previewUrl}
                         alt="Profile preview"
                       />
-                    ) : therapist.profile_pic ? (
+                    ) : therapist.profile_image ? (
                       <Image
                         className="h-24 w-24 rounded-full object-cover border-4 border-white"
                         width={96}
                         height={96}
-                        src={therapist.profile_pic}
+                        src={therapist.profile_image}
                         alt={therapist.name}
                       />
                     ) : (
@@ -366,30 +501,33 @@ export default function TherapistProfile() {
                 )}
 
                 {isEditing ? (
-                  <div className="mt-2">
+                  <div className="bg-white p-4 rounded-xl shadow-sm">
                     <div className="flex flex-wrap gap-2">
-                      {tempTherapistData.specialization.map((spec: string, index: number) => (
-                        <div key={index} className="flex items-center">
+                      {tempTherapistData?.specialization?.map((spec, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center bg-gradient-to-r from-teal-50 to-teal-100 rounded-xl pl-3 pr-1 py-1"
+                        >
                           <input
-                            type="text"
                             value={spec}
                             onChange={(e) => handleArrayChange('specialization', index, e.target.value)}
-                            className="px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-medium w-32"
+                            className="bg-transparent text-teal-800 focus:outline-none w-40 text-sm"
+                            placeholder="Add specialization"
                           />
                           <button
                             onClick={() => removeArrayItem('specialization', index)}
-                            className="ml-1 text-red-500"
+                            className="text-teal-500 hover:text-teal-700 ml-1 transition-colors"
                           >
-                            <FaTimes />
+                            <FaTimes size={14} />
                           </button>
                         </div>
                       ))}
                     </div>
                     <button
-                      onClick={() => addArrayItem('specialization', 'New Specialization')}
-                      className="mt-2 text-xs text-teal-600 flex items-center"
+                      onClick={() => addArrayItem('specialization', '')}
+                      className="text-teal-600 hover:text-teal-800 text-sm flex mt-2 items-center transition-colors"
                     >
-                      <FaPlus className="mr-1" /> Add Specialization
+                      <FaPlus className="mr-1" size={12} /> Add Specialization
                     </button>
                   </div>
                 ) : (
@@ -410,7 +548,7 @@ export default function TherapistProfile() {
 
                 )}
 
-                <div className="flex items-center mt-4">
+                <div className="flex flex-col gap-2 sm:flex-row justify-center sm:justify-start items-center mt-4">
                   <div className="flex items-center text-sm text-gray-600">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-teal-600 mr-1" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -418,9 +556,10 @@ export default function TherapistProfile() {
                     {isEditing ? (
                       <input
                         type="number"
-                        value={tempTherapistData.academic_background?.years_of_experience || 0}
+                        value={tempTherapistData.academic_background?.years_of_experience}
+                        placeholder='Years of Experience'
                         onChange={(e) => handleNestedInputChange('academic_background', 'years_of_experience', e.target.value)}
-                        className="ml-1 bg-teal-50 rounded-lg px-2 py-1 w-16"
+                        className="ml-1 bg-teal-50 rounded-lg px-2 py-1 w-40"
                       />
                     ) : (
                       <span className="text-sm text-gray-700">
@@ -433,7 +572,7 @@ export default function TherapistProfile() {
 
                     )}
                   </div>
-                  <span className="mx-3 text-gray-300">|</span>
+                  <span className="mx-3 hidden sm:inline text-gray-300">|</span>
                   <div className="flex items-center text-sm text-gray-600">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-teal-600 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -445,14 +584,14 @@ export default function TherapistProfile() {
                           value={tempTherapistData.location?.city || ''}
                           onChange={(e) => handleNestedInputChange('location', 'city', e.target.value)}
                           placeholder="City"
-                          className="bg-teal-50 rounded-lg px-2 py-1 w-24"
+                          className="bg-teal-50 rounded-lg px-2 py-1 w-32"
                         />
                         <input
                           type="text"
                           value={tempTherapistData.location?.country || ''}
                           onChange={(e) => handleNestedInputChange('location', 'country', e.target.value)}
                           placeholder="Country"
-                          className="bg-teal-50 rounded-lg px-2 py-1 w-24"
+                          className="bg-teal-50 rounded-lg px-2 py-1 w-32"
                         />
                       </div>
                     ) : (
@@ -478,36 +617,53 @@ export default function TherapistProfile() {
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
                   </svg>
                 </div>
-                <p className="text-2xl font-bold mt-1">
+                <div className="text-2xl font-bold mt-1">
                   {isEditing ? (
-                    <div className="flex items-center">
-                      <span className="mr-1">{therapist.session_details?.currency}</span>
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={tempTherapistData.session_details?.currency || 'USD'}
+                        style={{
+                          scrollbarWidth: 'thin',
+                          scrollbarColor: 'teal'
+                        }}
+                        onChange={(e) => handleNestedInputChange('session_details', 'currency', e.target.value)}
+                        className="bg-teal-600 bg-opacity-50 rounded px-2 py-1 text-sm"
+                      >
+                        {['$', '₹', '€', '£', '¥', '¥', 'A$', 'C$', 'CHF', 'S$', 'HK$', 'NZ$', 'kr', 'kr', 'kr', 'R', 'R$', '₽', '₩', 'Mex$', 'AED', '฿', 'RM', 'Rp', '₫'].map((currency, index) => (
+                          <option key={index} value={currency}>
+                            {currency}
+                          </option>
+                        ))}
+                      </select>
                       <input
                         type="number"
-                        value={tempTherapistData.session_details?.cost || 0}
+                        value={tempTherapistData.session_details?.cost}
+                        placeholder="Cost"
                         onChange={(e) => handleNestedInputChange('session_details', 'cost', e.target.value)}
                         className="w-20 bg-teal-600 bg-opacity-50 rounded px-2 py-1"
                       />
                     </div>
                   ) : (
                     <span className="text-sm ">
-                      {therapist.session_details?.currency && therapist.session_details?.cost ? (
-                        `${therapist.session_details.currency} ${therapist.session_details.cost}`
+                      {therapist.session_details?.cost ? (
+                        `${therapist.session_details?.currency || '₹'} ${therapist.session_details.cost}`
                       ) : (
                         <span className="italic">Add your session cost</span>
                       )}
                     </span>
                   )}
                   <span className="text-base font-normal"> / session</span>
-                </p>
-                <p className="text-sm opacity-90 mt-1">
+                </div>
+
+                <div className="text-sm opacity-90 mt-1">
                   {isEditing ? (
                     <div className="flex items-center">
                       <input
                         type="number"
-                        value={tempTherapistData.session_details?.duration || 0}
+                        value={tempTherapistData.session_details?.duration}
+                        placeholder='Duration'
                         onChange={(e) => handleNestedInputChange('session_details', 'duration', e.target.value)}
-                        className="w-16 bg-teal-600 bg-opacity-50 rounded px-2 py-1"
+                        className="w-24 bg-teal-600 bg-opacity-50 rounded px-2 py-1"
                       />
                       <span className="ml-1">minutes per session</span>
                     </div>
@@ -521,7 +677,7 @@ export default function TherapistProfile() {
                     </span>
 
                   )}
-                </p>
+                </div>
               </div>
             </div>
           </div>
@@ -537,16 +693,17 @@ export default function TherapistProfile() {
           </h2>
           {isEditing ? (
             <textarea
-              name="about"
-              value={tempTherapistData.bio}
+              name="bio"
+              value={tempTherapistData?.bio}
+              placeholder='Add something about yourself'
               onChange={handleInputChange}
               rows={4}
               className="w-full p-3 border rounded-lg bg-teal-50"
             />
           ) : (
             <p className="text-gray-600 leading-relaxed">
-              {therapist.bio ? (
-                therapist.bio
+              {therapist?.bio ? (
+                therapist?.bio
               ) : (
                 <span className="text-gray-500 italic">Add something about yourself</span>
               )}
@@ -647,7 +804,7 @@ export default function TherapistProfile() {
 
             {/* Qualifications */}
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-teal-100">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-teal-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path d="M12 14l9-5-9-5-9 5 9 5z" />
                   <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
@@ -656,69 +813,35 @@ export default function TherapistProfile() {
                 Education & Qualifications
               </h2>
               {isEditing ? (
-                <div>
-                  {tempTherapistData.academic_background?.qualification?.map((q: string, index: number) => (
-                    <div key={index} className="flex items-start mb-2">
-                      <input
-                        type="text"
-                        value={q}
-                        onChange={(e) => {
-                          const newQualifications = [...tempTherapistData.academic_background.qualification];
-                          newQualifications[index] = e.target.value;
-                          setTempTherapistData({
-                            ...tempTherapistData,
-                            academic_background: {
-                              ...tempTherapistData.academic_background,
-                              qualification: newQualifications
-                            }
-                          });
-                        }}
-                        className="w-full bg-teal-50 rounded-lg px-3 py-2"
-                      />
-                      <button
-                        onClick={() => {
-                          const newQualifications = [...tempTherapistData.academic_background.qualification];
-                          newQualifications.splice(index, 1);
-                          setTempTherapistData({
-                            ...tempTherapistData,
-                            academic_background: {
-                              ...tempTherapistData.academic_background,
-                              qualification: newQualifications
-                            }
-                          });
-                        }}
-                        className="ml-2 text-red-500 mt-2"
-                      >
-                        <FaTimes />
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    onClick={() => {
-                      const newQualifications = [...tempTherapistData.academic_background.qualification, ''];
-                      setTempTherapistData({
-                        ...tempTherapistData,
-                        academic_background: {
-                          ...tempTherapistData.academic_background,
-                          qualification: newQualifications
-                        }
-                      });
-                    }}
-                    className="mt-2 text-sm text-teal-600 flex items-center"
-                  >
-                    <FaPlus className="mr-1" /> Add Qualification
-                  </button>
-
-                  <div className="mt-4">
-                    <label className="text-sm text-gray-500">Years of Experience</label>
-                    <input
-                      type="number"
-                      value={tempTherapistData.academic_background?.years_of_experience || 0}
-                      onChange={(e) => handleNestedInputChange('academic_background', 'years_of_experience', e.target.value)}
-                      className="w-full bg-teal-50 rounded-lg px-3 py-2"
-                    />
+                <div className="bg-white p-4 rounded-xl shadow-sm">
+                  <div className="space-y-2">
+                    {tempTherapistData?.academic_background?.qualification?.map((q, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <div className="flex-grow relative">
+                          <input
+                            value={q}
+                            onChange={(e) => handleNestedArrayChange('academic_background', 'qualification', index, e.target.value)}
+                            className="w-full bg-teal-50 rounded-lg px-4 py-2 text-teal-800 focus:ring-2 focus:ring-teal-300 focus:outline-none"
+                            placeholder="Degree or certification"
+                          />
+                        </div>
+                        <button
+                          onClick={() => removeNestedArrayItem('academic_background', 'qualification', index)}
+                          className="text-red-400 hover:text-red-600 transition-colors"
+                        >
+                          <FaTimes size={16} />
+                        </button>
+                      </div>
+                    ))}
                   </div>
+                  <button
+                    onClick={() => addNestedArrayItem('academic_background', 'qualification', '')}
+                    className="text-teal-600 hover:text-teal-800 text-sm mt-2 flex items-center transition-colors"
+                  >
+                    <FaPlus className="mr-1" size={12} /> Add Qualification
+                  </button>
                 </div>
+
               ) : (
                 <ul className="space-y-3">
                   {therapist.academic_background?.qualification && therapist.academic_background.qualification.length > 0 ? (
@@ -755,30 +878,32 @@ export default function TherapistProfile() {
                 Languages Spoken
               </h2>
               {isEditing ? (
-                <div>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {tempTherapistData.languages?.map((lang: string, index: number) => (
-                      <div key={index} className="flex items-center">
+                <div className="bg-white p-4 rounded-xl shadow-sm">
+                  <div className="flex flex-wrap gap-2">
+                    {tempTherapistData?.languages?.map((lang, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center bg-gradient-to-r from-teal-50 to-teal-100 rounded-xl pl-4 pr-2 py-1"
+                      >
                         <input
-                          type="text"
                           value={lang}
                           onChange={(e) => handleArrayChange('languages', index, e.target.value)}
-                          className="px-4 py-2 bg-gradient-to-r from-teal-50 to-teal-100 text-teal-800 rounded-full text-sm font-medium"
+                          className="bg-transparent text-teal-800 focus:outline-none w-24 text-sm"
                         />
                         <button
                           onClick={() => removeArrayItem('languages', index)}
-                          className="ml-1 text-red-500"
+                          className="text-teal-500 hover:text-teal-700 ml-1 transition-colors"
                         >
-                          <FaTimes />
+                          <FaTimes size={14} />
                         </button>
                       </div>
                     ))}
                   </div>
                   <button
-                    onClick={() => addArrayItem('languages', 'en')}
-                    className="text-sm text-teal-600 flex items-center"
+                    onClick={() => addArrayItem('languages', '')}
+                    className="text-teal-600 hover:text-teal-800 text-sm mt-2 flex items-center transition-colors"
                   >
-                    <FaPlus className="mr-1" /> Add Language
+                    <FaPlus className="mr-1" size={12} /> Add Language
                   </button>
                 </div>
               ) : (
@@ -813,10 +938,10 @@ export default function TherapistProfile() {
             <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-teal-100">
               {/* Appointment Tabs */}
               <div className="border-b border-gray-200 bg-gradient-to-r from-teal-50 to-teal-100">
-                <nav className="flex">
+                <nav className="flex flex-col sm:flex-row">
                   <button
                     onClick={() => setActiveTab('future')}
-                    className={`py-5 px-8 text-center font-medium text-base flex items-center ${activeTab === 'future'
+                    className={`py-5 px-8 text-center font-medium text-base flex justify-center sm:justify-start items-center ${activeTab === 'future'
                       ? 'border-b-2 border-teal-500 text-teal-700 bg-white shadow-sm'
                       : 'text-gray-600 hover:text-teal-600'
                       }`}
@@ -831,7 +956,7 @@ export default function TherapistProfile() {
                   </button>
                   <button
                     onClick={() => setActiveTab('past')}
-                    className={`py-5 px-8 text-center font-medium text-base flex items-center ${activeTab === 'past'
+                    className={`py-5 px-8 text-center font-medium text-base flex justify-center sm:justify-start items-center ${activeTab === 'past'
                       ? 'border-b-2 border-teal-500 text-teal-700 bg-white shadow-sm'
                       : 'text-gray-600 hover:text-teal-600'
                       }`}
@@ -978,8 +1103,9 @@ function AppointmentList({
       <ul className="divide-y divide-gray-100">
         {appointments.map((appointment) => (
           <li key={appointment.id} className="py-4 hover:bg-gray-50 rounded-lg px-3 transition-colors">
-            <div className="flex items-center">
-              <div className="relative">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              {/* Client Avatar with Status */}
+              <div className="flex-shrink-0 relative">
                 {appointment.client.profilePic ? (
                   <Image
                     className="h-14 w-14 rounded-full object-cover border-2 border-white shadow"
@@ -1000,20 +1126,26 @@ function AppointmentList({
                     'bg-red-500'
                   }`}></div>
               </div>
-              <div className="ml-4 flex-1 min-w-0">
-                <div className="flex items-center justify-between">
+
+              {/* Client Info */}
+              <div className="flex-1 min-w-0 w-full">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <h3 className="text-base font-semibold text-gray-900 truncate">
                     {appointment.client.name}
                   </h3>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${appointment.status === 'scheduled' ? 'bg-yellow-100 text-yellow-800' :
-                    appointment.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                    {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                  </span>
+                  <div className='sm:flex sm:items-center sm:justify-center'>
+                    <span className={`inline-flex items-center px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs font-medium ${appointment.status === 'scheduled' ? 'bg-yellow-100 text-yellow-800' :
+                      appointment.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                      {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+                    </span>
+                  </div>
                 </div>
-                <div className="mt-1 flex flex-wrap items-center text-sm text-gray-500">
-                  <div className="flex items-center mr-4">
+
+                {/* Appointment Details */}
+                <div className="mt-2 grid grid-cols-2 sm:flex sm:flex-wrap items-center text-sm text-gray-500 gap-y-2">
+                  <div className="flex items-center col-span-1">
                     <svg
                       className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"
                       fill="currentColor"
@@ -1025,7 +1157,7 @@ function AppointmentList({
                         clipRule="evenodd"
                       />
                     </svg>
-                    <span>
+                    <span className="truncate">
                       {appointment.date.toLocaleDateString('en-US', {
                         weekday: 'short',
                         month: 'short',
@@ -1033,7 +1165,8 @@ function AppointmentList({
                       })}
                     </span>
                   </div>
-                  <div className="flex items-center mr-4">
+
+                  <div className="flex items-center col-span-1">
                     <svg
                       className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"
                       fill="none"
@@ -1042,14 +1175,15 @@ function AppointmentList({
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span>
+                    <span className="truncate">
                       {appointment.date.toLocaleTimeString('en-US', {
                         hour: '2-digit',
                         minute: '2-digit',
                       })}
                     </span>
                   </div>
-                  <div className="flex items-center">
+
+                  <div className="flex items-center col-span-2">
                     <svg
                       className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"
                       fill="none"
@@ -1058,14 +1192,16 @@ function AppointmentList({
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span>
-                      {appointment.duration} min
+                    <span className="truncate">
+                      {appointment.duration} min session
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="ml-4 flex-shrink-0">
-                <button className="inline-flex items-center px-3 py-1.5 border border-teal-200 shadow-sm text-sm font-medium rounded-lg text-teal-700 bg-teal-50 hover:bg-teal-100 focus:outline-none">
+
+              {/* Action Button - moves to bottom on mobile */}
+              <div className="w-full sm:w-auto sm:flex-shrink-0 sm:ml-4 mt-2 sm:mt-0">
+                <button className="w-full sm:w-auto inline-flex justify-center items-center px-3 py-1.5 border border-teal-200 shadow-sm text-sm font-medium rounded-lg text-teal-700 bg-teal-50 hover:bg-teal-100 focus:outline-none">
                   View Details
                 </button>
               </div>

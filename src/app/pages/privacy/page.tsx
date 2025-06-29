@@ -264,14 +264,14 @@ const PrivacyPolicyPage = () => {
                                 <h3 className="font-bold text-lg mb-3">Email</h3>
                                 <a
                                     href="mailto:privacy@stayunfiltered.com"
-                                    className="text-xl hover:underline"
+                                    className="sm:text-xl hover:underline"
                                 >
                                     privacy@stayunfiltered.com
                                 </a>
                             </div>
 
                             <div className="bg-teal-700/30 p-6 rounded-xl">
-                                <h3 className="font-bold text-lg mb-3">Registered Office</h3>
+                                <h3 className="font-bold sm:text-lg mb-3">Registered Office</h3>
                                 <p className="mb-1">StayUnfiltered Technologies Pvt. Ltd.</p>
                                 <p>123 Privacy Lane, Tech District</p>
                                 <p>Bangalore, Karnataka 560001</p>

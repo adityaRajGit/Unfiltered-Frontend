@@ -127,17 +127,12 @@ const FAQPage = () => {
     );
 
     const [searchQuery, setSearchQuery] = useState("");
-    const [activeTab, setActiveTab] = useState("all");
 
-    const filteredQuestions = activeTab === "all"
-        ? allQuestions.filter(q =>
-            q.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            q.answer.toString().toLowerCase().includes(searchQuery.toLowerCase()))
-        : allQuestions.filter(q =>
-            q.category === activeTab && (
-                q.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                q.answer.toString().toLowerCase().includes(searchQuery.toLowerCase())
-            ));
+    const filteredQuestions = allQuestions.filter(q =>
+    q.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    q.answer.toString().toLowerCase().includes(searchQuery.toLowerCase())
+);
+
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white">
@@ -173,30 +168,6 @@ const FAQPage = () => {
                         >
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                    </div>
-
-                    <div className="flex flex-wrap gap-3 mb-8">
-                        <button
-                            onClick={() => setActiveTab("all")}
-                            className={`px-5 py-2 rounded-full font-medium transition-colors ${activeTab === "all"
-                                    ? "bg-teal-600 text-white"
-                                    : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-                                }`}
-                        >
-                            All Topics
-                        </button>
-                        {faqCategories.map((category) => (
-                            <button
-                                key={category.title}
-                                onClick={() => setActiveTab(category.title)}
-                                className={`px-5 py-2 rounded-full font-medium transition-colors ${activeTab === category.title
-                                        ? "bg-teal-600 text-white"
-                                        : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-                                    }`}
-                            >
-                                {category.title}
-                            </button>
-                        ))}
                     </div>
                 </div>
 

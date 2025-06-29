@@ -17,7 +17,7 @@ interface User {
   name: string;
   email: string;
   phone: string;
-  profile_pic: string;
+  profile_image: string;
   bio: string;
 }
 
@@ -118,14 +118,6 @@ const UserProfilePage = () => {
     ]
   };
 
-  const handleEditToggle = () => {
-    if (isEditing) {
-      if (!tempUserData) return;
-      updateProfile()
-    }
-    setIsEditing(!isEditing);
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     if (!tempUserData) return;
@@ -143,7 +135,7 @@ const UserProfilePage = () => {
 
       // Update tempUserData with preview URL for UI
       if (tempUserData) {
-        setTempUserData({ ...tempUserData, profile_pic: objectUrl });
+        setTempUserData({ ...tempUserData, profile_image: objectUrl });
       }
     }
   };
@@ -157,20 +149,19 @@ const UserProfilePage = () => {
 
       // Append all user data fields
       if (tempUserData) {
-        formData.append('name', tempUserData.name);
-        formData.append('email', tempUserData.email);
-        formData.append('phone', tempUserData.phone);
-        formData.append('bio', tempUserData.bio);
+        formData.append('name', tempUserData.name || '');
+        formData.append('email', tempUserData.email || '');
+        formData.append('phone', tempUserData.phone || '');
+        formData.append('bio', tempUserData.bio || '');
       }
 
       // Append new profile picture if selected
       if (file) {
-        formData.append('profile_pic', file);
+        formData.append('img', file);
       }
 
-      // Dispatch update action with FormData
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const response = await dispatch(updateUserDetails(userId as any, formData as any) as any);
+      const response = await dispatch(updateUserDetails({ id: userId, formData } as any) as any);
 
       if (response?.error) {
         toast.error(response.error.message);
@@ -178,6 +169,7 @@ const UserProfilePage = () => {
         // Refresh user data
         getUser(userId);
         toast.success('Profile updated successfully!');
+        setIsEditing(false);
 
         // Clean up preview URL
         if (previewUrl) {
@@ -236,15 +228,32 @@ const UserProfilePage = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4 md:mb-0">My Profile</h1>
-          <div className="flex space-x-3">
-            <button
-              onClick={handleEditToggle}
-              className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700 transition-colors"
-            >
-              <FaEdit className="mr-2" />
-              {isEditing ? "Save Changes" : "Edit Profile"}
-            </button>
-          </div>
+          {isEditing ? (
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setIsEditing(false)}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={updateProfile}
+                className="px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700"
+              >
+                Save Changes
+              </button>
+            </div>
+          ) : (
+            <div>
+              <button
+                onClick={() => setIsEditing(true)}
+                className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700"
+              >
+                <FaEdit className="mr-2" />
+                Edit Profile
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -266,9 +275,9 @@ const UserProfilePage = () => {
                           height={96}
                           className="object-cover w-full h-full"
                         />
-                      ) : user?.profile_pic ? (
+                      ) : user?.profile_image ? (
                         <Image
-                          src={user.profile_pic}
+                          src={user?.profile_image}
                           alt="Profile"
                           width={96}
                           height={96}
@@ -417,7 +426,7 @@ const UserProfilePage = () => {
           {/* Right Column - Appointments */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-2xl shadow-md p-6">
-              <div className="flex border-b border-gray-200 mb-6">
+              <div className="flex flex-col sm:flex-row border-b border-gray-200 mb-6">
                 <button
                   onClick={() => setActiveTab('upcoming')}
                   className={`px-4 py-2 font-medium relative ${activeTab === 'upcoming' ? 'text-teal-600' : 'text-gray-500 hover:text-gray-700'}`}
@@ -439,72 +448,80 @@ const UserProfilePage = () => {
               </div>
 
               {activeTab === 'upcoming' ? (
-                <div className="space-y-6">
-                  {appointments.upcoming.map((appointment) => (
-                    <div key={appointment.id} className="border border-gray-200 rounded-xl p-5 hover:border-teal-300 transition-colors">
-                      <div className="flex flex-col sm:flex-row sm:items-start">
-                        <div className="flex-shrink-0 mb-4 sm:mb-0 sm:mr-6">
-                          <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200">
-                            <Image
-                              src={appointment.image}
-                              alt={appointment.therapist}
-                              width={64}
-                              height={64}
-                              className="object-cover w-full h-full"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="flex-1">
-                          <div className="flex flex-wrap justify-between gap-4">
-                            <div>
-                              <h3 className="font-bold text-gray-900">{appointment.therapist}</h3>
-                              <div className="flex items-center text-sm text-gray-500 mt-1">
-                                <FaCalendarAlt className="mr-2 text-teal-600" />
-                                <span>{appointment.date}</span>
-                                <span className="mx-2">•</span>
-                                <FaClock className="mr-2 text-teal-600" />
-                                <span>{appointment.time}</span>
-                              </div>
-                              <div className="mt-2">
-                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${appointment.status === 'paid'
-                                  ? 'bg-green-100 text-green-800'
-                                  : 'bg-yellow-100 text-yellow-800'
-                                  }`}>
-                                  {appointment.status === 'paid' ? 'Confirmed' : 'Payment Pending'}
-                                </span>
-                                <span className="ml-2 text-sm text-gray-700">{appointment.amount}</span>
-                              </div>
+                <div className="space-y-4 md:space-y-6">
+                  {appointments.upcoming.length > 0 ? (
+                    appointments.upcoming.map((appointment) => (
+                      <div key={appointment.id} className="border border-gray-200 rounded-xl p-4 md:p-5 hover:border-teal-300 transition-colors">
+                        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                          {/* Therapist Image */}
+                          <div className="flex-shrink-0 mx-auto sm:mx-0">
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-gray-200">
+                              <Image
+                                src={appointment.image}
+                                alt={appointment.therapist}
+                                width={64}
+                                height={64}
+                                className="object-cover w-full h-full"
+                              />
                             </div>
+                          </div>
 
-                            <div className="flex flex-col sm:items-end">
-                              <Link
-                                href={appointment.meetLink}
-                                className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors mb-2"
-                              >
-                                <FaVideo className="mr-2" />
-                                Join Session
-                              </Link>
-                              <button className="text-sm text-teal-600 hover:text-teal-800">
-                                Reschedule
-                              </button>
+                          {/* Appointment Details */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-col md:flex-row md:justify-between gap-4">
+                              <div className="space-y-2">
+                                <h3 className="font-bold text-gray-900 text-base md:text-lg">{appointment.therapist}</h3>
+
+                                <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 text-sm text-gray-500">
+                                  <div className="flex items-center">
+                                    <FaCalendarAlt className="mr-2 text-teal-600 min-w-[16px]" />
+                                    <span>{appointment.date}</span>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <FaClock className="mr-2 text-teal-600 min-w-[16px]" />
+                                    <span>{appointment.time}</span>
+                                  </div>
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs font-medium ${appointment.status === 'paid'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-yellow-100 text-yellow-800'
+                                    }`}>
+                                    {appointment.status === 'paid' ? 'Confirmed' : 'Payment Pending'}
+                                  </span>
+                                  <span className="text-sm text-gray-700">{appointment.amount}</span>
+                                </div>
+                              </div>
+
+                              {/* Action Buttons */}
+                              <div className="flex flex-col sm:items-end gap-2">
+                                <Link
+                                  href={appointment.meetLink}
+                                  className="flex items-center justify-center px-3 py-1.5 md:px-4 md:py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm md:text-base"
+                                >
+                                  <FaVideo className="mr-2" />
+                                  Join Session
+                                </Link>
+                                <button className="text-sm text-teal-600 hover:text-teal-800 text-right">
+                                  Reschedule
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-
-                  {appointments.upcoming.length === 0 && (
-                    <div className="text-center py-12">
-                      <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                        <FaCalendarAlt className="text-2xl text-gray-500" />
+                    ))
+                  ) : (
+                    <div className="text-center py-8 md:py-12">
+                      <div className="bg-gray-200 border-2 border-dashed rounded-xl w-14 h-14 md:w-16 md:h-16 mx-auto mb-4 flex items-center justify-center">
+                        <FaCalendarAlt className="text-xl md:text-2xl text-gray-500" />
                       </div>
-                      <h3 className="text-xl font-medium text-gray-900 mb-2">No upcoming appointments</h3>
-                      <p className="text-gray-600 mb-6">Schedule a session with your therapist to get started</p>
+                      <h3 className="text-lg md:text-xl font-medium text-gray-900 mb-2">No upcoming appointments</h3>
+                      <p className="text-gray-600 mb-4 md:mb-6 max-w-md mx-auto">Schedule a session with your therapist to get started</p>
                       <Link
                         href="/therapists"
-                        className="inline-flex items-center px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+                        className="inline-flex items-center px-4 py-2 md:px-6 md:py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-sm md:text-base"
                       >
                         <FaUserMd className="mr-2" />
                         Find a Therapist
@@ -513,67 +530,78 @@ const UserProfilePage = () => {
                   )}
                 </div>
               ) : (
-                <div className="space-y-6">
-                  {appointments.past.map((appointment) => (
-                    <div key={appointment.id} className="border border-gray-200 rounded-xl p-5">
-                      <div className="flex flex-col sm:flex-row sm:items-start">
-                        <div className="flex-shrink-0 mb-4 sm:mb-0 sm:mr-6">
-                          <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200">
-                            <Image
-                              src={appointment.image}
-                              alt={appointment.therapist}
-                              width={64}
-                              height={64}
-                              className="object-cover w-full h-full"
-                            />
+                <div className="space-y-4 md:space-y-6">
+                  {appointments.past.length > 0 ? (
+                    appointments.past.map((appointment) => (
+                      <div key={appointment.id} className="border border-gray-200 rounded-xl p-4 md:p-5">
+                        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                          {/* Therapist Image */}
+                          <div className="flex-shrink-0 mx-auto sm:mx-0">
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-gray-200">
+                              <Image
+                                src={appointment.image}
+                                alt={appointment.therapist}
+                                width={64}
+                                height={64}
+                                className="object-cover w-full h-full"
+                              />
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="flex-1">
-                          <div className="flex flex-wrap justify-between gap-4">
-                            <div>
-                              <h3 className="font-bold text-gray-900">{appointment.therapist}</h3>
-                              <div className="flex items-center text-sm text-gray-500 mt-1">
-                                <FaCalendarAlt className="mr-2 text-teal-600" />
-                                <span>{appointment.date}</span>
-                                <span className="mx-2">•</span>
-                                <FaClock className="mr-2 text-teal-600" />
-                                <span>{appointment.time}</span>
-                              </div>
-                              <div className="mt-2 flex items-center">
-                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                  Completed
-                                </span>
-                                <div className="ml-3 flex items-center text-yellow-400">
-                                  {[...Array(5)].map((_, i) => (
-                                    <FaStar key={i} className={i < appointment.rating ? "fill-current" : "fill-gray-300"} />
-                                  ))}
+                          {/* Appointment Details */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-col md:flex-row md:justify-between gap-4">
+                              <div className="space-y-2">
+                                <h3 className="font-bold text-gray-900 text-base md:text-lg">{appointment.therapist}</h3>
+
+                                <div className="flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 text-sm text-gray-500">
+                                  <div className="flex items-center">
+                                    <FaCalendarAlt className="mr-2 text-teal-600 min-w-[16px]" />
+                                    <span>{appointment.date}</span>
+                                  </div>
+                                  <div className="flex items-center">
+                                    <FaClock className="mr-2 text-teal-600 min-w-[16px]" />
+                                    <span>{appointment.time}</span>
+                                  </div>
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-3">
+                                  <span className="px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                    Completed
+                                  </span>
+                                  <div className="flex items-center">
+                                    {[...Array(5)].map((_, i) => (
+                                      <FaStar
+                                        key={i}
+                                        className={`w-3 h-3 md:w-4 md:h-4 ${i < appointment.rating ? "text-yellow-400" : "text-gray-300"}`}
+                                      />
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
 
-                            <div className="flex flex-col sm:items-end">
-                              <button className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors mb-2">
-                                <FaHistory className="mr-2" />
-                                View Notes
-                              </button>
-                              <button className="text-sm text-teal-600 hover:text-teal-800">
-                                Book Again
-                              </button>
+                              {/* Action Buttons */}
+                              <div className="flex flex-col sm:items-end gap-2">
+                                <button className="flex items-center justify-center px-3 py-1.5 md:px-4 md:py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm md:text-base">
+                                  <FaHistory className="mr-2" />
+                                  View Notes
+                                </button>
+                                <button className="text-sm text-teal-600 hover:text-teal-800 text-right">
+                                  Book Again
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-
-                  {appointments.past.length === 0 && (
-                    <div className="text-center py-12">
-                      <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                        <FaHistory className="text-2xl text-gray-500" />
+                    ))
+                  ) : (
+                    <div className="text-center py-8 md:py-12">
+                      <div className="bg-gray-200 border-2 border-dashed rounded-xl w-14 h-14 md:w-16 md:h-16 mx-auto mb-4 flex items-center justify-center">
+                        <FaHistory className="text-xl md:text-2xl text-gray-500" />
                       </div>
-                      <h3 className="text-xl font-medium text-gray-900 mb-2">No past appointments</h3>
-                      <p className="text-gray-600">Your completed therapy sessions will appear here</p>
+                      <h3 className="text-lg md:text-xl font-medium text-gray-900 mb-2">No past appointments</h3>
+                      <p className="text-gray-600 max-w-md mx-auto">Your completed therapy sessions will appear here</p>
                     </div>
                   )}
                 </div>
