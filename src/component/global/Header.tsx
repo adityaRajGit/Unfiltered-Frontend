@@ -83,7 +83,7 @@ export const Header = () => {
     const navItems = [
         { name: 'Home', href: '/' },
         { name: 'Corporate Wellness', href: '/pages/corporate' },
-        { name: 'Community', href: '/community' },
+        { name: 'Blogs', href: '/pages/blogs' },
         { name: 'Therapy', href: '/counsellor' },
         { name: 'About', href: '/pages/about' },
         { name: 'FAQ', href: '/pages/faq' },

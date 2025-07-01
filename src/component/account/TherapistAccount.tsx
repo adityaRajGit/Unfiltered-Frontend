@@ -6,10 +6,11 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { LoadingSpinnerWithOverlay } from '../global/Loading';
-import { getTherapistDetails, updateTherapistDetails } from '@/store/therapistSlice';
+import { getTherapistDetails, therapistProfileStatus, updateTherapistDetails } from '@/store/therapistSlice';
 import { toast } from 'react-toastify';
 import { FaEdit, FaPlus, FaTimes, FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
 import { getInitials } from '@/utils/GetInitials';
+import { AppointmentList } from './AppointmentList';
 
 interface Therapist {
   name: string;
@@ -55,6 +56,8 @@ export default function TherapistProfile() {
   const [tempTherapistData, setTempTherapistData] = useState<Therapist | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [profileCompletion, setProfileCompletion] = useState(0);
+  const [animatedProgress, setAnimatedProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dispatch = useDispatch()
   const router = useRouter()
@@ -130,6 +133,18 @@ export default function TherapistProfile() {
     }
   }
 
+  async function profileStatus(id: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(therapistProfileStatus(id as any) as any)
+    if (response?.error) {
+      setLoading(false)
+      toast.error(response.error.message)
+    } else {
+      setLoading(false)
+      setProfileCompletion(response.payload.data.percent)
+    }
+  }
+
   async function updateProfile() {
     setLoading(true);
 
@@ -191,6 +206,7 @@ export default function TherapistProfile() {
       } else {
         // Refresh user data
         getTherapist(therapistId);
+        profileStatus(therapistId);
         setIsEditing(false);
         toast.success('Profile updated successfully!');
 
@@ -302,10 +318,10 @@ export default function TherapistProfile() {
     value: string
   ) => {
     if (!tempTherapistData) return;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const parentObject = tempTherapistData[parentKey] as Record<string, any> | undefined;
     if (!parentObject) return;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const childArray = parentObject[childKey] as any[] | undefined;
     if (!Array.isArray(childArray)) return;
 
@@ -327,13 +343,13 @@ export default function TherapistProfile() {
     defaultValue = ''
   ) => {
     if (!tempTherapistData) return;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const parentObject = tempTherapistData[parentKey] as Record<string, any> | undefined;
 
     const updatedParent = parentObject ? { ...parentObject } : {};
 
     const childArray = Array.isArray(updatedParent[childKey])
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ? [...updatedParent[childKey] as any[]]
       : [];
 
@@ -382,6 +398,7 @@ export default function TherapistProfile() {
       if (decodedToken?.userId) {
         getTherapist(decodedToken.userId._id)
         setTherapistId(decodedToken.userId._id)
+        profileStatus(decodedToken.userId._id)
       } else {
         router.push('/')
       }
@@ -389,6 +406,16 @@ export default function TherapistProfile() {
       router.push('/')
     }
   }, [storedToken, router])
+
+  useEffect(() => {
+    // Animation effect
+    const timer = setTimeout(() => {
+      setAnimatedProgress(profileCompletion);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [profileCompletion]);
+
 
   if (loading || !therapist || !tempTherapistData) {
     return (
@@ -401,6 +428,34 @@ export default function TherapistProfile() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-teal-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
+        {/* Profile completion status */}
+        <div className="w-full mx-auto p-4">
+          {/* Status message */}
+          <div className="text-center mb-2">
+            <p className="text-gray-600 text-sm md:text-base">
+              {animatedProgress < 50
+                ? "Keep going! Add more details to boost your profile."
+                : animatedProgress < 100
+                  ? "Great progress! Just a few more details needed. After that, your therapies will be live."
+                  : "Congratulations! Your profile is complete!"}
+            </p>
+          </div>
+
+          {/* Progress bar */}
+          <div className="w-full bg-gray-300 rounded-full h-3 md:h-4">
+            <div
+              className="bg-[#009689] h-full rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${animatedProgress}%` }}
+            ></div>
+          </div>
+
+          {/* Percentage indicator */}
+          <div className="flex justify-between mt-1 text-xs text-gray-500">
+            <span>0%</span>
+            <span>{animatedProgress}% Complete</span>
+            <span>100%</span>
+          </div>
+        </div>
         {/* Header with Edit Button */}
         <div className="flex flex-col sm:flex-row sm:justify-between gap-5 sm:items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Therapist Profile</h1>
@@ -1056,159 +1111,6 @@ export default function TherapistProfile() {
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function AppointmentList({
-  appointments,
-  emptyMessage,
-  emptyDescription,
-  isPast = false
-}: {
-  appointments: Appointment[];
-  emptyMessage: string;
-  emptyDescription: string;
-  isPast?: boolean;
-}) {
-  if (appointments.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <div className="mx-auto bg-teal-100 w-16 h-16 rounded-full flex items-center justify-center">
-          <svg
-            className="h-8 w-8 text-teal-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d={isPast
-                ? "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                : "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              }
-            />
-          </svg>
-        </div>
-        <h3 className="mt-4 text-lg font-medium text-gray-900">{emptyMessage}</h3>
-        <p className="mt-1 text-gray-500">{emptyDescription}</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flow-root">
-      <ul className="divide-y divide-gray-100">
-        {appointments.map((appointment) => (
-          <li key={appointment.id} className="py-4 hover:bg-gray-50 rounded-lg px-3 transition-colors">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              {/* Client Avatar with Status */}
-              <div className="flex-shrink-0 relative">
-                {appointment.client.profilePic ? (
-                  <Image
-                    className="h-14 w-14 rounded-full object-cover border-2 border-white shadow"
-                    width={56}
-                    height={56}
-                    src={appointment.client.profilePic}
-                    alt={appointment.client.name}
-                  />
-                ) : (
-                  <div className="bg-gray-200 border-2 border-dashed rounded-full w-14 h-14 flex items-center justify-center text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                  </div>
-                )}
-                <div className={`absolute -bottom-1 -right-1 rounded-full p-1 border-2 border-white ${appointment.status === 'scheduled' ? 'bg-yellow-400' :
-                  appointment.status === 'completed' ? 'bg-green-500' :
-                    'bg-red-500'
-                  }`}></div>
-              </div>
-
-              {/* Client Info */}
-              <div className="flex-1 min-w-0 w-full">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                  <h3 className="text-base font-semibold text-gray-900 truncate">
-                    {appointment.client.name}
-                  </h3>
-                  <div className='sm:flex sm:items-center sm:justify-center'>
-                    <span className={`inline-flex items-center px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs font-medium ${appointment.status === 'scheduled' ? 'bg-yellow-100 text-yellow-800' :
-                      appointment.status === 'completed' ? 'bg-green-100 text-green-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                      {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Appointment Details */}
-                <div className="mt-2 grid grid-cols-2 sm:flex sm:flex-wrap items-center text-sm text-gray-500 gap-y-2">
-                  <div className="flex items-center col-span-1">
-                    <svg
-                      className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="truncate">
-                      {appointment.date.toLocaleDateString('en-US', {
-                        weekday: 'short',
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center col-span-1">
-                    <svg
-                      className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="truncate">
-                      {appointment.date.toLocaleTimeString('en-US', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center col-span-2">
-                    <svg
-                      className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="truncate">
-                      {appointment.duration} min session
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Button - moves to bottom on mobile */}
-              <div className="w-full sm:w-auto sm:flex-shrink-0 sm:ml-4 mt-2 sm:mt-0">
-                <button className="w-full sm:w-auto inline-flex justify-center items-center px-3 py-1.5 border border-teal-200 shadow-sm text-sm font-medium rounded-lg text-teal-700 bg-teal-50 hover:bg-teal-100 focus:outline-none">
-                  View Details
-                </button>
-              </div>
-            </div>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

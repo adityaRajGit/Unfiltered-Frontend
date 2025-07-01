@@ -7,9 +7,9 @@ function HeroSection() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     <div className="text-center lg:text-left">
                         <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-                            Corporate Wellness
+                            Employee Assistance
                             <span className="block pb-3 bg-clip-text text-transparent bg-gradient-to-r from-teal-600 to-teal-800">
-                                Programs
+                                Program
                             </span>
                         </h1>
                         <div className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto lg:mx-0">

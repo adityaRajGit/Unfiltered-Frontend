@@ -45,30 +45,43 @@ const getTherapistDetails = createAsyncThunk("therapist/details", async (id) => 
     }
 })
 
-const updateTherapistDetails = createAsyncThunk(
-    'therapist/update-details',
-    async (payload) => {
-        // payload should be an object: { id: string, formData: FormData }
-        try {
-            const token = JSON.parse(localStorage.getItem(TOKEN) || '""');
-            const response = await axios.post(
-                `${backend}/therapist/${payload.id}/update`,
-                payload.formData,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'multipart/form-data',
-                    },
-                }
-            );
-            return response.data;
-        } catch (error) {
-            if (error.response) {
-                throw error.response.data.data.message
-            }
-            throw error.message || "An unexpected error occurred"
+const updateTherapistDetails = createAsyncThunk('therapist/update-details', async (payload) => {
+    try {
+        const token = JSON.parse(localStorage.getItem(TOKEN) || '""');
+        const response = await axios.post(`${backend}/therapist/${payload.id}/update`, payload.formData, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data',
+            },
         }
+        );
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw error.response.data.data.message
+        }
+        throw error.message || "An unexpected error occurred"
     }
+}
+);
+
+const therapistProfileStatus = createAsyncThunk('therapist/profile-status', async (id) => {
+    try {
+        const token = JSON.parse(localStorage.getItem(TOKEN) || '""');
+        const response = await axios.get(`${backend}/therapist/${id}/profile-completion`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+        );
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw error.response.data.data.message
+        }
+        throw error.message || "An unexpected error occurred"
+    }
+}
 );
 
 
@@ -140,9 +153,20 @@ const therapistSlice = createSlice({
                 state.loading = false
                 state.error = action.error || "An error occurred"
             })
+            .addCase(therapistProfileStatus.pending, (state) => {
+                state.loading = true
+                state.error = null
+            })
+            .addCase(therapistProfileStatus.fulfilled, (state) => {
+                state.loading = false
+            })
+            .addCase(therapistProfileStatus.rejected, (state, action) => {
+                state.loading = false
+                state.error = action.error || "An error occurred"
+            })
     }
 })
 
 export const { logoutTherapist } = therapistSlice.actions;
-export { signupTherapist, loginTherapist, getTherapistDetails, updateTherapistDetails }
+export { signupTherapist, loginTherapist, getTherapistDetails, updateTherapistDetails, therapistProfileStatus }
 export default therapistSlice.reducer

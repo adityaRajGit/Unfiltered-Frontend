@@ -23,7 +23,8 @@ function ProgramDetails() {
                                 { id: 'therapy', label: 'Online Therapy' },
                                 { id: 'workshops', label: 'Workshops' },
                                 { id: 'group', label: 'Group Sessions' },
-                                { id: 'resources', label: 'Resources' }
+                                { id: 'resources', label: 'Resources' },
+                                { id: 'webinar', label: 'Webinars' }
                             ].map((tab) => (
                                 <button
                                     key={tab.id}
@@ -287,6 +288,69 @@ function ProgramDetails() {
                                         <h3 className="text-xl font-bold text-gray-900 mb-2">Ongoing Support</h3>
                                         <p className="text-gray-700">
                                             24/7 access to mental health resources and tools
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* NEW Webinars Tab */}
+                        {activeTab === 'webinar' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-8">
+                                    <div className="flex items-start">
+                                        <div className="flex-shrink-0 bg-teal-100 p-3 rounded-xl mr-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-gray-900 mb-2">Live Expert Sessions</h3>
+                                            <p className="text-gray-700">
+                                                Interactive webinars led by mental health and industry experts
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-start">
+                                        <div className="flex-shrink-0 bg-teal-100 p-3 rounded-xl mr-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-gray-900 mb-2">On-Demand Access</h3>
+                                            <p className="text-gray-700">
+                                                Recorded sessions available for flexible viewing anytime
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-start">
+                                        <div className="flex-shrink-0 bg-teal-100 p-3 rounded-xl mr-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-gray-900 mb-2">Q&A Opportunities</h3>
+                                            <p className="text-gray-700">
+                                                Live question and answer segments with presenters
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-2xl p-6 flex items-center justify-center">
+                                    <div className="text-center">
+                                        <div className="inline-flex items-center justify-center bg-white p-4 rounded-full mb-6">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
+                                        </div>
+                                        <h3 className="text-xl font-bold text-gray-900 mb-2">Expert-Led Learning</h3>
+                                        <p className="text-gray-700">
+                                            Live and recorded sessions on timely workplace mental health topics
                                         </p>
                                     </div>
                                 </div>
