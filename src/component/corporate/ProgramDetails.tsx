@@ -1,4 +1,5 @@
 "use client"
+import Link from "next/link";
 import { useState } from "react"
 
 function ProgramDetails() {
@@ -352,6 +353,9 @@ function ProgramDetails() {
                                         <p className="text-gray-700">
                                             Live and recorded sessions on timely workplace mental health topics
                                         </p>
+                                        <div className="w-full h-auto flex justify-center items-center mt-3">
+                                            <Link href='/pages/webinar' className="px-4 py-2 bg-teal-600 text-white font-medium rounded-full hover:bg-teal-700 transition-colors">Explore More</Link>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -1,4 +1,5 @@
 import CorporateTherapySection from "@/component/home/CorporateTherapy";
+import CorporateCTA from "@/component/home/CTA";
 import HeroSection from "@/component/home/HeroSection";
 import Section2 from "@/component/home/Section2";
 import Section3 from "@/component/home/Section3";
@@ -14,6 +15,7 @@ export default function Home() {
       <Section3 />
       <CorporateTherapySection />
       <Section4 />
+      <CorporateCTA />
     </div>
   );
 }

@@ -9,6 +9,16 @@ function Section2() {
             img: '/therapy1.jpeg',
         },
         {
+            title: "Corporate Wellness",
+            desc: "Holistic mental health support for employees through EAPs, on-demand therapy, and expert-led workshops and webinars.",
+            img: '/therapy5.jpeg',
+        },
+        {
+            title: "Life Coaching",
+            desc: "Unlock potential. Build clarity. Lead with confidence. Personal coaching for goal setting, productivity, emotional growth, and leadership.",
+            img: '/therapy6.jpeg',
+        },
+        {
             title: "Couples Counseling",
             desc: "Work on communication, intimacy, and relationship dynamics with a professional mediator.",
             img: '/therapy2.jpeg',
@@ -23,16 +33,6 @@ function Section2() {
             desc: "Improve family dynamics, resolve conflicts, and strengthen relationships between members.",
             img: '/therapy4.jpeg',
         },
-        {
-            title: "Corporate Wellness",
-            desc: "Holistic mental health support for employees through EAPs, on-demand therapy, and expert-led workshops and webinars.",
-            img: '/therapy5.jpeg',
-        },
-        {
-            title: "Life Coaching",
-            desc: "Unlock potential. Build clarity. Lead with confidence. Personal coaching for goal setting, productivity, emotional growth, and leadership.",
-            img: '/therapy6.jpeg',
-        },
     ];
 
     return (
@@ -43,11 +43,10 @@ function Section2() {
                         Therapeutic Approaches
                     </div>
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                        Therapy Tailored to Your Needs
+                        Transforming Employee Wellness, One Company at a Time
                     </h2>
-                    <p className="max-w-2xl mx-auto text-gray-600 text-lg">
-                        Discover the right therapeutic approach for your unique journey. Our diverse range of
-                        services ensures personalized support for every individual.
+                    <p className="max-w-3xl mx-auto text-gray-600 text-lg">
+                        Empowering organizations with complete mental health solutions — from private therapy and group support to corporate webinars and interactive wellness workshops
                     </p>
                 </div>
 
