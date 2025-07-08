@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { FaChevronRight } from "react-icons/fa";
 
 function HeroSection() {
@@ -28,10 +29,10 @@ function HeroSection() {
             </p>
 
             <div className="flex flex-col items-center justify-center mt-10 space-y-4 sm:flex-row sm:space-y-0 sm:space-x-6 lg:justify-start">
-              <button className="flex items-center px-8 py-4 text-base font-bold text-white transition-all bg-teal-600 rounded-full shadow-lg md:text-lg hover:bg-teal-700">
+              <Link href={'pages/corporate#corporate-contact'} className="flex items-center px-8 py-4 text-base font-bold text-white transition-all bg-teal-600 rounded-full shadow-lg md:text-lg hover:bg-teal-700">
                 Request Corporate Demo
                 <FaChevronRight className="ml-2 text-sm" />
-              </button>
+              </Link>
 
               <button className="px-8 py-4 text-base font-medium text-teal-700 transition-all bg-white rounded-full shadow-md md:text-lg hover:bg-gray-50">
                 View Packages

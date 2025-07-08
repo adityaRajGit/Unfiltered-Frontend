@@ -14,26 +14,27 @@ function Section2() {
             img: '/therapy5.jpeg',
         },
         {
-            title: "Life Coaching",
-            desc: "Unlock potential. Build clarity. Lead with confidence. Personal coaching for goal setting, productivity, emotional growth, and leadership.",
-            img: '/therapy6.jpeg',
-        },
-        {
-            title: "Couples Counseling",
-            desc: "Work on communication, intimacy, and relationship dynamics with a professional mediator.",
-            img: '/therapy2.jpeg',
-        },
-        {
-            title: "Group Therapy",
+            title: "Group Therapy and Support Circle",
             desc: "Led by certified mental health professionals, encourages open communication and emotional growth.",
             img: '/therapy3.jpeg',
         },
         {
-            title: "Family Therapy",
-            desc: "Improve family dynamics, resolve conflicts, and strengthen relationships between members.",
+            title: "Workplace Counseling & Support",
+            desc: "Focus on work-related mental health concerns: Performance anxiety, conflict with coworkers/managers, workplace harassment or bullying, career dissatisfaction, remote work isolation.",
+            img: '/therapy6.jpeg',
+        },
+        {
+            title: "Webinars & Workshops",
+            desc: "Preventive and educational sessions covering: Managing stress and burnout, mindfulness & emotional resilience, conflict resolution at work, mental health first aid, empathy and leadership, sleep, diet, and mental health.",
+            img: '/therapy2.jpeg',
+        },
+        {
+            title: "Managerial Coaching | Leadership",
+            desc: "Well-being focused therapy-like support and strategic coaching: Emotional intelligence coaching, executive stress and pressure support, coaching on supporting struggling employees, and preventing toxic leadership traits.",
             img: '/therapy4.jpeg',
         },
     ];
+
 
     return (
         <div className="py-16 px-4 sm:px-6 bg-gradient-to-b from-teal-50 to-white">

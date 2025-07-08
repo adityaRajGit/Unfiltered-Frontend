@@ -1,14 +1,38 @@
 "use client";
+import { LoadingSpinnerWithOverlay } from '@/component/global/Loading';
+import { loginAdmin } from '@/store/adminSlice';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
 
 function Page() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [data, setData] = useState({
+    email: "",
+    password: "",
+  });
+  const [loading, setLoading] = useState(false)
+  const dispatch = useDispatch()
+  const router = useRouter()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login attempt:', { email, password });
+    setLoading(true)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(loginAdmin(data as any) as any)
+    if (response?.error) {
+      setLoading(false)
+      toast.error(response.error.message)
+    } else {
+      toast.success("Admin Logged in Successfully")
+      setLoading(false)
+      router.push('/admin/dashboard')
+    }
   };
+
+  if(loading){
+    return <LoadingSpinnerWithOverlay />
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#e3fcf7]">
@@ -26,8 +50,8 @@ function Page() {
             <input
               type="email"
               id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={data.email}
+              onChange={(e) => setData({ ...data, email: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#009689] focus:border-transparent transition"
               placeholder="admin@example.com"
               required
@@ -41,8 +65,8 @@ function Page() {
             <input
               type="password"
               id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={data.password}
+              onChange={(e) => setData({ ...data, password: e.target.value })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#009689] focus:border-transparent transition"
               placeholder="••••••••"
               required

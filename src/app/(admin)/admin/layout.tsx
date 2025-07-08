@@ -2,6 +2,7 @@
 import React from "react";
 import type { Metadata } from "next";
 import "./globals.css";
+import Providers from "./provider";
 
 export const metadata: Metadata = {
   title: "Admin Panel",
@@ -15,8 +16,10 @@ export default function AdminLayout({
 }) {
   return (
     <html lang="en">
-      <body>        
-        <main className="">{children}</main>
+      <body>
+        <Providers >
+          <main className="">{children}</main>
+        </Providers>
       </body>
     </html>
   );

@@ -1,6 +1,9 @@
 "use client";
+import { addLead } from "@/store/leadSlice";
 import { useState } from "react";
 import { FaPhone, FaEnvelope, FaBuilding, FaInfoCircle } from "react-icons/fa";
+import { useDispatch } from "react-redux";
+import { toast } from "react-toastify";
 
 function ContactForm() {
     const [formData, setFormData] = useState({
@@ -9,34 +12,38 @@ function ContactForm() {
         company: '',
         employees: '',
         phone: '',
-        timeline: '',
         message: ''
     });
     const [submitted, setSubmitted] = useState(false);
+    const dispatch = useDispatch()
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        setSubmitted(true);
-        console.log('Lead captured:', formData);
-
-        setTimeout(() => {
-            setFormData({
-                name: '',
-                email: '',
-                company: '',
-                employees: '',
-                phone: '',
-                timeline: '',
-                message: ''
-            });
-            setSubmitted(false);
-        }, 4000);
-    };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response = await dispatch(addLead(formData as any) as any);
+        if (response?.error) {
+            setSubmitted(false)
+            toast.error(response.error.message)
+        } else {
+            setSubmitted(true)
+            setTimeout(() => {
+                setSubmitted(false)
+                setFormData({
+                    name: '',
+                    email: '',
+                    company: '',
+                    employees: '',
+                    phone: '',
+                    message: ''
+                });
+            },5000)
+        }
+    }
 
     return (
         <section id="corporate-contact" className="py-16 px-4 bg-gradient-to-b from-gray-50 to-white">
@@ -186,13 +193,14 @@ function ContactForm() {
                                                 name="phone"
                                                 value={formData.phone}
                                                 onChange={handleChange}
+                                                required
                                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                                                 placeholder="(123) 456-7890"
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 gap-4">
                                         <div>
                                             <label htmlFor="employees" className="block text-gray-700 font-medium mb-2">
                                                 Number of Employees <span className="text-red-500">*</span>
@@ -212,24 +220,6 @@ function ContactForm() {
                                                 <option value="501-1000">501-1,000 employees</option>
                                                 <option value="1001-5000">1,001-5,000 employees</option>
                                                 <option value="5000+">5,000+ employees</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label htmlFor="timeline" className="block text-gray-700 font-medium mb-2">
-                                                Implementation Timeline <span className="text-red-500">*</span>
-                                            </label>
-                                            <select
-                                                id="timeline"
-                                                name="timeline"
-                                                value={formData.timeline}
-                                                onChange={handleChange}
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
-                                            >
-                                                <option value="">Select timeline</option>
-                                                <option value="immediately">Immediately</option>
-                                                <option value="1-3 months">Within 1-3 months</option>
-                                                <option value="3-6 months">Within 3-6 months</option>
-                                                <option value="6+ months">6+ months from now</option>
                                             </select>
                                         </div>
                                     </div>
