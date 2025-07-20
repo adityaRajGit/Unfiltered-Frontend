@@ -21,7 +21,7 @@ const FAQPage = () => {
                 },
                 {
                     question: "Why do you focus primarily on corporate clients?",
-                    answer: "Over 90% of revenue for leading mental health platforms in India comes from corporate partnerships. Corporate-led EAPs are the most effective channel for adoption, scale, impact, and financial sustainability."
+                    answer: "We focus on corporates because the workplace is now one of the biggest sources of stress and burnout globally. Most employees today struggle with poor mental health, feeling undervalued and overwhelmed. By partnering with organizations, we address these issues at the root—improving performance, satisfaction, and workplace culture. Corporate-led EAPs are the most effective way to scale impact, normalize mental health support, and build emotionally healthier organizations. When employees feel supported, businesses thrive — and that’s where real change begins."
                 },
                 {
                     question: "Is Stay Unfiltered available across India and globally?",
