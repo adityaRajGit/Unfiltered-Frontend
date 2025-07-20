@@ -12,7 +12,8 @@ function ContactForm() {
         company: '',
         employees: '',
         phone: '',
-        message: ''
+        message: '',
+        source: 'website'
     });
     const [submitted, setSubmitted] = useState(false);
     const dispatch = useDispatch()
@@ -39,9 +40,10 @@ function ContactForm() {
                     company: '',
                     employees: '',
                     phone: '',
-                    message: ''
+                    message: '',
+                    source: 'website'
                 });
-            },5000)
+            }, 5000)
         }
     }
 

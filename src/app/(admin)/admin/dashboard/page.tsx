@@ -1,5 +1,5 @@
 "use client";
-import LeadSections from '@/component/admin/LeadSections';
+import LeadSections from '@/component/admin/leadsComponents/LeadSection';
 import Statistics from '@/component/admin/Statistics';
 import { LoadingSpinnerWithOverlay } from '@/component/global/Loading';
 import { logoutAdmin } from '@/store/adminSlice';
@@ -19,9 +19,11 @@ import {
     FaTimes,
     FaBars,
     FaCog,
-    FaSignOutAlt
+    FaSignOutAlt,
+    FaBoxOpen
 } from 'react-icons/fa';
 import { useDispatch } from 'react-redux';
+import PackageSections from '@/component/admin/packagesComponents/PackageSetion';
 
 interface Admin {
     name: string;
@@ -51,6 +53,7 @@ const navItems = [
     { id: 'users', label: 'Users', icon: FaUserFriends },
     { id: 'blogs', label: 'Blogs', icon: FaFileAlt },
     { id: 'webinars', label: 'Webinars', icon: FaVideo },
+    { id: 'packages', label: 'Packages', icon: FaBoxOpen },
 ];
 
 export default function Dashboard() {
@@ -74,6 +77,7 @@ export default function Dashboard() {
             case 'users': return <UsersSection />;
             case 'blogs': return <BlogsSection />;
             case 'webinars': return <WebinarsSection />;
+            case 'packages': return <PackageSections />;
             default: return <Statistics />;
         }
     };

@@ -25,7 +25,6 @@ function Page() {
       toast.error(response.error.message)
     } else {
       toast.success("Admin Logged in Successfully")
-      setLoading(false)
       router.push('/admin/dashboard')
     }
   };
