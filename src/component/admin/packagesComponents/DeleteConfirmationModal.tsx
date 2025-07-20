@@ -18,7 +18,7 @@ const DeleteConfirmationModal = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-40">
             <div className="bg-white rounded-lg w-full max-w-md p-6">
                 <h2 className="text-xl font-bold text-red-600 mb-2">{title}</h2>
                 <p className="mb-6 text-gray-700">{message}</p>

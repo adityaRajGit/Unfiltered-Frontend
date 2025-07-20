@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import React, { useState } from 'react';
-import { FaChevronDown, FaChevronUp, FaLock, FaUsers, FaUserShield, FaHeadset, FaShieldAlt } from 'react-icons/fa';
+import { FaChevronDown, FaChevronUp, FaLock, FaBuilding, FaHandshake, FaUsers, FaChartLine } from 'react-icons/fa';
 
 const FAQPage = () => {
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -13,59 +13,59 @@ const FAQPage = () => {
     const faqCategories = [
         {
             title: "General",
+            icon: <FaBuilding className="text-teal-600 text-xl" />,
+            questions: [
+                {
+                    question: "What is Stay Unfiltered?",
+                    answer: "Stay Unfiltered is an online mental health platform designed to support emotional well-being in the workplace. We specialize in Employee Assistance Programs (EAPs), offering one-on-one therapy, corporate workshops, and webinars focused on building happier, more resilient teams through B2B partnerships."
+                },
+                {
+                    question: "Why do you focus primarily on corporate clients?",
+                    answer: "Over 90% of revenue for leading mental health platforms in India comes from corporate partnerships. Corporate-led EAPs are the most effective channel for adoption, scale, impact, and financial sustainability."
+                },
+                {
+                    question: "Is Stay Unfiltered available across India and globally?",
+                    answer: "Yes. Our platform is fully remote-first, serving clients across India and globally with multilingual therapists and time-zone aligned support."
+                }
+            ]
+        },
+        {
+            title: "Services & EAP Details",
+            icon: <FaHandshake className="text-teal-600 text-xl" />,
+            questions: [
+                {
+                    question: "What does an Employee Assistance Program (EAP) include?",
+                    answer: "Our EAP services offer comprehensive support to employees and their families. Key components include confidential therapy, 24/7 support, customized webinars and workshops, manager training, digital self-help tools, crisis response, and anonymized reporting."
+                },
+                {
+                    question: "What services are included under Stay Unfiltered's EAP model?",
+                    answer: "Our customizable EAP suite includes video or phone-based therapy, live webinars and workshops, CBT-based tools, burnout prevention programs, leadership coaching, and mental health assessments."
+                },
+                {
+                    question: "Do you offer Pay-per-Usage plans?",
+                    answer: "Yes, we provide Pay-per-Usage EAP options including session bundles, per-webinar pricing, optional family coverage, and access to digital tools without long-term subscriptions."
+                },
+                {
+                    question: "What kind of issues can your therapists address?",
+                    answer: "Our professionals support issues like stress, anxiety, burnout, depression, family challenges, trauma, grief, and career concerns."
+                }
+            ]
+        },
+        {
+            title: "Corporate Solutions",
             icon: <FaUsers className="text-teal-600 text-xl" />,
             questions: [
                 {
-                    question: "What is StayUnfiltered?",
-                    answer: "StayUnfiltered is a mental wellness platform that offers two key features: a Community Space to share thoughts, feelings, and stories—anonymously or openly, and Therapy Services with licensed professionals for one-on-one support."
+                    question: "How do you drive engagement among employees?",
+                    answer: "We provide onboarding sessions, monthly campaigns, digital wellness content, and usage nudges to ensure consistent employee participation."
                 },
                 {
-                    question: "Is StayUnfiltered a substitute for therapy?",
-                    answer: "The Community is not therapy but a safe space for peer support. For professional help, our Therapy Services connect you with certified mental health experts."
+                    question: "Can we customize the EAP to our needs?",
+                    answer: "Yes. You can customize sessions, coverage, webinar topics, delivery formats, and reporting. Everything is tailored to your organization's needs."
                 },
                 {
-                    question: "Who can use StayUnfiltered?",
-                    answer: "StayUnfiltered is intended for individuals aged 16 and above. If you're under 18, therapy sessions may require guardian consent, depending on applicable law."
-                }
-            ]
-        },
-        {
-            title: "Community Features",
-            icon: <FaUserShield className="text-teal-600 text-xl" />,
-            questions: [
-                {
-                    question: "Can I post anonymously?",
-                    answer: "Yes. You can post publicly under your username or completely anonymously. You're in control of what and how you share."
-                },
-                {
-                    question: "Will others see my identity?",
-                    answer: "No. If you choose anonymity, your real identity is not visible to anyone—not even our moderators."
-                },
-                {
-                    question: "Is the community moderated?",
-                    answer: "Yes, lightly. We use a combination of AI filters and human moderation to keep the platform safe, respectful, and free from abuse."
-                }
-            ]
-        },
-        {
-            title: "Therapy Services",
-            icon: <FaHeadset className="text-teal-600 text-xl" />,
-            questions: [
-                {
-                    question: "How do I book a therapy session?",
-                    answer: "You can browse our therapist directory based on language, expertise, and availability. Select a therapist and book your session online."
-                },
-                {
-                    question: "Are your therapists certified?",
-                    answer: "Yes. All therapists on StayUnfiltered are qualified, licensed professionals, and verified by our team."
-                },
-                {
-                    question: "Is therapy confidential?",
-                    answer: "Absolutely. All therapy sessions are private, conducted on secure, encrypted platforms, and never shared with anyone else—not even StayUnfiltered staff."
-                },
-                {
-                    question: "How much does therapy cost?",
-                    answer: "Fees vary by therapist and session length. We aim to keep prices affordable and transparent. Some therapists may offer discounted rates for students or low-income individuals."
+                    question: "What kind of reporting do you provide to employers?",
+                    answer: "We provide anonymized, aggregated usage reports including session counts, popular topics, feedback, and attendance insights."
                 }
             ]
         },
@@ -74,49 +74,26 @@ const FAQPage = () => {
             icon: <FaLock className="text-teal-600 text-xl" />,
             questions: [
                 {
-                    question: "Is my data safe on StayUnfiltered?",
-                    answer: "Yes. We follow Indian data protection laws and use secure servers and encryption to protect your information. Therapy data is treated with high confidentiality."
+                    question: "Is employee confidentiality guaranteed?",
+                    answer: "Yes. We follow strict GDPR and DPDP standards. No identifiable data is shared. All session data is encrypted and anonymized for employer insights."
                 },
                 {
-                    question: "Can I delete my account and data?",
-                    answer: "Yes. You can delete your account at any time. Once deleted, your data is permanently removed unless required by law to retain (e.g., therapy records for legal compliance)."
-                },
-                {
-                    question: "Do you share my data with third parties?",
-                    answer: "No. We do not share, rent, or sell your data without your explicit consent. Some third-party services are used to run the platform securely, but they are bound by strict privacy agreements."
-                },
-                {
-                    question: "Are you compliant with DPDP and GDPR regulations?",
-                    answer: "Yes. We comply with both DPDP (India) and GDPR (EU) regulations. We collect and process only the data necessary for service delivery, with your consent. You have full rights over your data, including access, correction, and deletion. All data is handled securely and used only for intended purposes, with no unauthorized sharing."
+                    question: "How is our company data protected?",
+                    answer: "We use enterprise-grade security measures including data encryption, secure servers, and strict access controls. All corporate data is treated with the highest confidentiality."
                 }
             ]
         },
         {
-            title: "Emergency & Ethical Support",
-            icon: <FaShieldAlt className="text-teal-600 text-xl" />,
+            title: "Implementation & Support",
+            icon: <FaChartLine className="text-teal-600 text-xl" />,
             questions: [
                 {
-                    question: "What if I am in crisis?",
-                    answer: (
-                        <div>
-                            <p>StayUnfiltered is not a crisis service. If you are in immediate danger or suicidal distress, please contact national mental health helplines such as:</p>
-                            <ul className="mt-3 space-y-2">
-                                <li className="flex items-start">
-                                    <span className="font-medium mr-2">iCall:</span>
-                                    <span>+91 9152987821</span>
-                                </li>
-                                <li className="flex items-start">
-                                    <span className="font-medium mr-2">AASRA:</span>
-                                    <span>+91 9820466726</span>
-                                </li>
-                            </ul>
-                            <p className="mt-3">We also list verified emergency contacts in the app/website.</p>
-                        </div>
-                    )
+                    question: "How long does it take to launch Stay Unfiltered in our organization?",
+                    answer: "Most organizations are onboarded within 7-10 business days, including kickoff, communication rollout, and access setup."
                 },
                 {
-                    question: "Can I report inappropriate content?",
-                    answer: "Yes. Use the 'Report' button on any post or comment. We take every report seriously and act quickly to ensure community safety."
+                    question: "What support do you provide during implementation?",
+                    answer: "We provide dedicated account managers, customized communication templates, manager training sessions, and ongoing support to ensure successful adoption."
                 }
             ]
         }
@@ -129,10 +106,9 @@ const FAQPage = () => {
     const [searchQuery, setSearchQuery] = useState("");
 
     const filteredQuestions = allQuestions.filter(q =>
-    q.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    q.answer.toString().toLowerCase().includes(searchQuery.toLowerCase())
-);
-
+        q.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        q.answer.toString().toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white">
@@ -140,10 +116,10 @@ const FAQPage = () => {
             <div className="bg-gradient-to-r from-teal-700 to-cyan-600 py-16 md:py-24 px-4">
                 <div className="max-w-6xl mx-auto text-center">
                     <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
-                        Frequently Asked Questions
+                        Corporate Mental Health Solutions
                     </h1>
                     <p className="text-xl text-teal-100 max-w-3xl mx-auto">
-                        Find answers to common questions about our platform, services, and community guidelines
+                        Frequently asked questions about our Employee Assistance Programs and corporate services
                     </p>
                 </div>
             </div>
@@ -278,22 +254,22 @@ const FAQPage = () => {
                     <div className="max-w-4xl mx-auto">
                         <div className="flex flex-col md:flex-row md:items-center gap-8">
                             <div className="flex-1">
-                                <h2 className="text-2xl md:text-3xl font-bold mb-4">Still have questions?</h2>
+                                <h2 className="text-2xl md:text-3xl font-bold mb-4">Ready to implement mental wellness at your organization?</h2>
                                 <p className="text-teal-100 mb-6">
-                                    Our support team is here to help you with any additional questions you might have.
+                                    Our corporate solutions team is ready to help you build a customized EAP program.
                                 </p>
                                 <div className="flex flex-wrap gap-4">
                                     <Link
                                         href="/contact"
                                         className="px-6 py-3 bg-white text-teal-700 font-medium rounded-full hover:bg-gray-100 transition-colors"
                                     >
-                                        Contact Support
+                                        Request a Demo
                                     </Link>
                                     <Link
-                                        href="/community"
+                                        href="/pricing"
                                         className="px-6 py-3 border-2 border-white text-white font-medium rounded-full hover:bg-white/10 transition-colors"
                                     >
-                                        Ask the Community
+                                        View Pricing Plans
                                     </Link>
                                 </div>
                             </div>
@@ -302,7 +278,7 @@ const FAQPage = () => {
                                     <div className="bg-teal-400/20 p-6 rounded-full">
                                         <div className="bg-teal-300/20 p-8 rounded-full flex items-center justify-center">
                                             <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                             </svg>
                                         </div>
                                     </div>
