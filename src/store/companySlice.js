@@ -4,9 +4,9 @@ import { ADMINTOKEN } from "@/utils/enum"
 
 const backend = process.env.NEXT_PUBLIC_BACKEND_URL
 
-const addPackage = createAsyncThunk("package/add-package", async (data) => {
+const addCompany = createAsyncThunk("company/add-company", async (data) => {
     try {
-        const response = await axios.post(`${backend}/package/new`, data, {
+        const response = await axios.post(`${backend}/company/new`, data, {
             headers: {
                 Authorization: `Bearer ${JSON.parse(localStorage.getItem(ADMINTOKEN))}`
             },
@@ -20,9 +20,9 @@ const addPackage = createAsyncThunk("package/add-package", async (data) => {
     }
 })
 
-const listPackage = createAsyncThunk("package/list-package", async (data) => {
+const listCompanies = createAsyncThunk("company/list-companies", async (data) => {
     try {
-        const response = await axios.post(`${backend}/package/list`, data, {
+        const response = await axios.post(`${backend}/company/list`, data, {
             headers: {
                 Authorization: `Bearer ${JSON.parse(localStorage.getItem(ADMINTOKEN))}`
             },
@@ -36,9 +36,9 @@ const listPackage = createAsyncThunk("package/list-package", async (data) => {
     }
 })
 
-const updatePackage = createAsyncThunk("package/update-package", async (payload) => {
+const updateCompany = createAsyncThunk("company/update-company", async (payload) => {
     try {
-        const response = await axios.post(`${backend}/package/${payload.id}/update`, payload.data, {
+        const response = await axios.post(`${backend}/company/${payload.id}/update`, payload.data, {
             headers: {
                 Authorization: `Bearer ${JSON.parse(localStorage.getItem(ADMINTOKEN))}`
             },
@@ -52,9 +52,9 @@ const updatePackage = createAsyncThunk("package/update-package", async (payload)
     }
 })
 
-const removePackage = createAsyncThunk("package/remove-package", async (id) => {
+const removeCompany = createAsyncThunk("company/remove-company", async (id) => {
     try {
-        const response = await axios.post(`${backend}/package/${id}/remove`, {}, {
+        const response = await axios.post(`${backend}/company/${id}/remove`, {}, {
             headers: {
                 Authorization: `Bearer ${JSON.parse(localStorage.getItem(ADMINTOKEN))}`
             },
@@ -70,67 +70,67 @@ const removePackage = createAsyncThunk("package/remove-package", async (id) => {
 
 
 const initialState = {
-    package: null,
+    company: null,
     loading: false,
     error: null
 }
 
-const packageSlice = createSlice({
+const companySlice = createSlice({
     name: "company",
     initialState,
     reducers: {},
     extraReducers: (builder) => {
         builder
-            .addCase(addPackage.pending, (state) => {
+            .addCase(addCompany.pending, (state) => {
                 state.loading = true
                 state.error = null
             })
-            .addCase(addPackage.fulfilled, (state, action) => {
+            .addCase(addCompany.fulfilled, (state, action) => {
                 state.loading = false
-                state.package = action.payload.data.package
+                state.company = action.payload.data.company
             })
-            .addCase(addPackage.rejected, (state, action) => {
+            .addCase(addCompany.rejected, (state, action) => {
                 state.loading = false
                 state.error = action.error || "An error occurred";
             })
-            .addCase(listPackage.pending, (state) => {
+            .addCase(listCompanies.pending, (state) => {
                 state.loading = true
                 state.error = null
             })
-            .addCase(listPackage.fulfilled, (state, action) => {
+            .addCase(listCompanies.fulfilled, (state, action) => {
                 state.loading = false
-                state.package = action.payload.data.package
+                state.company = action.payload.data.company
             })
-            .addCase(listPackage.rejected, (state, action) => {
+            .addCase(listCompanies.rejected, (state, action) => {
                 state.loading = false
                 state.error = action.error || "An error occurred";
             })
-            .addCase(updatePackage.pending, (state) => {
+            .addCase(updateCompany.pending, (state) => {
                 state.loading = true
                 state.error = null
             })
-            .addCase(updatePackage.fulfilled, (state, action) => {
+            .addCase(updateCompany.fulfilled, (state, action) => {
                 state.loading = false
-                state.package = action.payload.data.package
+                state.company = action.payload.data.company
             })
-            .addCase(updatePackage.rejected, (state, action) => {
+            .addCase(updateCompany.rejected, (state, action) => {
                 state.loading = false
                 state.error = action.error || "An error occurred";
             })
-            .addCase(removePackage.pending, (state) => {
+            .addCase(removeCompany.pending, (state) => {
                 state.loading = true
                 state.error = null
             })
-            .addCase(removePackage.fulfilled, (state, action) => {
+            .addCase(removeCompany.fulfilled, (state, action) => {
                 state.loading = false
-                state.package = action.payload.data.package
+                state.company = action.payload.data.company
             })
-            .addCase(removePackage.rejected, (state, action) => {
+            .addCase(removeCompany.rejected, (state, action) => {
                 state.loading = false
                 state.error = action.error || "An error occurred";
             })
     }
 })
 
-export { addPackage, listPackage, updatePackage, removePackage }
-export default packageSlice.reducer
+export { addCompany, listCompanies, updateCompany, removeCompany }
+export default companySlice.reducer

@@ -4,6 +4,7 @@ import therapistReducer from "./therapistSlice.js";
 import leadReducer from './leadSlice.js'
 import adminReducer from './adminSlice.js'
 import packageReducer from './packageSlice.js'
+import companyReducer from './companySlice.js'
 
 const store = configureStore({
     reducer: {
@@ -11,7 +12,8 @@ const store = configureStore({
         therapist: therapistReducer,
         lead: leadReducer,
         admin: adminReducer,
-        package: packageReducer
+        package: packageReducer,
+        company: companyReducer
     }
 })
 

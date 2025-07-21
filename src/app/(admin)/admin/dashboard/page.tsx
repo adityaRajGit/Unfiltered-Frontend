@@ -24,6 +24,7 @@ import {
 } from 'react-icons/fa';
 import { useDispatch } from 'react-redux';
 import PackageSections from '@/component/admin/packagesComponents/PackageSetion';
+import CompanySections from '@/component/admin/companyComponents/CompanySection';
 
 interface Admin {
     name: string;
@@ -31,7 +32,6 @@ interface Admin {
 }
 
 // Placeholder components for other sections
-const CompanySection = () => <SectionPlaceholder title="Company Management" />;
 const TherapistsSection = () => <SectionPlaceholder title="Therapists Management" />;
 const UsersSection = () => <SectionPlaceholder title="Users Management" />;
 const BlogsSection = () => <SectionPlaceholder title="Blogs Management" />;
@@ -72,7 +72,7 @@ export default function Dashboard() {
         switch (activeSection) {
             case 'statistics': return <Statistics />;
             case 'leads': return <LeadSections />;
-            case 'company': return <CompanySection />;
+            case 'company': return <CompanySections />;
             case 'therapists': return <TherapistsSection />;
             case 'users': return <UsersSection />;
             case 'blogs': return <BlogsSection />;
