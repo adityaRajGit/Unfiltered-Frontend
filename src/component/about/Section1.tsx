@@ -32,7 +32,7 @@ function Section1() {
                     <div className="flex justify-center">
                         <div className="relative w-full max-w-md h-80 md:h-96 rounded-2xl overflow-hidden shadow-2xl">
                             <Image
-                                src=""
+                                src="/about1.jpg"
                                 alt="Team discussion"
                                 layout="fill"
                                 objectFit="cover"

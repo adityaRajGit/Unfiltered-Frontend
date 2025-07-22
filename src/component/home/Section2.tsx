@@ -26,12 +26,12 @@ function Section2() {
         {
             title: "Webinars & Workshops",
             desc: "Preventive and educational sessions covering: Managing stress and burnout, mindfulness & emotional resilience, conflict resolution at work, mental health first aid, empathy and leadership, sleep, diet, and mental health.",
-            img: '/therapy2.jpeg',
+            img: '/therapy2.jpg',
         },
         {
             title: "Managerial Coaching | Leadership",
             desc: "Well-being focused therapy-like support and strategic coaching: Emotional intelligence coaching, executive stress and pressure support, coaching on supporting struggling employees, and preventing toxic leadership traits.",
-            img: '/therapy4.jpeg',
+            img: '/therapy4.jpg',
         },
     ];
 
