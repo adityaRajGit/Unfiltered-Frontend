@@ -1,89 +1,187 @@
 import Link from "next/link"
 
-
 function Section4() {
+    const services = [
+        {
+            title: "Confidential Counseling",
+            description: "Personalized one-on-one therapy (via video or phone)",
+            icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                </svg>
+            )
+        },
+        {
+            title: "Educational Webinars",
+            description: "Live sessions on stress, diversity, and resilience",
+            icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            )
+        },
+        {
+            title: "Interactive Workshops",
+            description: "Group activities to promote mental health awareness",
+            icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+            )
+        },
+        {
+            title: "Resource Library",
+            description: "Blog posts and insights based on emerging global trends",
+            icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+            )
+        },
+        {
+            title: "EAP Management",
+            description: "Full program handling including assessments and reporting",
+            icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+            )
+        }
+    ]
+
+    const values = [
+        {
+            title: "Employee-First",
+            description: "We prioritize people in every decision",
+            icon: "👥"
+        },
+        {
+            title: "Inclusivity",
+            description: "We embrace diversity and design culturally sensitive programs",
+            icon: "🌍"
+        },
+        {
+            title: "Innovation",
+            description: "We use AI and data to match employees with the right care fast",
+            icon: "🚀"
+        },
+        {
+            title: "Compassion & Integrity",
+            description: "We treat every interaction with empathy and honesty",
+            icon: "❤️"
+        },
+        {
+            title: "Accountability",
+            description: "We track impact and improve continuously",
+            icon: "📊"
+        }
+    ]
+
+    const industries = [
+        { name: "Tech Startups", icon: "💻" },
+        { name: "Healthcare", icon: "🏥" },
+        { name: "Finance", icon: "💰" },
+        { name: "Education", icon: "🎓" },
+        { name: "Manufacturing", icon: "🏭" },
+        { name: "Retail", icon: "🛒" },
+        { name: "Non-profits", icon: "🤝" },
+        { name: "Government", icon: "🏛️" }
+    ]
+
     return (
-        <div className="py-20 px-4">
+        <div className="py-20 px-4 bg-gray-50">
             <div className="max-w-7xl mx-auto">
+                {/* Services Section */}
                 <div className="text-center mb-16">
                     <div className="inline-block px-4 py-1 mb-4 text-sm font-medium text-teal-800 bg-teal-200 rounded-full">
-                        Meet Our Leaders
+                        What We Offer
                     </div>
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                        The Visionaries Behind StayUnfiltered
+                        Comprehensive Mental Health Solutions
                     </h2>
                     <p className="max-w-3xl mx-auto text-gray-600 text-lg">
-                        A diverse team united by a passion for mental health innovation
+                        Tailored programs to enhance employee well-being and organizational health
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {[
-                        {
-                            name: "Dr. Priya Sharma",
-                            title: "Founder & CEO",
-                            bio: "Clinical psychologist with 15+ years experience. Passionate about tech-enabled mental health solutions.",
-                            image: ''
-                        },
-                        {
-                            name: "Rajiv Mehta",
-                            title: "CTO",
-                            bio: "Tech innovator focused on creating secure, accessible platforms for healthcare delivery.",
-                            image: ''
-                        },
-                        {
-                            name: "Ananya Patel",
-                            title: "Clinical Director",
-                            bio: "Oversees therapist network and ensures clinical excellence across all services.",
-                            image: ''
-                        },
-                        {
-                            name: "Sanjay Kumar",
-                            title: "Head of Community",
-                            bio: "Builds and nurtures our global community of users and mental health advocates.",
-                            image: ''
-                        }
-                    ].map((member, index) => (
-                        <div
-                            key={index}
-                            className="bg-white rounded-2xl shadow-md overflow-hidden"
-                        >
-                            <div className="relative h-72">
-                                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-full" />
-                                <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/80 to-transparent">
-                                    <h3 className="text-xl font-bold text-white">{member.name}</h3>
-                                    <p className="text-teal-300 text-sm">{member.title}</p>
-                                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-20">
+                    {services.map((service, index) => (
+                        <div key={index} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
+                            <div className="text-teal-600 mb-3">
+                                {service.icon}
                             </div>
-                            <div className="p-6">
-                                <p className="text-gray-600">{member.bio}</p>
-                                <div className="mt-4 flex space-x-3">
-                                    <a href="#" className="text-teal-600 hover:text-teal-800">
-                                        <span className="sr-only">LinkedIn</span>
-                                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                                        </svg>
-                                    </a>
-                                    <a href="#" className="text-teal-600 hover:text-teal-800">
-                                        <span className="sr-only">Twitter</span>
-                                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
-                                        </svg>
-                                    </a>
-                                </div>
-                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">{service.title}</h3>
+                            <p className="text-gray-600 text-sm">{service.description}</p>
                         </div>
                     ))}
                 </div>
 
-                <div className="mt-16 text-center">
+                {/* Partnerships Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20">
+                    <div>
+                        <div className="inline-block px-4 py-1 mb-4 text-sm font-medium text-cyan-800 bg-cyan-200 rounded-full">
+                            Who We Serve
+                        </div>
+                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                            Trusted by Organizations Worldwide
+                        </h2>
+                        <p className="text-gray-700 mb-6">
+                            We partner with companies of all sizes and industries, from MSMEs to Fortune 500 enterprises.
+                        </p>
+                        <p className="text-gray-700">
+                            Whether your team is remote, hybrid, or in-office, Stay Unfiltered adapts to support your employees wherever they are.
+                        </p>
+                        
+                        <div className="mt-8 grid grid-cols-4 gap-4">
+                            {industries.slice(0, 4).map((industry, index) => (
+                                <div key={index} className="flex items-center gap-2">
+                                    <span className="text-2xl">{industry.icon}</span>
+                                    <span className="text-sm text-gray-700">{industry.name}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow-md p-8">
+                        <div className="grid grid-cols-4 gap-4">
+                            {industries.map((industry, index) => (
+                                <div key={index} className="bg-gray-50 rounded-lg p-4 text-center">
+                                    <div className="text-3xl mb-2">{industry.icon}</div>
+                                    <div className="text-sm font-medium text-gray-700">{industry.name}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Values Section */}
+                <div className="text-center mb-16">
+                    <div className="inline-block px-4 py-1 mb-4 text-sm font-medium text-teal-800 bg-teal-200 rounded-full">
+                        Our Values
+                    </div>
+                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                        The Foundation of Everything We Do
+                    </h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-16">
+                    {values.map((value, index) => (
+                        <div key={index} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
+                            <div className="text-3xl mb-3">{value.icon}</div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">{value.title}</h3>
+                            <p className="text-gray-600 text-sm">{value.description}</p>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="text-center">
                     <Link
-                        href="/team"
+                        href="/employers"
                         className="inline-flex items-center px-8 py-3 bg-teal-600 text-white font-medium rounded-full hover:bg-teal-700 transition-colors"
                     >
-                        Meet Our Full Team
+                        Become a Partner
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                         </svg>
                     </Link>
                 </div>
