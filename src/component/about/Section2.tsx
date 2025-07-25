@@ -39,8 +39,8 @@ function Section2() {
                             </div>
                         </div>
                         <div className="absolute -bottom-6 right-0 sm:-right-0 bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-                            <div className="text-4xl font-bold text-teal-600">2018</div>
-                            <p className="text-sm text-gray-600">Founded in Bangalore</p>
+                            <div className="text-4xl font-bold text-teal-600">2025</div>
+                            <p className="text-sm text-gray-600">Founded in India</p>
                         </div>
                     </div>
 

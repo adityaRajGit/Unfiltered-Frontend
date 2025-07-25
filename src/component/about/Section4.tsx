@@ -132,7 +132,7 @@ function Section4() {
                             Whether your team is remote, hybrid, or in-office, Stay Unfiltered adapts to support your employees wherever they are.
                         </p>
                         
-                        <div className="mt-8 grid grid-cols-4 gap-4">
+                        <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
                             {industries.slice(0, 4).map((industry, index) => (
                                 <div key={index} className="flex items-center gap-2">
                                     <span className="text-2xl">{industry.icon}</span>
@@ -143,7 +143,7 @@ function Section4() {
                     </div>
 
                     <div className="bg-white rounded-2xl shadow-md p-8">
-                        <div className="grid grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             {industries.map((industry, index) => (
                                 <div key={index} className="bg-gray-50 rounded-lg p-4 text-center">
                                     <div className="text-3xl mb-2">{industry.icon}</div>
