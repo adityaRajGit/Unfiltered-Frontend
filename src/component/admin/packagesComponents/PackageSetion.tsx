@@ -6,11 +6,11 @@ import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { FaSort, FaSortUp, FaSortDown, FaPlus } from "react-icons/fa";
 import { MdEdit, MdDeleteForever } from "react-icons/md";
-// import DeleteConfirmationModal from "../global/DeleteConfirmationModal";
 import { LoadingSpinnerWithOverlay } from "@/component/global/Loading";
 import PackageFormModal from "./PackageModalForm";
 import { addPackage, listPackage, removePackage, updatePackage } from "@/store/packageSlice";
 import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import PackageDetailsModal from "./PackageDetails";
 
 export type PackageType = 'standard' | 'advanced' | 'premium' | 'custom';
 
@@ -22,6 +22,9 @@ export interface Package {
     max_webinars_per_month: number;
     max_attendees_per_webinar: number;
     max_duration_minutes: number;
+    max_sessions_per_month: number;
+    max_sessions_minutes: number;
+    timeLine: number;
     price: number;
     is_active: boolean;
     created_at: string;
@@ -35,6 +38,7 @@ function PackageSections() {
     const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
     const [pagination, setPagination] = useState({
         pageNum: 1,
@@ -110,6 +114,9 @@ function PackageSections() {
             max_webinars_per_month,
             max_attendees_per_webinar,
             max_duration_minutes,
+            max_sessions_per_month,
+            max_sessions_minutes,
+            timeLine,
             price,
             is_active,
         } = formData;
@@ -136,6 +143,21 @@ function PackageSections() {
 
         if (typeof max_duration_minutes !== "number" || max_duration_minutes <= 0) {
             toast.error("Max duration in minutes must be a positive number.");
+            return false;
+        }
+
+        if (typeof max_sessions_per_month !== "number" || max_sessions_per_month <= 0) {
+            toast.error("Max sessions per month must be a positive number.");
+            return false;
+        }
+
+        if (typeof max_sessions_minutes !== "number" || max_sessions_minutes <= 0) {
+            toast.error("Max sessions minutes must be a positive number.");
+            return false;
+        }
+
+        if (!timeLine || typeof timeLine !== "number") {
+            toast.error("Time line is required and must be a number.");
             return false;
         }
 
@@ -184,7 +206,7 @@ function PackageSections() {
 
         setLoading(true);
         try {
-            if(!selectedPackage) return
+            if (!selectedPackage) return
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const response = await dispatch(updatePackage({ data: formData, id: selectedPackage._id } as any) as any);
 
@@ -346,15 +368,22 @@ function PackageSections() {
                 message="Are you sure you want to delete this package? This action cannot be undone."
             />
 
+            {/* Package Details Modal - Add this */}
+            <PackageDetailsModal
+                isOpen={isDetailsModalOpen}
+                onClose={() => {
+                    setIsDetailsModalOpen(false);
+                    setSelectedPackage(null);
+                }}
+                package={selectedPackage}
+            />
+
             <div className="overflow-x-auto rounded-lg border border-gray-200">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
                             <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                             <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                            <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Webinars</th>
-                            <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Attendees</th>
-                            <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration (min)</th>
                             <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price (₹)</th>
                             <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
@@ -364,12 +393,12 @@ function PackageSections() {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {sortedPackages.length > 0 ? (
                             sortedPackages.map((pkg) => (
-                                <tr key={pkg._id} className="hover:bg-gray-50 transition-colors">
+                                <tr onClick={() => {
+                                    setSelectedPackage(pkg);
+                                    setIsDetailsModalOpen(true);
+                                }} key={pkg._id} className="hover:bg-gray-50 transition-colors">
                                     <td className="py-4 px-4 text-sm font-medium text-gray-900">{pkg.name}</td>
                                     <td className="py-4 px-4 text-sm text-gray-700 capitalize">{pkg.package_type}</td>
-                                    <td className="py-4 px-4 text-sm text-gray-700">{pkg.max_webinars_per_month}</td>
-                                    <td className="py-4 px-4 text-sm text-gray-700">{pkg.max_attendees_per_webinar}</td>
-                                    <td className="py-4 px-4 text-sm text-gray-700">{pkg.max_duration_minutes}</td>
                                     <td className="py-4 px-4 text-sm text-gray-700">₹{pkg.price.toFixed(2)}</td>
                                     <td className="py-4 px-4">
                                         <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${pkg.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
@@ -381,7 +410,8 @@ function PackageSections() {
                                     </td>
                                     <td className="py-4 px-4 text-sm text-gray-700 flex gap-5">
                                         <button
-                                            onClick={() => {
+                                            onClick={(e) => {
+                                                e.stopPropagation();
                                                 setSelectedPackage(pkg)
                                                 setIsCreateModalOpen(true)
                                             }}
@@ -390,7 +420,8 @@ function PackageSections() {
                                             <MdEdit size={20} className="cursor-pointer" />
                                         </button>
                                         <button
-                                            onClick={() => {
+                                            onClick={(e) => {
+                                                e.stopPropagation();
                                                 setSelectedPackage(pkg);
                                                 setIsDeleteModalOpen(true);
                                             }}

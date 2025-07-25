@@ -24,6 +24,9 @@ const PackageFormModal = ({
         max_webinars_per_month: 0,
         max_attendees_per_webinar: 0,
         max_duration_minutes: 0,
+        max_sessions_per_month: 0,
+        max_sessions_minutes: 0,
+        timeLine: 0,
         price: 0,
         is_active: true,
     });
@@ -37,6 +40,9 @@ const PackageFormModal = ({
                 max_webinars_per_month: initialData.max_webinars_per_month,
                 max_attendees_per_webinar: initialData.max_attendees_per_webinar,
                 max_duration_minutes: initialData.max_duration_minutes,
+                max_sessions_per_month: initialData.max_sessions_per_month,
+                max_sessions_minutes: initialData.max_sessions_minutes,
+                timeLine: initialData.timeLine,
                 price: initialData.price,
                 is_active: initialData.is_active,
             });
@@ -48,6 +54,9 @@ const PackageFormModal = ({
                 max_webinars_per_month: 0,
                 max_attendees_per_webinar: 0,
                 max_duration_minutes: 0,
+                max_sessions_per_month: 0,
+                max_sessions_minutes: 0,
+                timeLine: 0,
                 price: 0,
                 is_active: true,
             });
@@ -188,6 +197,55 @@ const PackageFormModal = ({
                                     min="0"
                                 />
                             </div>
+                        </div>
+                        {/* Grid Inputs Sessions*/}
+                        <div className="grid grid-cols-3 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Sessions/Month
+                                </label>
+                                <input
+                                    type="number"
+                                    name="max_sessions_per_month"
+                                    placeholder="Enter max Sessions per month"
+                                    value={formData.max_sessions_per_month || ''}
+                                    onChange={handleChange}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                    min="0"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Max Sessions Duration (min)
+                                </label>
+                                <input
+                                    type="number"
+                                    name="max_sessions_minutes"
+                                    placeholder="Enter max sessions duration in minutes"
+                                    value={formData.max_sessions_minutes || ''}
+                                    onChange={handleChange}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                    min="0"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Duration */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Timeline of Package (₹)
+                            </label>
+                            <input
+                                type="number"
+                                name="timeLine"
+                                placeholder="Enter package Timeline. eg. 1 = 1 month"
+                                value={formData.timeLine || ''}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                min="0"
+                                step="0.01"
+                            />
                         </div>
 
                         {/* Price */}

@@ -23,7 +23,7 @@ export interface Company {
     package: string;
     status: string;
     webinarsCompleted: number;
-    webinarsScheduled: number;
+    sessionsCompleted: number;
     created_at: string;
 }
 
@@ -390,12 +390,12 @@ function CompanySections() {
                                     <h3 className="text-sm font-medium text-gray-500">WEBINARS</h3>
                                     <div className="mt-2 grid grid-cols-2 gap-4">
                                         <div className="bg-blue-50 rounded-lg p-3">
-                                            <p className="text-xs font-medium text-blue-600">SCHEDULED</p>
-                                            <p className="text-2xl font-bold text-gray-900">{selectedCompany.webinarsScheduled}</p>
+                                            <p className="text-xs font-medium text-blue-600">SESSIONS COMPLETED</p>
+                                            <p className="text-2xl font-bold text-gray-900">{selectedCompany.sessionsCompleted || 0}</p>
                                         </div>
                                         <div className="bg-green-50 rounded-lg p-3">
-                                            <p className="text-xs font-medium text-green-600">COMPLETED</p>
-                                            <p className="text-2xl font-bold text-gray-900">{selectedCompany.webinarsCompleted}</p>
+                                            <p className="text-xs font-medium text-green-600">WEBINARS COMPLETED</p>
+                                            <p className="text-2xl font-bold text-gray-900">{selectedCompany.webinarsCompleted || 0}</p>
                                         </div>
                                     </div>
                                 </div>

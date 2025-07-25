@@ -31,7 +31,7 @@ const CompanyFormModal = ({
         package: '',
         status: '',
         webinarsCompleted: 0,
-        webinarsScheduled: 0
+        sessionsCompleted: 0
     });
     const [loading, setLoading] = useState(false);
     const [packages, setPackages] = useState<Company[]>([]);
@@ -49,7 +49,7 @@ const CompanyFormModal = ({
                 package: initialData.package,
                 status: initialData.status,
                 webinarsCompleted: initialData.webinarsCompleted,
-                webinarsScheduled: initialData.webinarsScheduled
+                sessionsCompleted: initialData.sessionsCompleted
             });
         } else {
             setFormData({
@@ -62,7 +62,7 @@ const CompanyFormModal = ({
                 package: '',
                 status: '',
                 webinarsCompleted: 0,
-                webinarsScheduled: 0
+                sessionsCompleted: 0
             });
         }
     }, [initialData]);
@@ -97,7 +97,7 @@ const CompanyFormModal = ({
             package: '',
             status: '',
             webinarsCompleted: 0,
-            webinarsScheduled: 0
+            sessionsCompleted: 0
         });
     };
 
