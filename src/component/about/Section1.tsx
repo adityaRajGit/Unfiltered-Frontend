@@ -36,7 +36,7 @@ function Section1() {
                                 alt="Team discussion"
                                 layout="fill"
                                 objectFit="cover"
-                                className="transition-all duration-500 hover:scale-105"
+                                className="transition-all duration-500 hover:scale-105 object-top"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                         </div>
