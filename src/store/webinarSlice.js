@@ -4,9 +4,9 @@ import { ADMINTOKEN } from "@/utils/enum"
 
 const backend = process.env.NEXT_PUBLIC_BACKEND_URL
 
-const addPackage = createAsyncThunk("package/add-package", async (data) => {
+const addWebinar = createAsyncThunk("webinar/add-webinar", async (data) => {
     try {
-        const response = await axios.post(`${backend}/package/new`, data, {
+        const response = await axios.post(`${backend}/webinar/new`, data, {
             headers: {
                 Authorization: `Bearer ${JSON.parse(localStorage.getItem(ADMINTOKEN))}`
             },
@@ -20,9 +20,9 @@ const addPackage = createAsyncThunk("package/add-package", async (data) => {
     }
 })
 
-const listPackage = createAsyncThunk("package/list-package", async (data) => {
+const listWebinars = createAsyncThunk("webinar/list-webinar", async (data) => {
     try {
-        const response = await axios.post(`${backend}/package/list`, data, {
+        const response = await axios.post(`${backend}/webinar/list`, data, {
             headers: {
                 Authorization: `Bearer ${JSON.parse(localStorage.getItem(ADMINTOKEN))}`
             },
@@ -36,9 +36,9 @@ const listPackage = createAsyncThunk("package/list-package", async (data) => {
     }
 })
 
-const updatePackage = createAsyncThunk("package/update-package", async (payload) => {
+const updateWebinar = createAsyncThunk("webinar/update-webinar", async (payload) => {
     try {
-        const response = await axios.post(`${backend}/package/${payload.id}/update`, payload.data, {
+        const response = await axios.post(`${backend}/webinar/${payload.id}/update`, payload.data, {
             headers: {
                 Authorization: `Bearer ${JSON.parse(localStorage.getItem(ADMINTOKEN))}`
             },
@@ -52,9 +52,9 @@ const updatePackage = createAsyncThunk("package/update-package", async (payload)
     }
 })
 
-const removePackage = createAsyncThunk("package/remove-package", async (id) => {
+const removeWebinar = createAsyncThunk("webinar/remove-webinar", async (id) => {
     try {
-        const response = await axios.post(`${backend}/package/${id}/remove`, {}, {
+        const response = await axios.post(`${backend}/webinar/${id}/remove`, {}, {
             headers: {
                 Authorization: `Bearer ${JSON.parse(localStorage.getItem(ADMINTOKEN))}`
             },
@@ -70,67 +70,67 @@ const removePackage = createAsyncThunk("package/remove-package", async (id) => {
 
 
 const initialState = {
-    package: null,
+    webinar: null,
     loading: false,
     error: null
 }
 
-const packageSlice = createSlice({
-    name: "package",
+const webinarSlice = createSlice({
+    name: "webinar",
     initialState,
     reducers: {},
     extraReducers: (builder) => {
         builder
-            .addCase(addPackage.pending, (state) => {
+            .addCase(addWebinar.pending, (state) => {
                 state.loading = true
                 state.error = null
             })
-            .addCase(addPackage.fulfilled, (state, action) => {
+            .addCase(addWebinar.fulfilled, (state, action) => {
                 state.loading = false
-                state.package = action.payload.data.package
+                state.webinar = action.payload.data.webinar
             })
-            .addCase(addPackage.rejected, (state, action) => {
+            .addCase(addWebinar.rejected, (state, action) => {
                 state.loading = false
                 state.error = action.error || "An error occurred";
             })
-            .addCase(listPackage.pending, (state) => {
+            .addCase(listWebinars.pending, (state) => {
                 state.loading = true
                 state.error = null
             })
-            .addCase(listPackage.fulfilled, (state, action) => {
+            .addCase(listWebinars.fulfilled, (state, action) => {
                 state.loading = false
-                state.package = action.payload.data.package
+                state.webinar = action.payload.data.webinar
             })
-            .addCase(listPackage.rejected, (state, action) => {
+            .addCase(listWebinars.rejected, (state, action) => {
                 state.loading = false
                 state.error = action.error || "An error occurred";
             })
-            .addCase(updatePackage.pending, (state) => {
+            .addCase(updateWebinar.pending, (state) => {
                 state.loading = true
                 state.error = null
             })
-            .addCase(updatePackage.fulfilled, (state, action) => {
+            .addCase(updateWebinar.fulfilled, (state, action) => {
                 state.loading = false
-                state.package = action.payload.data.package
+                state.webinar = action.payload.data.webinar
             })
-            .addCase(updatePackage.rejected, (state, action) => {
+            .addCase(updateWebinar.rejected, (state, action) => {
                 state.loading = false
                 state.error = action.error || "An error occurred";
             })
-            .addCase(removePackage.pending, (state) => {
+            .addCase(removeWebinar.pending, (state) => {
                 state.loading = true
                 state.error = null
             })
-            .addCase(removePackage.fulfilled, (state, action) => {
+            .addCase(removeWebinar.fulfilled, (state, action) => {
                 state.loading = false
-                state.package = action.payload.data.package
+                state.webinar = action.payload.data.webinar
             })
-            .addCase(removePackage.rejected, (state, action) => {
+            .addCase(removeWebinar.rejected, (state, action) => {
                 state.loading = false
                 state.error = action.error || "An error occurred";
             })
     }
 })
 
-export { addPackage, listPackage, updatePackage, removePackage }
-export default packageSlice.reducer
+export { addWebinar, listWebinars, updateWebinar, removeWebinar }
+export default webinarSlice.reducer

@@ -5,6 +5,7 @@ import leadReducer from './leadSlice.js'
 import adminReducer from './adminSlice.js'
 import packageReducer from './packageSlice.js'
 import companyReducer from './companySlice.js'
+import webinarReducer from './webinarSlice.js'
 
 const store = configureStore({
     reducer: {
@@ -13,7 +14,8 @@ const store = configureStore({
         lead: leadReducer,
         admin: adminReducer,
         package: packageReducer,
-        company: companyReducer
+        company: companyReducer,
+        webinar: webinarReducer
     }
 })
 

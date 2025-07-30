@@ -25,6 +25,7 @@ import {
 import { useDispatch } from 'react-redux';
 import PackageSections from '@/component/admin/packagesComponents/PackageSetion';
 import CompanySections from '@/component/admin/companyComponents/CompanySection';
+import WebinarSection from '@/component/admin/webinarComponents/WebinarSection';
 
 interface Admin {
     name: string;
@@ -35,7 +36,6 @@ interface Admin {
 const TherapistsSection = () => <SectionPlaceholder title="Therapists Management" />;
 const UsersSection = () => <SectionPlaceholder title="Users Management" />;
 const BlogsSection = () => <SectionPlaceholder title="Blogs Management" />;
-const WebinarsSection = () => <SectionPlaceholder title="Webinars Management" />;
 
 const SectionPlaceholder = ({ title }: { title: string }) => (
     <div className="p-6 bg-white rounded-xl shadow">
@@ -76,7 +76,7 @@ export default function Dashboard() {
             case 'therapists': return <TherapistsSection />;
             case 'users': return <UsersSection />;
             case 'blogs': return <BlogsSection />;
-            case 'webinars': return <WebinarsSection />;
+            case 'webinars': return <WebinarSection />;
             case 'packages': return <PackageSections />;
             default: return <Statistics />;
         }

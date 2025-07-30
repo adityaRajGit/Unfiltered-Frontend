@@ -84,7 +84,7 @@ export const Header = () => {
         { name: 'Home', href: '/' },
         { name: 'Corporate Wellness', href: '/pages/corporate' },
         { name: 'Blogs', href: '/pages/blogs' },
-        { name: 'Therapy', href: '/counsellor' },
+        // { name: 'Therapy', href: '/counsellor' },
         { name: 'About', href: '/pages/about' },
         { name: 'FAQ', href: '/pages/faq' },
     ];

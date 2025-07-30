@@ -5,17 +5,17 @@ function Section2() {
     const therapy = [
         {
             title: "Individual Therapy",
-            desc: "One-on-one sessions to address personal challenges and develop coping strategies.",
+            desc: "One-on-one sessions to address personal challenges such as anxiety, trauma, grief, and more, while developing healthy coping strategies.",
             img: '/therapy1.jpeg',
         },
         {
-            title: "Corporate Wellness",
-            desc: "Holistic mental health support for employees through EAPs, on-demand therapy, and expert-led workshops and webinars.",
+            title: "Nutrition & Diet Consulting",
+            desc: "Personalized nutrition plans and wellness guidance from certified experts to support both physical and mental well-being, boost energy levels, and improve workplace performance.",
             img: '/therapy5.jpeg',
         },
         {
-            title: "Group Therapy and Support Circle",
-            desc: "Led by certified mental health professionals, encourages open communication and emotional growth.",
+            title: "Soft Skills Training & Development",
+            desc: "Interactive sessions led by professionals focusing on communication, emotional intelligence, teamwork, adaptability, leadership, and conflict resolution to enhance workplace effectiveness.",
             img: '/therapy3.jpeg',
         },
         {
@@ -34,6 +34,7 @@ function Section2() {
             img: '/therapy4.jpg',
         },
     ];
+
 
 
     return (
