@@ -48,7 +48,7 @@ function HeroSection() {
       secondaryButton: {
         text: "Schedule Demo"
       },
-      image: "/landing.jpeg",
+      image: "/landing1.jpg",
       imageAlt: "Professional conducting a mental health webinar for corporate employees",
       floatingCard: {
         icon: "users",
@@ -71,7 +71,7 @@ function HeroSection() {
       secondaryButton: {
         text: "Learn More"
       },
-      image: "/landing.jpeg",
+      image: "/landing1.jpg",
       imageAlt: "Healthy meal planning and nutrition consultation for workplace wellness",
       floatingCard: {
         icon: "heart",
@@ -87,7 +87,7 @@ function HeroSection() {
 
     const interval = setInterval(() => {
       handleSlideChange((prev) => (prev + 1) % slides.length);
-    }, 3000);
+    }, 6000);
 
     return () => clearInterval(interval);
   }, [isAutoPlaying, isTransitioning, slides.length]);
