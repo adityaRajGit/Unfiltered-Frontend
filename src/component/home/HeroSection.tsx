@@ -48,7 +48,7 @@ function HeroSection() {
       secondaryButton: {
         text: "Schedule Demo"
       },
-      image: "/landing1.jpg",
+      image: "/landing2.jpg",
       imageAlt: "Professional conducting a mental health webinar for corporate employees",
       floatingCard: {
         icon: "users",
