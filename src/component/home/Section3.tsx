@@ -104,7 +104,7 @@ function Section3() {
                                 <FaHeart className="text-xl text-teal-600" />
                             </div>
                             <div>
-                                <div className="text-2xl font-bold text-teal-800 mb-1">96%</div>
+                                <div className="text-2xl font-bold text-teal-800 mb-1">97%</div>
                                 <h3 className="text-lg font-medium text-gray-900">Satisfaction Rate</h3>
                                 <p className="text-sm text-gray-600">From Indian users</p>
                             </div>
