@@ -210,7 +210,7 @@ function HeroSection() {
                     </p>
 
                     <div 
-                      className={`flex flex-co items-center justify-center mt-10 space-y-4 sm:flex-row sm:space-y-0 lg:flex-col lg:gap-2 xl:gap-0 xl:flex-row  sm:space-x-6 lg:justify-start transition-all duration-700 ${
+                      className={`flex flex-col items-center justify-center mt-10 space-y-4 sm:flex-row sm:space-y-0 lg:flex-col lg:gap-2 xl:gap-0 xl:flex-row  sm:space-x-6 lg:justify-start transition-all duration-700 ${
                         index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                       }`}
                       style={{ transitionDelay: index === currentSlide ? '500ms' : '0ms' }}
