@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/component/global/Header";
 import Footer from "@/component/global/Footer";
 import Providers from "@/app/(main)/provider";
+import FloatingFeedback from "@/component/global/FloatingFeedback";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,6 +34,7 @@ export default function RootLayout({
         <Providers>
           <Header />
           {children}
+          <FloatingFeedback />
           <Footer />
         </Providers>
       </body>
