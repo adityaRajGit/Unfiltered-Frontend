@@ -105,18 +105,6 @@ const EnhancedFeedbackButton = () => {
                                 <div className="flex gap-4 justify-center">
                                     <button
                                         type="button"
-                                        onClick={() => setFeedbackType('negative')}
-                                        className={`flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-300 ${feedbackType === 'negative'
-                                            ? 'bg-red-50 border-red-400 text-red-600'
-                                            : 'border-gray-200 text-gray-400 hover:border-gray-300'
-                                            }`}
-                                        aria-label="Negative experience"
-                                    >
-                                        <FiThumbsDown size={24} />
-                                        <span className="text-xs mt-1">Not good</span>
-                                    </button>
-                                    <button
-                                        type="button"
                                         onClick={() => setFeedbackType('positive')}
                                         className={`flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-300 ${feedbackType === 'positive'
                                             ? 'bg-teal-50 border-teal-400 text-teal-600'
@@ -125,7 +113,19 @@ const EnhancedFeedbackButton = () => {
                                         aria-label="Positive experience"
                                     >
                                         <FiThumbsUp size={24} />
-                                        <span className="text-xs mt-1">Good</span>
+                                        <span className="text-xs mt-1">Positive</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFeedbackType('negative')}
+                                        className={`flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-300 ${feedbackType === 'negative'
+                                            ? 'bg-red-50 border-red-400 text-red-600'
+                                            : 'border-gray-200 text-gray-400 hover:border-gray-300'
+                                            }`}
+                                        aria-label="Negative experience"
+                                    >
+                                        <FiThumbsDown size={24} />
+                                        <span className="text-xs mt-1">Negative</span>
                                     </button>
                                 </div>
                             </div>
@@ -139,7 +139,7 @@ const EnhancedFeedbackButton = () => {
                                         id="feedback"
                                         value={feedback}
                                         onChange={(e) => setFeedback(e.target.value)}
-                                        placeholder="What can we improve?"
+                                        placeholder="Tell us what worked well or what didn't."
                                         className="w-full min-h-[120px] p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all resize-none shadow-sm"
                                         required
                                     />
