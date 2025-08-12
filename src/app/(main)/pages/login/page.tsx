@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinnerWithOverlay } from '@/component/global/Loading';
 import { GoogleSignIn, GoogleSignUp } from '@/component/Authentication';
 import { loginTherapist, signupTherapist } from '@/store/therapistSlice';
+import { sendOtp, verifyOtp } from '@/store/otpSlice';
 
 const AuthPages = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -20,6 +21,8 @@ const AuthPages = () => {
     phone: '',
     password: ''
   });
+  const [otp, setOtp] = useState('');
+  const [emailOtpPopup, setEmailOtpPopup] = useState(false);
   const dispatch = useDispatch()
   const router = useRouter()
   const [loading, setLoading] = useState(false);
@@ -95,6 +98,10 @@ const AuthPages = () => {
           }
         }
       } else {
+        if (!emailOtpPopup) {
+          sendEmailOtp();
+          return;
+        }
         if (role === 'user') {
           const signupData = { ...formData, role };
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -124,6 +131,61 @@ const AuthPages = () => {
     }
   };
 
+
+  async function sendEmailOtp() {
+    if (validateForm()) {
+      if (!isLogin) {
+        setLoading(true)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response = await dispatch(sendOtp({ email: formData.email } as any) as any);
+        if (response?.error) {
+          toast.error(response.error.message);
+        } else {
+          console.log(response.payload)
+          toast.success('OTP sent successfully!');
+          setEmailOtpPopup(true)
+        }
+        setLoading(false)
+      }
+    }
+  }
+
+
+  async function verifyEmailOtp() {
+    if (validateForm()) {
+      if (!isLogin) {
+        setLoading(true)
+        const data = {
+          email: formData.email,
+          otp: otp
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response = await dispatch(verifyOtp(data as any) as any);
+        if (response?.error) {
+          toast.error(response.error.message);
+        } else {
+          console.log(response.payload)
+          toast.success('OTP Verified successfully!');
+          setEmailOtpPopup(false)
+          handleSubmit(new Event('submit') as any)
+        }
+        setLoading(false)
+      }
+    }
+  }
+
+  const handleOtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    if (value.length <= 6) {
+      setOtp(value);
+    }
+  };
+
+  const closeOtpPopup = () => {
+    setEmailOtpPopup(false);
+    setOtp('');
+  };
+
   const togglePassword = () => {
     setShowPassword(!showPassword);
   };
@@ -143,6 +205,87 @@ const AuthPages = () => {
           {isLogin ? 'Welcome back to your mental wellness journey' : 'Join our supportive community'}
         </p>
       </header>
+
+      {emailOtpPopup && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto">
+            {/* Popup Header */}
+            <div className="bg-gradient-to-r from-teal-600 to-teal-700 p-6 rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Verify Your Email</h2>
+                  <p className="text-teal-100 mt-1">We've sent a code to {formData.email}</p>
+                </div>
+                <button
+                  onClick={closeOtpPopup}
+                  className="text-white hover:text-teal-200 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Popup Body */}
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-teal-100 rounded-full mb-4">
+                  <FaEnvelope className="text-2xl text-teal-600" />
+                </div>
+                <p className="text-gray-600">
+                  Enter the 6-digit verification code sent to your email address.
+                </p>
+              </div>
+
+              {/* OTP Input */}
+              <div className="mb-6">
+                <label className="block text-gray-700 mb-3 font-medium text-center">
+                  Verification Code
+                </label>
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={handleOtpChange}
+                  placeholder="Enter 6-digit code"
+                  className="w-full text-center text-2xl font-mono tracking-widest px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  maxLength={6}
+                />
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Code expires in 10 minutes
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                <button
+                  onClick={verifyEmailOtp}
+                  disabled={otp.length !== 6 || loading}
+                  className="w-full bg-teal-600 hover:bg-teal-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-lg transition duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50"
+                >
+                  {loading ? 'Verifying...' : 'Verify & Create Account'}
+                </button>
+
+                <button
+                  onClick={sendEmailOtp}
+                  disabled={loading}
+                  className="w-full text-teal-600 hover:text-teal-800 font-medium py-2 transition-colors"
+                >
+                  Didn't receive the code? Resend
+                </button>
+              </div>
+
+              {/* Help Text */}
+              <div className="mt-6 p-4 bg-teal-50 rounded-lg">
+                <p className="text-sm text-teal-800">
+                  <strong>Tip:</strong> Check your spam folder if you don't see the email.
+                  Make sure to enter the code exactly as received.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Auth Card */}
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
@@ -341,16 +484,22 @@ const AuthPages = () => {
             </button>
           </p>
 
-          <div className="mt-4 flex items-center justify-center">
-            <div className="border-t border-gray-300 flex-grow"></div>
-            <span className="px-3 text-gray-500 text-sm">Or continue with</span>
-            <div className="border-t border-gray-300 flex-grow"></div>
-          </div>
-
           {
-            isLogin
-              ? <GoogleSignIn role={role} />
-              : <GoogleSignUp role={role} />
+            role === 'user'
+              ? null
+              : <>
+                <div className="mt-4 flex items-center justify-center">
+                  <div className="border-t border-gray-300 flex-grow"></div>
+                  <span className="px-3 text-gray-500 text-sm">Or continue with</span>
+                  <div className="border-t border-gray-300 flex-grow"></div>
+                </div>
+
+                {
+                  isLogin
+                    ? <GoogleSignIn role={role} />
+                    : <GoogleSignUp role={role} />
+                }
+              </>
           }
         </div>
       </div>

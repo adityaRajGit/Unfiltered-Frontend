@@ -6,6 +6,7 @@ import adminReducer from './adminSlice.js'
 import packageReducer from './packageSlice.js'
 import companyReducer from './companySlice.js'
 import webinarReducer from './webinarSlice.js'
+import otpReducer from './otpSlice.js'
 
 const store = configureStore({
     reducer: {
@@ -15,7 +16,8 @@ const store = configureStore({
         admin: adminReducer,
         package: packageReducer,
         company: companyReducer,
-        webinar: webinarReducer
+        webinar: webinarReducer,
+        otp: otpReducer
     }
 })
 
