@@ -167,6 +167,7 @@ const AuthPages = () => {
           console.log(response.payload)
           toast.success('OTP Verified successfully!');
           setEmailOtpPopup(false)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
           handleSubmit(new Event('submit') as any)
         }
         setLoading(false)
@@ -214,7 +215,7 @@ const AuthPages = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-white">Verify Your Email</h2>
-                  <p className="text-teal-100 mt-1">We've sent a code to {formData.email}</p>
+                  <p className="text-teal-100 mt-1">We&apos;ve sent a code to {formData.email}</p>
                 </div>
                 <button
                   onClick={closeOtpPopup}
@@ -271,14 +272,14 @@ const AuthPages = () => {
                   disabled={loading}
                   className="w-full text-teal-600 hover:text-teal-800 font-medium py-2 transition-colors"
                 >
-                  Didn't receive the code? Resend
+                  Didn&apos;t receive the code? Resend
                 </button>
               </div>
 
               {/* Help Text */}
               <div className="mt-6 p-4 bg-teal-50 rounded-lg">
                 <p className="text-sm text-teal-800">
-                  <strong>Tip:</strong> Check your spam folder if you don't see the email.
+                  <strong>Tip:</strong> Check your spam folder if you don&apos;t see the email.
                   Make sure to enter the code exactly as received.
                 </p>
               </div>
