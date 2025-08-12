@@ -151,7 +151,7 @@ function HeroSection() {
       <button
         onClick={prevSlide}
         disabled={isTransitioning}
-        className="absolute hidden sm:block left-4 top-1/2 transform -translate-y-1/2 z-30 bg-white/80 hover:bg-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="absolute hidden sm:block left-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/80 hover:bg-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label="Previous slide"
       >
         <FaChevronLeft className="text-teal-600 text-lg" />
@@ -160,7 +160,7 @@ function HeroSection() {
       <button
         onClick={nextSlide}
         disabled={isTransitioning}
-        className="absolute hidden sm:block right-4 top-1/2 transform -translate-y-1/2 z-30 bg-white/80 hover:bg-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="absolute hidden sm:block right-4 top-1/2 transform -translate-y-1/2 z-20 bg-white/80 hover:bg-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label="Next slide"
       >
         <FaChevronRight className="text-teal-600 text-lg" />

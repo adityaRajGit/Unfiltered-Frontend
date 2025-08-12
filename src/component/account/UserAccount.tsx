@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { FaEdit, FaCalendarAlt, FaClock, FaVideo, FaUserMd, FaPhone, FaEnvelope, FaChevronDown, FaStar, FaHistory } from 'react-icons/fa';
+import { FaEdit, FaCalendarAlt, FaClock, FaVideo, FaUserMd, FaPhone, FaTimes, FaEnvelope, FaChevronDown, FaStar, FaHistory } from 'react-icons/fa';
 import Link from 'next/link';
 import { useDispatch } from 'react-redux';
 import { getUserDetails, updateUserDetails } from '@/store/userSlice';
@@ -21,6 +21,34 @@ interface User {
   bio: string;
 }
 
+interface BookingForm {
+  specialization: string;
+  languages: string[];
+  date: string;
+  time: string;
+}
+
+interface FilteredTherapist {
+  id: number;
+  name: string;
+  specialization: string;
+  experience: string;
+  rating: number;
+  image: string;
+  languages: string[];
+  availability: string[];
+  price: number;
+  bio: string;
+}
+
+const INDIAN_LANGUAGES = [
+  'Hindi', 'English', 'Bengali', 'Telugu', 'Marathi', 'Tamil', 'Gujarati',
+  'Urdu', 'Kannada', 'Odia', 'Malayalam', 'Punjabi', 'Assamese', 'Maithili',
+  'Sanskrit', 'Nepali', 'Konkani', 'Manipuri', 'Sindhi', 'Dogri', 'Kashmiri',
+  'Santali', 'Bodo'
+];
+
+
 const UserProfilePage = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [isEditing, setIsEditing] = useState(false);
@@ -35,6 +63,114 @@ const UserProfilePage = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const [bookingForm, setBookingForm] = useState<BookingForm>({
+    specialization: '',
+    languages: [],
+    date: '',
+    time: '',
+  });
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const [filteredTherapists, setFilteredTherapists] = useState<FilteredTherapist[]>([]);
+  const [showResults, setShowResults] = useState(false);
+
+  const allTherapists: FilteredTherapist[] = [
+    {
+      id: 1,
+      name: "Dr. Ananya Patel",
+      specialization: "Addiction Specialist",
+      experience: "10 years",
+      rating: 4.9,
+      image: "/therapist1.jpg",
+      languages: ["English", "Hindi", "Gujarati"],
+      availability: ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00"],
+      price: 1200,
+      bio: "Specializes in substance abuse recovery, behavioral addictions, and cognitive behavioral therapy for addiction treatment."
+    },
+    {
+      id: 2,
+      name: "Dr. Rajiv Mehta",
+      specialization: "Anxiety Specialist",
+      experience: "8 years",
+      rating: 4.8,
+      image: "/therapist2.jpg",
+      languages: ["English", "Hindi", "Marathi"],
+      availability: ["10:00", "11:00", "15:00", "16:00", "17:00"],
+      price: 950,
+      bio: "Expert in anxiety disorders, panic attacks, social anxiety, and stress management using evidence-based approaches."
+    },
+    {
+      id: 3,
+      name: "Dr. Priya Sharma",
+      specialization: "Depression Specialist", 
+      experience: "12 years",
+      rating: 4.9,
+      image: "/therapist3.jpg",
+      languages: ["English", "Hindi", "Punjabi"],
+      availability: ["09:00", "10:00", "14:00", "15:00"],
+      price: 1100,
+      bio: "Specializes in major depressive disorder, bipolar disorder, and mood disorders with focus on therapeutic interventions."
+    },
+    {
+      id: 4,
+      name: "Dr. Arjun Reddy",
+      specialization: "Trauma Specialist",
+      experience: "15 years",
+      rating: 4.7,
+      image: "/therapist4.jpg",
+      languages: ["English", "Telugu", "Tamil"],
+      availability: ["11:00", "12:00", "16:00", "17:00", "18:00"],
+      price: 1500,
+      bio: "Expert in PTSD, trauma-informed care, EMDR therapy, and helping clients recover from traumatic experiences."
+    },
+    {
+      id: 5,
+      name: "Dr. Kavya Nair",
+      specialization: "Relationship Counseling",
+      experience: "9 years",
+      rating: 4.8,
+      image: "/therapist5.jpg",
+      languages: ["English", "Malayalam", "Tamil"],
+      availability: ["09:00", "10:00", "11:00", "15:00", "16:00"],
+      price: 1300,
+      bio: "Specializes in couples therapy, marriage counseling, family dynamics, and relationship conflict resolution."
+    },
+    {
+      id: 6,
+      name: "Dr. Vikram Singh",
+      specialization: "Child Psychology",
+      experience: "11 years",
+      rating: 4.8,
+      image: "/therapist6.jpg",
+      languages: ["English", "Hindi", "Punjabi"],
+      availability: ["09:00", "10:00", "11:00", "14:00", "15:00"],
+      price: 1150,
+      bio: "Specializes in child and adolescent behavioral issues, ADHD, autism spectrum disorders, and developmental concerns."
+    },
+    {
+      id: 7,
+      name: "Dr. Meera Joshi",
+      specialization: "Family Therapy",
+      experience: "13 years",
+      rating: 4.9,
+      image: "/therapist7.jpg",
+      languages: ["English", "Hindi", "Marathi"],
+      availability: ["10:00", "11:00", "15:00", "16:00", "17:00"],
+      price: 1250,
+      bio: "Expert in family systems therapy, intergenerational trauma, and resolving family conflicts and communication issues."
+    },
+    {
+      id: 8,
+      name: "Dr. Ravi Kumar",
+      specialization: "Stress Management",
+      experience: "7 years",
+      rating: 4.7,
+      image: "/therapist8.jpg",
+      languages: ["English", "Telugu", "Kannada"],
+      availability: ["09:00", "12:00", "14:00", "16:00", "17:00"],
+      price: 900,
+      bio: "Focuses on workplace stress, burnout prevention, mindfulness-based stress reduction, and work-life balance."
+    }
+  ];
 
   const therapists = [
     {
@@ -118,6 +254,66 @@ const UserProfilePage = () => {
     ]
   };
 
+  const handleLanguageSelect = (language: string) => {
+    if (!bookingForm.languages.includes(language)) {
+      setBookingForm(prev => ({
+        ...prev,
+        languages: [...prev.languages, language]
+      }));
+    }
+    setShowLanguageDropdown(false);
+  };
+
+  const removeLanguage = (languageToRemove: string) => {
+    setBookingForm(prev => ({
+      ...prev,
+      languages: prev.languages.filter(lang => lang !== languageToRemove)
+    }));
+  };
+
+  const handleBookingFormChange = (field: keyof BookingForm, value: string) => {
+    setBookingForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const filterTherapists = () => {
+    if (!bookingForm.specialization || !bookingForm.date || !bookingForm.time || bookingForm.languages.length === 0) {
+      toast.error('Please fill all required fields');
+      return;
+    }
+
+    const filtered = allTherapists.filter(therapist => {
+      const hasSpecialization = therapist.specialization.toLowerCase().includes(bookingForm.specialization.toLowerCase());
+
+      const hasLanguage = bookingForm.languages.some(lang =>
+        therapist.languages.includes(lang)
+      );
+
+      const timeHour = bookingForm.time.split(':')[0] + ':00';
+      const hasAvailability = therapist.availability.includes(timeHour);
+
+      return hasSpecialization && hasLanguage && hasAvailability;
+    });
+
+    setFilteredTherapists(filtered);
+    setShowResults(true);
+  };
+
+
+  const bookAppointment = (therapist: FilteredTherapist) => {
+    toast.success(`Appointment booked with ${therapist.name}!`);
+    setActiveTab('upcoming');
+    setShowResults(false);
+    setBookingForm({
+      languages: [],
+      date: '',
+      time: '',
+      specialization: ''
+    });
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     if (!tempUserData) return;
@@ -129,11 +325,9 @@ const UserProfilePage = () => {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
 
-      // Create preview URL
       const objectUrl = URL.createObjectURL(selectedFile);
       setPreviewUrl(objectUrl);
 
-      // Update tempUserData with preview URL for UI
       if (tempUserData) {
         setTempUserData({ ...tempUserData, profile_image: objectUrl });
       }
@@ -144,10 +338,8 @@ const UserProfilePage = () => {
     setLoading(true);
 
     try {
-      // Create FormData object
       const formData = new FormData();
 
-      // Append all user data fields
       if (tempUserData) {
         formData.append('name', tempUserData.name || '');
         formData.append('email', tempUserData.email || '');
@@ -155,7 +347,6 @@ const UserProfilePage = () => {
         formData.append('bio', tempUserData.bio || '');
       }
 
-      // Append new profile picture if selected
       if (file) {
         formData.append('img', file);
       }
@@ -166,12 +357,9 @@ const UserProfilePage = () => {
       if (response?.error) {
         toast.error(response.error.message);
       } else {
-        // Refresh user data
         getUser(userId);
         toast.success('Profile updated successfully!');
         setIsEditing(false);
-
-        // Clean up preview URL
         if (previewUrl) {
           URL.revokeObjectURL(previewUrl);
           setPreviewUrl(null);
@@ -445,9 +633,235 @@ const UserProfilePage = () => {
                     <span className="absolute bottom-0 left-0 w-full h-0.5 bg-teal-600"></span>
                   )}
                 </button>
+                <button
+                  onClick={() => {
+                    setActiveTab('book');
+                    setShowResults(false);
+                  }}
+                  className={`px-4 py-2 font-medium relative ${activeTab === 'book' ? 'text-teal-600' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  Book Appointment
+                  {activeTab === 'book' && (
+                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-teal-600"></span>
+                  )}
+                </button>
               </div>
 
-              {activeTab === 'upcoming' ? (
+              {activeTab === 'book' ? (
+                <div className="space-y-6">
+                  {!showResults ? (
+                    <>
+                      {/* Booking Form */}
+                      <div className="bg-teal-50 rounded-xl p-6">
+                        <h3 className="text-xl font-bold text-gray-900 mb-6">Schedule Your Therapy Session</h3>
+                        <div className="mb-6">
+                          <label className="block text-gray-700 font-medium mb-3">
+                            Specialization *
+                          </label>
+                          <select
+                            value={bookingForm.specialization || ''}
+                            onChange={(e) => handleBookingFormChange('specialization', e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
+                          >
+                            <option value="">Select specialization...</option>
+                            <option value="Addiction">Addiction</option>
+                            <option value="Anxiety">Anxiety</option>
+                            <option value="Depression">Depression</option>
+                            <option value="Trauma">Trauma</option>
+                            <option value="Relationship">Relationship Counseling</option>
+                            <option value="Child Psychology">Child Psychology</option>
+                            <option value="Family Therapy">Family Therapy</option>
+                            <option value="Stress Management">Stress Management</option>
+                          </select>
+                        </div>
+                        <div className="mb-6">
+                          <label className="block text-gray-700 font-medium mb-3">
+                            Preferred Languages *
+                          </label>
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-left focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
+                            >
+                              {bookingForm.languages.length === 0 ? 'Select languages...' : `${bookingForm.languages.length} language(s) selected`}
+                            </button>
+
+                            {showLanguageDropdown && (
+                              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                {INDIAN_LANGUAGES.map((language) => (
+                                  <button
+                                    key={language}
+                                    type="button"
+                                    onClick={() => handleLanguageSelect(language)}
+                                    className={`w-full px-4 py-2 text-left hover:bg-teal-50 ${bookingForm.languages.includes(language)
+                                      ? 'bg-teal-100 text-teal-700'
+                                      : 'text-gray-700'
+                                      }`}
+                                    disabled={bookingForm.languages.includes(language)}
+                                  >
+                                    {language}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {bookingForm.languages.length > 0 && (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {bookingForm.languages.map((language) => (
+                                <span
+                                  key={language}
+                                  className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-teal-100 text-teal-800"
+                                >
+                                  {language}
+                                  <button
+                                    type="button"
+                                    onClick={() => removeLanguage(language)}
+                                    className="ml-2 text-teal-600 hover:text-teal-800"
+                                  >
+                                    <FaTimes className="w-3 h-3" />
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="grid md:grid-cols-2 gap-6 mb-6">
+                          <div>
+                            <label className="block text-gray-700 font-medium mb-3">
+                              Preferred Date *
+                            </label>
+                            <input
+                              type="date"
+                              value={bookingForm.date}
+                              onChange={(e) => handleBookingFormChange('date', e.target.value)}
+                              min={new Date().toISOString().split('T')[0]}
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-gray-700 font-medium mb-3">
+                              Preferred Time *
+                            </label>
+                            <input
+                              type="time"
+                              value={bookingForm.time}
+                              onChange={(e) => handleBookingFormChange('time', e.target.value)}
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                            />
+                          </div>
+                        </div>
+                        <button
+                          onClick={filterTherapists}
+                          className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300"
+                        >
+                          Find Available Therapists
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between mb-6">
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-900">Available Therapists</h3>
+                          <p className="text-gray-600">
+                            {filteredTherapists.length} therapist(s) available for {bookingForm.date} at {bookingForm.time}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setShowResults(false)}
+                          className="px-4 py-2 text-teal-600 hover:text-teal-800 font-medium"
+                        >
+                          ← Modify Search
+                        </button>
+                      </div>
+
+                      {filteredTherapists.length > 0 ? (
+                        <div className="space-y-4">
+                          {filteredTherapists.map((therapist) => (
+                            <div key={therapist.id} className="border border-gray-200 rounded-xl p-6 hover:border-teal-300 transition-colors">
+                              <div className="flex flex-col md:flex-row gap-6">
+                                {/* Therapist Image */}
+                                <div className="flex-shrink-0 mx-auto md:mx-0">
+                                  <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200">
+                                    <Image
+                                      src={therapist.image}
+                                      alt={therapist.name}
+                                      width={80}
+                                      height={80}
+                                      className="object-cover w-full h-full"
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Therapist Details */}
+                                <div className="flex-1">
+                                  <div className="flex flex-col md:flex-row md:justify-between gap-4">
+                                    <div className="space-y-3">
+                                      <div>
+                                        <h4 className="font-bold text-lg text-gray-900">{therapist.name}</h4>
+                                        <p className="text-teal-600 font-medium">{therapist.specialization}</p>
+                                      </div>
+
+                                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                                        <span>{therapist.experience} experience</span>
+                                        <div className="flex items-center">
+                                          <FaStar className="text-yellow-400 mr-1" />
+                                          <span>{therapist.rating}</span>
+                                        </div>
+                                      </div>
+
+                                      <div className="flex flex-wrap gap-2">
+                                        {therapist.languages.filter(lang => bookingForm.languages.includes(lang)).map((language) => (
+                                          <span
+                                            key={language}
+                                            className="px-2 py-1 bg-teal-100 text-teal-800 rounded-full text-xs"
+                                          >
+                                            {language}
+                                          </span>
+                                        ))}
+                                      </div>
+
+                                      <p className="text-gray-600 text-sm">{therapist.bio}</p>
+                                    </div>
+
+                                    {/* Price and Book Button */}
+                                    <div className="flex flex-col items-end justify-between">
+                                      <button
+                                        onClick={() => bookAppointment(therapist)}
+                                        className="px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors"
+                                      >
+                                        Book Now
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-12">
+                          <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                            <FaUserMd className="text-2xl text-gray-500" />
+                          </div>
+                          <h3 className="text-xl font-medium text-gray-900 mb-2">No therapists available</h3>
+                          <p className="text-gray-600 mb-6">Try adjusting your search criteria</p>
+                          <button
+                            onClick={() => setShowResults(false)}
+                            className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+                          >
+                            Modify Search
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              ) : activeTab === 'upcoming' ? (
                 <div className="space-y-4 md:space-y-6">
                   {appointments.upcoming.length > 0 ? (
                     appointments.upcoming.map((appointment) => (
@@ -610,7 +1024,7 @@ const UserProfilePage = () => {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
