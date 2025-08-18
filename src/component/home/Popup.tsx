@@ -17,7 +17,7 @@ export default function CorporatePopup() {
             // Show popup after a short delay for better UX
             const timer = setTimeout(() => {
                 setIsVisible(true);
-            }, 1500);
+            }, 15000);
             return () => clearTimeout(timer);
         }
     }, []);

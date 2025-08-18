@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { FaEdit, FaCalendarAlt, FaClock, FaVideo, FaUserMd, FaPhone, FaTimes, FaEnvelope, FaChevronDown, FaStar, FaHistory } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import Link from 'next/link';
 import { useDispatch } from 'react-redux';
 import { getUserDetails, updateUserDetails } from '@/store/userSlice';
@@ -41,12 +42,12 @@ interface FilteredTherapist {
   bio: string;
 }
 
-const INDIAN_LANGUAGES = [
-  'Hindi', 'English', 'Bengali', 'Telugu', 'Marathi', 'Tamil', 'Gujarati',
-  'Urdu', 'Kannada', 'Odia', 'Malayalam', 'Punjabi', 'Assamese', 'Maithili',
-  'Sanskrit', 'Nepali', 'Konkani', 'Manipuri', 'Sindhi', 'Dogri', 'Kashmiri',
-  'Santali', 'Bodo'
-];
+// const INDIAN_LANGUAGES = [
+//   'Hindi', 'English', 'Bengali', 'Telugu', 'Marathi', 'Tamil', 'Gujarati',
+//   'Urdu', 'Kannada', 'Odia', 'Malayalam', 'Punjabi', 'Assamese', 'Maithili',
+//   'Sanskrit', 'Nepali', 'Konkani', 'Manipuri', 'Sindhi', 'Dogri', 'Kashmiri',
+//   'Santali', 'Bodo'
+// ];
 
 
 const UserProfilePage = () => {
@@ -72,6 +73,94 @@ const UserProfilePage = () => {
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [filteredTherapists, setFilteredTherapists] = useState<FilteredTherapist[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+
+  const INDIAN_LANGUAGES = [
+    'English', 'Hindi', 'Bengali', 'Telugu', 'Marathi',
+    'Tamil', 'Gujarati', 'Kannada', 'Malayalam', 'Punjabi'
+  ];
+
+  // Time slots
+  const timeSlots = [
+    '09:00', '10:00', '11:00', '12:00',
+    '13:00', '14:00', '15:00', '16:00', '17:00'
+  ];
+
+  // Handle language selection
+  const handleLanguageSelect = (language: string) => {
+    if (!bookingForm.languages.includes(language)) {
+      setBookingForm(prev => ({
+        ...prev,
+        languages: [...prev.languages, language]
+      }));
+    }
+    setShowLanguageDropdown(false);
+  };
+
+  // Remove language
+  const removeLanguage = (languageToRemove: string) => {
+    setBookingForm(prev => ({
+      ...prev,
+      languages: prev.languages.filter(lang => lang !== languageToRemove)
+    }));
+  };
+
+  // Handle form change
+  const handleBookingFormChange = (field: string, value: string) => {
+    setBookingForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Generate calendar days
+  const getDaysInMonth = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const days = [];
+
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < firstDay.getDay(); i++) {
+      days.push(null);
+    }
+
+    // Add days of the month
+    for (let i = 1; i <= lastDay.getDate(); i++) {
+      days.push(new Date(year, month, i));
+    }
+
+    return days;
+  };
+
+  // Navigate to previous month
+  const prevMonth = () => {
+    setCurrentMonth(prev => {
+      const prevMonthDate = new Date(prev);
+      prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
+      return prevMonthDate;
+    });
+  };
+
+  // Navigate to next month
+  const nextMonth = () => {
+    setCurrentMonth(prev => {
+      const nextMonthDate = new Date(prev);
+      nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
+      return nextMonthDate;
+    });
+  };
+
+  // Get month and year string
+  const getMonthYearString = () => {
+    return currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
+  };
+
+  // Weekday names
+  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   const allTherapists: FilteredTherapist[] = [
     {
@@ -101,7 +190,7 @@ const UserProfilePage = () => {
     {
       id: 3,
       name: "Dr. Priya Sharma",
-      specialization: "Depression Specialist", 
+      specialization: "Depression Specialist",
       experience: "12 years",
       rating: 4.9,
       image: "/therapist3.jpg",
@@ -254,30 +343,6 @@ const UserProfilePage = () => {
     ]
   };
 
-  const handleLanguageSelect = (language: string) => {
-    if (!bookingForm.languages.includes(language)) {
-      setBookingForm(prev => ({
-        ...prev,
-        languages: [...prev.languages, language]
-      }));
-    }
-    setShowLanguageDropdown(false);
-  };
-
-  const removeLanguage = (languageToRemove: string) => {
-    setBookingForm(prev => ({
-      ...prev,
-      languages: prev.languages.filter(lang => lang !== languageToRemove)
-    }));
-  };
-
-  const handleBookingFormChange = (field: keyof BookingForm, value: string) => {
-    setBookingForm(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
   const filterTherapists = () => {
     if (!bookingForm.specialization || !bookingForm.date || !bookingForm.time || bookingForm.languages.length === 0) {
       toast.error('Please fill all required fields');
@@ -300,6 +365,8 @@ const UserProfilePage = () => {
     setFilteredTherapists(filtered);
     setShowResults(true);
   };
+
+  filterTherapists()
 
 
   const bookAppointment = (therapist: FilteredTherapist) => {
@@ -652,114 +719,215 @@ const UserProfilePage = () => {
                   {!showResults ? (
                     <>
                       {/* Booking Form */}
-                      <div className="bg-teal-50 rounded-xl p-6">
-                        <h3 className="text-xl font-bold text-gray-900 mb-6">Schedule Your Therapy Session</h3>
-                        <div className="mb-6">
-                          <label className="block text-gray-700 font-medium mb-3">
-                            Specialization *
-                          </label>
-                          <select
-                            value={bookingForm.specialization || ''}
-                            onChange={(e) => handleBookingFormChange('specialization', e.target.value)}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
-                          >
-                            <option value="">Select specialization...</option>
-                            <option value="Addiction">Addiction</option>
-                            <option value="Anxiety">Anxiety</option>
-                            <option value="Depression">Depression</option>
-                            <option value="Trauma">Trauma</option>
-                            <option value="Relationship">Relationship Counseling</option>
-                            <option value="Child Psychology">Child Psychology</option>
-                            <option value="Family Therapy">Family Therapy</option>
-                            <option value="Stress Management">Stress Management</option>
-                          </select>
-                        </div>
-                        <div className="mb-6">
-                          <label className="block text-gray-700 font-medium mb-3">
-                            Preferred Languages *
-                          </label>
-                          <div className="relative">
-                            <button
-                              type="button"
-                              onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-left focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
-                            >
-                              {bookingForm.languages.length === 0 ? 'Select languages...' : `${bookingForm.languages.length} language(s) selected`}
-                            </button>
+                      <div className="max-w-4xl mx-auto p-4">
+                        <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl p-6 shadow-lg border border-teal-100">
+                          <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                            <FaUserMd className="mr-3 text-teal-600" />
+                            Schedule Your Therapy Session
+                          </h3>
 
-                            {showLanguageDropdown && (
-                              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                {INDIAN_LANGUAGES.map((language) => (
-                                  <button
+                          <div className="mb-8">
+                            <label className="block text-gray-700 font-medium mb-3 text-lg">
+                              Specialization *
+                            </label>
+                            <div className="relative">
+                              <select
+                                value={bookingForm.specialization}
+                                onChange={(e) => handleBookingFormChange('specialization', e.target.value)}
+                                className="w-full px-5 py-4 border-2 border-teal-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white text-gray-800 font-medium appearance-none"
+                              >
+                                <option value="">Select specialization...</option>
+                                <option value="Addiction">Addiction</option>
+                                <option value="Anxiety">Anxiety</option>
+                                <option value="Depression">Depression</option>
+                                <option value="Trauma">Trauma</option>
+                                <option value="Relationship">Relationship Counseling</option>
+                                <option value="Child Psychology">Child Psychology</option>
+                                <option value="Family Therapy">Family Therapy</option>
+                                <option value="Stress Management">Stress Management</option>
+                              </select>
+                              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-teal-600">
+                                <svg className="fill-current h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                                </svg>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mb-8">
+                            <label className="block text-gray-700 font-medium mb-3 text-lg">
+                              Preferred Languages *
+                            </label>
+                            <div className="relative">
+                              <button
+                                type="button"
+                                onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                                className="w-full px-5 py-4 border-2 border-teal-200 rounded-xl text-left focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white flex justify-between items-center"
+                              >
+                                <span className="text-gray-800 font-medium">
+                                  {bookingForm.languages.length === 0
+                                    ? 'Select languages...'
+                                    : `${bookingForm.languages.length} language(s) selected`}
+                                </span>
+                                <span className={`transform transition-transform ${showLanguageDropdown ? 'rotate-180' : ''} text-teal-600`}>
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                  </svg>
+                                </span>
+                              </button>
+
+                              {showLanguageDropdown && (
+                                <div className="absolute z-10 w-full mt-2 bg-white border-2 border-teal-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                                  {INDIAN_LANGUAGES.map((language) => (
+                                    <button
+                                      key={language}
+                                      type="button"
+                                      onClick={() => handleLanguageSelect(language)}
+                                      className={`w-full px-5 py-3 text-left font-medium transition-colors ${bookingForm.languages.includes(language)
+                                        ? 'bg-teal-100 text-teal-700'
+                                        : 'text-gray-700 hover:bg-teal-50'}`}
+                                    >
+                                      {language}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            {bookingForm.languages.length > 0 && (
+                              <div className="mt-4 flex flex-wrap gap-3">
+                                {bookingForm.languages.map((language) => (
+                                  <span
                                     key={language}
-                                    type="button"
-                                    onClick={() => handleLanguageSelect(language)}
-                                    className={`w-full px-4 py-2 text-left hover:bg-teal-50 ${bookingForm.languages.includes(language)
-                                      ? 'bg-teal-100 text-teal-700'
-                                      : 'text-gray-700'
-                                      }`}
-                                    disabled={bookingForm.languages.includes(language)}
+                                    className="inline-flex items-center px-4 py-2 rounded-full text-base bg-gradient-to-r from-teal-100 to-cyan-100 text-teal-800 font-medium shadow-sm"
                                   >
                                     {language}
-                                  </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeLanguage(language)}
+                                      className="ml-3 text-teal-700 hover:text-teal-900"
+                                    >
+                                      <FaTimes className="w-4 h-4" />
+                                    </button>
+                                  </span>
                                 ))}
                               </div>
                             )}
                           </div>
 
-                          {bookingForm.languages.length > 0 && (
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              {bookingForm.languages.map((language) => (
-                                <span
-                                  key={language}
-                                  className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-teal-100 text-teal-800"
-                                >
-                                  {language}
-                                  <button
-                                    type="button"
-                                    onClick={() => removeLanguage(language)}
-                                    className="ml-2 text-teal-600 hover:text-teal-800"
-                                  >
-                                    <FaTimes className="w-3 h-3" />
-                                  </button>
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="grid md:grid-cols-2 gap-6 mb-6">
-                          <div>
-                            <label className="block text-gray-700 font-medium mb-3">
-                              Preferred Date *
+                          {/* Calendar Section */}
+                          <div className="mb-8">
+                            <label className="block text-gray-700 font-medium mb-4 text-lg">
+                              <FaCalendarAlt className="inline mr-2 text-teal-600" />
+                              Select Date *
                             </label>
-                            <input
-                              type="date"
-                              value={bookingForm.date}
-                              onChange={(e) => handleBookingFormChange('date', e.target.value)}
-                              min={new Date().toISOString().split('T')[0]}
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                            />
+
+                            <div className="bg-white rounded-xl border-2 border-teal-100 p-5 shadow-sm">
+                              {/* Calendar Header */}
+                              <div className="flex items-center justify-between mb-5">
+                                <button
+                                  onClick={prevMonth}
+                                  className="p-3 rounded-full hover:bg-teal-50 text-teal-600"
+                                >
+                                  <FaChevronLeft className="w-5 h-5" />
+                                </button>
+
+                                <h4 className="text-xl font-bold text-teal-800">
+                                  {getMonthYearString()}
+                                </h4>
+
+                                <button
+                                  onClick={nextMonth}
+                                  className="p-3 rounded-full hover:bg-teal-50 text-teal-600"
+                                >
+                                  <FaChevronRight className="w-5 h-5" />
+                                </button>
+                              </div>
+
+                              {/* Weekday Headers */}
+                              <div className="grid grid-cols-7 gap-2 mb-4">
+                                {weekdays.map(day => (
+                                  <div key={day} className="text-center text-sm font-bold text-teal-700 py-2">
+                                    {day}
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Calendar Days */}
+                              <div className="grid grid-cols-7 gap-2">
+                                {getDaysInMonth().map((day, index) => {
+                                  if (!day) {
+                                    return <div key={`empty-${index}`} className="p-2 text-center"></div>;
+                                  }
+
+                                  const today = new Date();
+                                  today.setHours(0, 0, 0, 0);
+
+                                  const isToday = today.toDateString() === day.toDateString();
+                                  const isSelected = selectedDate && selectedDate.toDateString() === day.toDateString();
+                                  const isPast = day.getTime() < today.getTime();
+
+                                  return (
+                                    <button
+                                      key={day.getDate()}
+                                      className={`p-3 text-center rounded-xl flex flex-col items-center justify-center
+        ${isToday ? 'border-2 border-teal-500 font-bold' : ''}
+        ${isSelected ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white' :
+                                          isPast ? 'text-gray-300 cursor-not-allowed' :
+                                            'text-gray-700 hover:bg-teal-50 cursor-pointer'}`}
+                                      onClick={() => !isPast && setSelectedDate(day)}
+                                      disabled={isPast}
+                                    >
+                                      <span className={`text-sm ${isSelected ? 'text-white' : isToday ? 'text-teal-700' : ''}`}>
+                                        {day.getDate()}
+                                      </span>
+                                      {isToday && !isSelected && (
+                                        <span className="text-xs text-teal-500 mt-1">Today</span>
+                                      )}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              {selectedDate && (
+                                <div className="mt-5 text-center text-teal-700 font-medium">
+                                  Selected: {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                                </div>
+                              )}
+                            </div>
                           </div>
 
-                          <div>
-                            <label className="block text-gray-700 font-medium mb-3">
-                              Preferred Time *
-                            </label>
-                            <input
-                              type="time"
-                              value={bookingForm.time}
-                              onChange={(e) => handleBookingFormChange('time', e.target.value)}
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                            />
-                          </div>
+                          {/* Time Slots */}
+                          {selectedDate && (
+                            <div className="mb-8">
+                              <label className="block text-gray-700 font-medium mb-4 text-lg">
+                                <FaClock className="inline mr-2 text-teal-600" />
+                                Select Time *
+                              </label>
+
+                              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                                {timeSlots.map(time => (
+                                  <button
+                                    key={time}
+                                    className={`py-3 px-2 rounded-xl text-center transition-all transform hover:scale-105
+                    ${selectedTime === time
+                                        ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-lg'
+                                        : 'bg-white border-2 border-teal-200 text-teal-700 hover:bg-teal-50 hover:border-teal-300'}`}
+                                    onClick={() => setSelectedTime(time)}
+                                  >
+                                    <span className="font-medium">{time}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          <button
+                            className="w-full mt-4 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg"
+                          >
+                            <span className="text-lg">Find Available Therapists</span>
+                          </button>
                         </div>
-                        <button
-                          onClick={filterTherapists}
-                          className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300"
-                        >
-                          Find Available Therapists
-                        </button>
                       </div>
                     </>
                   ) : (
