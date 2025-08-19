@@ -602,7 +602,7 @@ const PrivacyPolicyPage = () => {
 
                             <div className="bg-teal-700/30 p-6 rounded-xl">
                                 <h3 className="font-bold sm:text-lg mb-3">Phone</h3>
-                                <p className="sm:text-xl">+91-XXXXXXXXXX</p>
+                                <p className="sm:text-xl">+91-79923 27474</p>
                             </div>
 
                             <div className="bg-teal-700/30 p-6 rounded-xl md:col-span-2">
