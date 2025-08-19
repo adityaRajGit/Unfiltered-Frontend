@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FaInstagram, FaLinkedin /*, FaFacebook */ } from "react-icons/fa";
 
 function Footer() {
     return (
@@ -37,7 +38,7 @@ function Footer() {
                             <p>
                                 Email us anytime:
                                 <a href="mailto:care@stayunfiltered.com" className="text-teal-400 hover:text-teal-300 ml-1">
-                                    care@stayunfiltered.com
+                                    stay.unfiltered.2025@gmail.com
                                 </a>
                             </p>
                         </div>
@@ -116,17 +117,39 @@ function Footer() {
                         </Link>
                     </div>
 
-                    <div className="flex space-x-6 mt-4 md:mt-0">
-                        {["Instagram", "LinkedIn", "YouTube", "Medium"].map((platform, i) => (
-                            <Link
-                                key={i}
-                                href="#"
-                                className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-teal-600 transition-colors"
-                                aria-label={platform}
-                            >
-                                <div className="bg-gray-400 rounded-full w-4 h-4"></div>
-                            </Link>
-                        ))}
+                    {/* Social icons: only Instagram and LinkedIn enabled; Facebook commented out */}
+                    <div className="flex space-x-4 mt-4 md:mt-0">
+                        <Link
+                            href="https://www.instagram.com/stay_unfiltered_?igsh=MTR6cGE0aXU1OWsxaw=="
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-teal-600 transition-colors"
+                            aria-label="Instagram"
+                        >
+                            <FaInstagram className="w-5 h-5 text-gray-300" />
+                        </Link>
+
+                        <Link
+                            href="https://www.linkedin.com/company/stay-unfiltered/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-teal-600 transition-colors"
+                            aria-label="LinkedIn"
+                        >
+                            <FaLinkedin className="w-5 h-5 text-gray-300" />
+                        </Link>
+
+                        {/*
+            <Link
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-teal-600 transition-colors"
+              aria-label="Facebook"
+            >
+              <FaFacebook className="w-5 h-5 text-gray-300" />
+            </Link>
+            */}
                     </div>
                 </div>
             </div>

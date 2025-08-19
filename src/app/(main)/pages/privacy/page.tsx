@@ -328,14 +328,14 @@ const PrivacyPolicyPage = () => {
                             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="bg-teal-50 p-5 rounded-lg">
                                     <h3 className="font-bold text-lg text-teal-700 mb-2">Active Data</h3>
-                                    <p className="text-gray-600">
-                                        We retain data during active engagement with our services. This includes:
+                                    <div className="text-gray-600">
+                                        <span>We retain data during active engagement with our services. This includes:</span>
                                         <ul className="list-disc pl-5 mt-2 space-y-1">
                                             <li>Duration of EAP program participation</li>
                                             <li>Active therapy sessions</li>
                                             <li>Ongoing workshop enrollment</li>
                                         </ul>
-                                    </p>
+                                    </div>
                                 </div>
 
                                 <div className="bg-teal-50 p-5 rounded-lg">
@@ -500,7 +500,7 @@ const PrivacyPolicyPage = () => {
                     <div className="mt-8 bg-white p-5 rounded-lg shadow-sm">
                         <h3 className="font-bold text-lg text-teal-700 mb-3">Exercising Your Rights</h3>
                         <p className="text-gray-600">
-                            To exercise any of these rights, please contact our Data Protection Officer at privacy@stayunfiltered.com.
+                            To exercise any of these rights, please contact our Data Protection Officer at stay.unfiltered.2025@gmail.com.
                             We will respond to your request within 30 days as required by law.
                         </p>
                     </div>
@@ -593,10 +593,10 @@ const PrivacyPolicyPage = () => {
                             <div className="bg-teal-700/30 p-6 rounded-xl">
                                 <h3 className="font-bold text-lg mb-3">Email</h3>
                                 <a
-                                    href="mailto:privacy@stayunfiltered.com"
+                                    href="mailto:stay.unfiltered.2025@gmail.com"
                                     className="sm:text-xl hover:underline"
                                 >
-                                    privacy@stayunfiltered.com
+                                    stay.unfiltered.2025@gmail.com
                                 </a>
                             </div>
 
@@ -607,10 +607,9 @@ const PrivacyPolicyPage = () => {
 
                             <div className="bg-teal-700/30 p-6 rounded-xl md:col-span-2">
                                 <h3 className="font-bold sm:text-lg mb-3">Registered Office</h3>
-                                <p className="mb-1">StayUnfiltered Technologies Pvt. Ltd.</p>
-                                <p>123 Privacy Lane, Tech District</p>
-                                <p>Bangalore, Karnataka 560001</p>
-                                <p>India</p>
+                                <p>Flat No. 1151, Tower - G ,</p>
+                                <p>11th Avenue, Gaur City 2 ,</p>
+                                <p>Greater Noida , Uttar Pradesh 201009</p>
                             </div>
                         </div>
 
