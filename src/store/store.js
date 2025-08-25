@@ -7,6 +7,7 @@ import packageReducer from './packageSlice.js'
 import companyReducer from './companySlice.js'
 import webinarReducer from './webinarSlice.js'
 import otpReducer from './otpSlice.js'
+import appointmentReducer from './appoinment.js'
 
 const store = configureStore({
     reducer: {
@@ -17,7 +18,8 @@ const store = configureStore({
         package: packageReducer,
         company: companyReducer,
         webinar: webinarReducer,
-        otp: otpReducer
+        otp: otpReducer,
+        appointment: appointmentReducer
     }
 })
 

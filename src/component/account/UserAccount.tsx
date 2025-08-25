@@ -14,6 +14,7 @@ import { LoadingSpinnerWithOverlay } from '../global/Loading';
 import { getInitials } from '@/utils/GetInitials';
 import { useRef } from 'react';
 import { getTherapistSpecialisationAndTiming, recommendTherapist } from '@/store/therapistSlice';
+import { bookAppointmentFunc, getPastAppointmentsApi, getUpComingAppointments } from '@/store/appoinment';
 
 interface User {
   name: string;
@@ -51,6 +52,25 @@ interface FilteredTherapist {
   score: number;
 }
 
+interface TherapistId {
+  _id: string;
+  name: string;
+  profile_image: string;
+  session_details: {
+    duration: number;
+    cost: number;
+    currency: string;
+  };
+}
+
+interface UpcomingAppointment {
+  _id: string;
+  therapist_id: TherapistId;
+  scheduled_at: string;
+  appointment_status: 'scheduled' | 'completed';
+  meet_link: string;
+}
+
 
 const UserProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -76,6 +96,8 @@ const UserProfilePage = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [specialization, setSpecialization] = useState([]);
+  const [upcomingAppointments, setUpcomingAppointments] = useState<UpcomingAppointment[]>([]);
+  const [pastAppointments, setPastAppointments] = useState<UpcomingAppointment[]>([]);
   const [timings, setTimings] = useState([]);
 
   const INDIAN_LANGUAGES = [
@@ -231,7 +253,7 @@ const UserProfilePage = () => {
       specialization: bookingForm.specialization,
       user_id: userId
     };
-    // console.log(data)
+    window.scrollTo(0, 0);
     setLoading(true);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const response = await dispatch(recommendTherapist(data as any) as any);
@@ -323,64 +345,39 @@ const UserProfilePage = () => {
     }
   ];
 
-  const appointments = {
-    upcoming: [
-      {
-        id: 1,
-        therapist: "Dr. Ananya Patel",
-        image: "/therapist1.jpg",
-        date: "15 Sep 2023",
-        time: "10:00 AM - 11:00 AM",
-        duration: "60 mins",
-        meetLink: "https://meet.stayunfiltered.com/xyz123",
-        status: "paid",
-        amount: "₹1,200"
-      },
-      {
-        id: 2,
-        therapist: "Dr. Rajiv Mehta",
-        image: "/therapist2.jpg",
-        date: "18 Sep 2023",
-        time: "3:30 PM - 4:15 PM",
-        duration: "45 mins",
-        meetLink: "https://meet.stayunfiltered.com/abc456",
-        status: "pending",
-        amount: "₹950"
-      }
-    ],
-    past: [
-      {
-        id: 3,
-        therapist: "Dr. Ananya Patel",
-        image: "/therapist1.jpg",
-        date: "8 Sep 2023",
-        time: "10:00 AM - 11:00 AM",
-        duration: "60 mins",
-        status: "completed",
-        amount: "₹1,200",
-        rating: 5
-      },
-      {
-        id: 4,
-        therapist: "Dr. Vikram Singh",
-        image: "/therapist3.jpg",
-        date: "1 Sep 2023",
-        time: "2:00 PM - 2:45 PM",
-        duration: "45 mins",
-        status: "completed",
-        amount: "₹900",
-        rating: 4
-      }
-    ]
-  };
+  const bookAppointment = async (therapist: FilteredTherapist) => {
+    if (!selectedDate || !selectedTime) {
+      toast.error('Please select a date and time.');
+      return;
+    }
+    const dateObj = new Date(selectedDate);
+    const cleanDate = dateObj.toDateString(); // Returns "Mon Aug 25 2025"
 
-  const bookAppointment = (therapist: FilteredTherapist) => {
-    toast.success(`Appointment booked with ${therapist.name}!`);
-    setShowResults(false);
-    setBookingForm({
-      languages: [],
-      specialization: ''
-    });
+    const data = {
+      therapist_id: therapist.id,
+      user_id: userId,
+      scheduled_at: cleanDate + ' ' + selectedTime
+    }
+
+    window.scrollTo(0, 0);
+    setLoading(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(bookAppointmentFunc(data as any) as any);
+    if (response?.error) {
+      setLoading(false)
+      toast.error(response.error.message)
+    } else {
+      setLoading(false)
+      toast.success(`Appointment booked with ${therapist.name}!`);
+      setShowResults(false);
+      setLoading(false);
+      setSelectedDate(null);
+      setSelectedTime(null);
+      setBookingForm({
+        languages: [],
+        specialization: ''
+      });
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -469,13 +466,40 @@ const UserProfilePage = () => {
     }
   }
 
+  async function getUpcomingAppointments(id: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(getUpComingAppointments(id as any) as any);
+    if (response?.error) {
+      setLoading(false)
+      toast.error(response.error.message)
+    } else {
+      setLoading(false)
+      setUpcomingAppointments(response.payload.data.appointments)
+    }
+  }
+
+  async function getPastAppointments(id: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(getPastAppointmentsApi(id as any) as any);
+    if (response?.error) {
+      setLoading(false)
+      toast.error(response.error.message)
+    } else {
+      setLoading(false)
+      // console.log(response.payload.data.appointments)
+      setPastAppointments(response.payload.data.appointments)
+    }
+  }
+
   useEffect(() => {
     if (storedToken !== null) {
       const decodedToken = decodeToken(storedToken as string);
       if (decodedToken?.userId) {
-        getUser(decodedToken.userId._id);
-        setUserId(decodedToken.userId._id);
+        getUser(decodedToken.userId._id)
+        setUserId(decodedToken.userId._id)
         getSpicialisationAndTiming()
+        getUpcomingAppointments(decodedToken.userId._id)
+        getPastAppointments(decodedToken.userId._id)
       } else {
         router.push('/');
       }
@@ -841,18 +865,24 @@ const UserProfilePage = () => {
                                     const availableSlots = generateSlotsFromIntervals(availableIntervals);
 
                                     return availableSlots.length > 0 ? (
-                                      availableSlots.map(time => (
-                                        <button
-                                          key={time}
-                                          className={`py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 border-2 ${selectedTime === time
-                                            ? 'bg-teal-500 border-teal-500 text-white shadow-md transform scale-105'
-                                            : 'bg-white border-gray-300 text-gray-700 hover:bg-teal-50 hover:border-teal-300 hover:shadow-sm'
-                                            }`}
-                                          onClick={() => setSelectedTime(time)}
-                                        >
-                                          {time}
-                                        </button>
-                                      ))
+                                      availableSlots.map(time => {
+                                        const [hours, minutes] = time.split(':');
+                                        const nextHour = (parseInt(hours) + 1).toString().padStart(2, '0');
+                                        const timeRange = `${time} - ${nextHour}:${minutes}`;
+
+                                        return (
+                                          <button
+                                            key={time}
+                                            className={`py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 border-2 ${selectedTime === time
+                                              ? 'bg-teal-500 border-teal-500 text-white shadow-md transform scale-105'
+                                              : 'bg-white border-gray-300 text-gray-700 hover:bg-teal-50 hover:border-teal-300 hover:shadow-sm'
+                                              }`}
+                                            onClick={() => setSelectedTime(time)}
+                                          >
+                                            {timeRange}
+                                          </button>
+                                        );
+                                      })
                                     ) : (
                                       <div className="col-span-2 sm:col-span-3 xl:col-span-2 text-center text-gray-500 text-sm py-8 bg-gray-50 rounded-lg">
                                         <FaClock className="mx-auto mb-2 text-gray-400 text-lg" />
@@ -999,7 +1029,7 @@ const UserProfilePage = () => {
           {/* My Therapists, Past Appointments and Upcoming Appointments */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
             {/* My Therapists */}
-            <div className="bg-white rounded-2xl shadow-md p-4 md:p-6 md:col-span-2 xl:col-span-1">
+            <div className="bg-white rounded-2xl shadow-md h-auto max-h-[700px] p-4 md:p-6 md:col-span-2 xl:col-span-1">
               <div className="flex justify-between items-center mb-4 md:mb-6">
                 <h2 className="text-lg md:text-xl font-bold text-gray-900">My Therapists</h2>
                 <span className="bg-teal-100 text-teal-800 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm">
@@ -1007,7 +1037,9 @@ const UserProfilePage = () => {
                 </span>
               </div>
 
-              <div className="space-y-4 md:space-y-6">
+              <div className="space-y-4 md:space-y-6 overflow-y-scroll" style={{
+                scrollbarWidth: 'none',
+              }}>
                 {therapists.map((therapist) => (
                   <div key={therapist.id} className="flex items-center border-b border-gray-100 pb-4 md:pb-6 last:border-0 last:pb-0">
                     <div className="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-teal-500 overflow-hidden bg-gray-200 mr-3 md:mr-4 flex-shrink-0">
@@ -1044,52 +1076,71 @@ const UserProfilePage = () => {
             </div>
 
             {/* Upcoming Appointments */}
-            <div className="bg-white rounded-2xl shadow-md p-4 md:p-6 md:col-span-2 xl:col-span-2">
+            <div className="bg-white rounded-2xl shadow-md h-auto max-h-[700px] p-4 md:p-6 md:col-span-2 xl:col-span-2">
               <div className="flex justify-between items-center mb-4 md:mb-6">
                 <h2 className="text-lg md:text-xl font-bold text-gray-900">Upcoming Appointments</h2>
                 <span className="bg-teal-100 text-teal-800 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm">
-                  {appointments.upcoming.length} appointments
+                  {upcomingAppointments.length} appointments
                 </span>
               </div>
 
-              <div className="space-y-4 md:space-y-6">
-                {appointments.upcoming.length > 0 ? (
-                  appointments.upcoming.map((appointment) => (
-                    <div key={appointment.id} className="flex items-center border-b border-gray-100 pb-4 md:pb-6 last:border-0 last:pb-0">
+              <div className="space-y-4 md:space-y-6 overflow-y-scroll " style={{
+                scrollbarWidth: "none",
+              }}>
+                {upcomingAppointments?.length > 0 ? (
+                  upcomingAppointments?.map((appointment: UpcomingAppointment) => (
+                    <div key={appointment._id} className="flex items-center border-b border-gray-100 pb-4 md:pb-6 last:border-0 last:pb-0">
                       <div className="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-teal-500 overflow-hidden bg-gray-200 mr-3 md:mr-4 flex-shrink-0">
                         <Image
-                          src={appointment.image}
-                          alt={appointment.therapist}
+                          src={appointment.therapist_id.profile_image}
+                          alt={appointment.therapist_id.name}
                           width={64}
                           height={64}
                           className="object-cover w-full h-full"
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-gray-900 text-sm md:text-base truncate">{appointment.therapist}</h3>
+                        <h3 className="font-bold text-gray-900 text-sm md:text-base truncate">
+                          {appointment.therapist_id.name}
+                        </h3>
                         <div className="flex flex-col sm:flex-row sm:items-center text-xs md:text-sm text-gray-500 mt-1 gap-1 sm:gap-3">
                           <div className="flex items-center">
                             <FaCalendarAlt className="mr-1 text-teal-600 w-3 h-3" />
-                            <span className="truncate">{appointment.date}</span>
+                            <span className="truncate">
+                              {new Date(appointment.scheduled_at).toLocaleDateString('en-US', {
+                                weekday: 'short',
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </span>
                           </div>
                           <div className="flex items-center">
                             <FaClock className="mr-1 text-teal-600 w-3 h-3" />
-                            <span>{appointment.time}</span>
+                            <span>
+                              {new Date(appointment.scheduled_at).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                              })}
+                            </span>
                           </div>
                         </div>
                         <div className="flex flex-col sm:flex-row sm:items-center mt-2 gap-1 sm:gap-2">
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium inline-block ${appointment.status === 'paid'
+                          <span className={`px-2 py-0.5 capitalize rounded-full text-xs font-medium inline-block ${appointment.appointment_status === 'scheduled'
                             ? 'bg-green-100 text-green-800'
                             : 'bg-yellow-100 text-yellow-800'
                             }`}>
-                            {appointment.status === 'paid' ? 'Confirmed' : 'Payment Pending'}
+                            {appointment.appointment_status}
                           </span>
-                          <span className="text-xs md:text-sm text-gray-700">{appointment.amount}</span>
+                          <span className="text-xs md:text-sm text-gray-600">
+                            {appointment.therapist_id.session_details.duration} min
+                          </span>
                         </div>
                       </div>
                       <div className="flex flex-col gap-1 md:gap-2 flex-shrink-0">
                         <Link
-                          href={appointment.meetLink}
+                          href={appointment.meet_link}
                           className="flex items-center px-2 md:px-3 py-1 md:py-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-xs md:text-sm"
                         >
                           <FaVideo className="mr-1 w-3 h-3" />
@@ -1108,50 +1159,61 @@ const UserProfilePage = () => {
                     </div>
                     <h3 className="text-base md:text-lg font-medium text-gray-900 mb-2">No upcoming appointments</h3>
                     <p className="text-gray-600 mb-3 md:mb-4 text-sm md:text-base">Schedule a session with your therapist to get started</p>
-                    <Link
-                      href="/therapists"
-                      className="inline-flex items-center px-3 md:px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-xs md:text-sm"
-                    >
-                      <FaUserMd className="mr-2 w-4 h-4" />
-                      Find a Therapist
-                    </Link>
                   </div>
                 )}
               </div>
+
             </div>
 
             {/* Past Appointments */}
-            <div className="bg-white col-span-1 md:col-span-2 xl:col-span-3 rounded-2xl shadow-md p-4 md:p-6">
+            <div className="bg-white col-span-1 h-auto max-h-[700px] md:col-span-2 xl:col-span-3 rounded-2xl shadow-md p-4 md:p-6">
               <div className="flex justify-between items-center mb-4 md:mb-6">
                 <h2 className="text-lg md:text-xl font-bold text-gray-900">Past Appointments</h2>
                 <span className="bg-teal-100 text-teal-800 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm">
-                  {appointments.past.length} completed
+                  {pastAppointments?.length} completed
                 </span>
               </div>
 
-              <div className="space-y-4 md:space-y-6">
-                {appointments.past.length > 0 ? (
-                  appointments.past.map((appointment) => (
-                    <div key={appointment.id} className="flex items-center border-b border-gray-100 pb-4 md:pb-6 last:border-0 last:pb-0">
+              <div className="space-y-4 md:space-y-6 overflow-y-scroll" style={{
+                scrollbarWidth: 'none'
+              }}>
+                {pastAppointments?.length > 0 ? (
+                  pastAppointments?.map((appointment: UpcomingAppointment) => (
+                    <div key={appointment._id} className="flex items-center border-b border-gray-100 pb-4 md:pb-6 last:border-0 last:pb-0">
                       <div className="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-teal-500 overflow-hidden bg-gray-200 mr-3 md:mr-4 flex-shrink-0">
                         <Image
-                          src={appointment.image}
-                          alt={appointment.therapist}
+                          src={appointment.therapist_id.profile_image}
+                          alt={appointment.therapist_id.name}
                           width={64}
                           height={64}
                           className="object-cover w-full h-full"
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-gray-900 text-sm md:text-base truncate">{appointment.therapist}</h3>
+                        <h3 className="font-bold text-gray-900 text-sm md:text-base truncate">
+                          {appointment.therapist_id.name}
+                        </h3>
                         <div className="flex flex-col sm:flex-row sm:items-center text-xs md:text-sm text-gray-500 mt-1 gap-1 sm:gap-3">
                           <div className="flex items-center">
                             <FaCalendarAlt className="mr-1 text-teal-600 w-3 h-3" />
-                            <span className="truncate">{appointment.date}</span>
+                            <span className="truncate">
+                              {new Date(appointment.scheduled_at).toLocaleDateString('en-US', {
+                                weekday: 'short',
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </span>
                           </div>
                           <div className="flex items-center">
                             <FaClock className="mr-1 text-teal-600 w-3 h-3" />
-                            <span>{appointment.time}</span>
+                            <span>
+                              {new Date(appointment.scheduled_at).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                              })}
+                            </span>
                           </div>
                         </div>
                         <div className="flex items-center mt-2 gap-2 md:gap-3">
@@ -1162,10 +1224,13 @@ const UserProfilePage = () => {
                             {[...Array(5)].map((_, i) => (
                               <FaStar
                                 key={i}
-                                className={`w-3 h-3 ${i < appointment.rating ? "text-yellow-400" : "text-gray-300"}`}
+                                className={`w-3 h-3 ${i < 4 ? "text-yellow-400" : "text-gray-300"}`}
                               />
                             ))}
                           </div>
+                          <span className="text-xs md:text-sm text-gray-600">
+                            {appointment.therapist_id.session_details.currency}{appointment.therapist_id.session_details.cost}
+                          </span>
                         </div>
                       </div>
                       <div className="flex flex-col gap-1 md:gap-2 flex-shrink-0">
@@ -1190,6 +1255,7 @@ const UserProfilePage = () => {
                 )}
               </div>
             </div>
+
           </div>
         </div>
       </div>

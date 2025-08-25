@@ -141,7 +141,7 @@ const AuthPages = () => {
         if (response?.error) {
           toast.error(response.error.message);
         } else {
-          console.log(response.payload)
+          // console.log(response.payload)
           toast.success('OTP sent successfully!');
           setEmailOtpPopup(true)
         }
@@ -164,7 +164,7 @@ const AuthPages = () => {
         if (response?.error) {
           toast.error(response.error.message);
         } else {
-          console.log(response.payload)
+          // console.log(response.payload)
           toast.success('OTP Verified successfully!');
           setEmailOtpPopup(false)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

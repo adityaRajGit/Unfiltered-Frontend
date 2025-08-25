@@ -17,7 +17,7 @@ const EnhancedFeedbackButton = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Feedback submitted:', { type: feedbackType, message: feedback });
+        // console.log('Feedback submitted:', { type: feedbackType, message: feedback });
         setIsSubmitted(true);
         setFeedback('');
         setFeedbackType(null);
