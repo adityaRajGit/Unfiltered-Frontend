@@ -68,6 +68,22 @@ const getUserDetails = createAsyncThunk("user/details", async (id) => {
     }
 })
 
+const getUserTherapist = createAsyncThunk("user/user-therapist", async (id) => {
+    try {
+        const response = await axios.get(`${backend}/user/${id}/therapists`, {
+            headers: {
+                Authorization: `Bearer ${JSON.parse(localStorage.getItem(TOKEN))}`
+            }
+        })
+        return response.data
+    } catch (error) {
+        if (error.response) {
+            throw error.response.data.data.message
+        }
+        throw error.message || "An unexpected error occurred"
+    }
+})
+
 const updateUserDetails = createAsyncThunk(
     'user/update-details',
     async (payload) => {
@@ -190,9 +206,20 @@ const userSlice = createSlice({
                 state.loading = false
                 state.error = action.error || "An error occurred"
             })
+            .addCase(getUserTherapist.pending, (state) => {
+                state.loading = true
+                state.error = null
+            })
+            .addCase(getUserTherapist.fulfilled, (state) => {
+                state.loading = false
+            })
+            .addCase(getUserTherapist.rejected, (state, action) => {
+                state.loading = false
+                state.error = action.error || "An error occurred"
+            })
     }
 })
 
 export const { logoutUser } = userSlice.actions;
-export { signup, login, googleSignup, googleLogin, getUserDetails, updateUserDetails }
+export { signup, login, googleSignup, googleLogin, getUserDetails, updateUserDetails, getUserTherapist }
 export default userSlice.reducer

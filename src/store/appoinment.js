@@ -16,6 +16,17 @@ const bookAppointmentFunc = createAsyncThunk("appointment/book-appointment", asy
     }
 })
 
+const rescheduleAppointmentFunc = createAsyncThunk("appointment/reschedule-appointment", async (payload) => {
+    try {
+        const response = await axios.post(`${backend}/appointment/${payload.id}/update`, payload.data)
+        return response.data
+    } catch (error) {
+        if (error.response) {
+            throw error.response.data.data.message
+        }
+        throw error.message || "An unexpected error occurred"
+    }
+})
 
 const getUpComingAppointments = createAsyncThunk("appointment/upcoming-appointments", async (id) => {
     try {
@@ -87,8 +98,19 @@ const appointmentSlice = createSlice({
                 state.loading = false
                 state.error = action.error || "An error occurred";
             })
+            .addCase(rescheduleAppointmentFunc.pending, (state) => {
+                state.loading = true
+                state.error = null
+            })
+            .addCase(rescheduleAppointmentFunc.fulfilled, (state) => {
+                state.loading = false
+            })
+            .addCase(rescheduleAppointmentFunc.rejected, (state, action) => {
+                state.loading = false
+                state.error = action.error || "An error occurred";
+            })
     }
 })
 
-export { bookAppointmentFunc, getUpComingAppointments, getPastAppointmentsApi }
+export { bookAppointmentFunc, getUpComingAppointments, getPastAppointmentsApi, rescheduleAppointmentFunc }
 export default appointmentSlice.reducer

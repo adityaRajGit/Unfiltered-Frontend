@@ -1,11 +1,11 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { FaEdit, FaCalendarAlt, FaClock, FaVideo, FaCamera, FaUserMd, FaPhone, FaTimes, FaEnvelope, FaChevronDown, FaStar, FaHistory } from 'react-icons/fa';
+import { FaEdit, FaCalendarAlt, FaClock, FaVideo, FaCamera, FaUserMd, FaPhone, FaTimes, FaEnvelope, FaStar, FaHistory } from 'react-icons/fa';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import Link from 'next/link';
 import { useDispatch } from 'react-redux';
-import { getUserDetails, updateUserDetails } from '@/store/userSlice';
+import { getUserDetails, getUserTherapist, updateUserDetails } from '@/store/userSlice';
 import { toast } from 'react-toastify';
 import { TOKEN } from '@/utils/enum';
 import { decodeToken } from '@/utils/decodeToken';
@@ -15,6 +15,7 @@ import { getInitials } from '@/utils/GetInitials';
 import { useRef } from 'react';
 import { getTherapistSpecialisationAndTiming, recommendTherapist } from '@/store/therapistSlice';
 import { bookAppointmentFunc, getPastAppointmentsApi, getUpComingAppointments } from '@/store/appoinment';
+import BookingCalendar from './BookAppointmentPoup';
 
 interface User {
   name: string;
@@ -36,6 +37,10 @@ interface FilteredTherapist {
   email: string;
   specialization: string[];
   languages: string[];
+  academic_background: {
+    years_of_experience: string;
+    qualification: string[]
+  };
   available_slot: {
     from: string;
     to: string;
@@ -69,6 +74,7 @@ interface UpcomingAppointment {
   scheduled_at: string;
   appointment_status: 'scheduled' | 'completed';
   meet_link: string;
+  is_deleted: boolean
 }
 
 
@@ -84,6 +90,9 @@ const UserProfilePage = () => {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [therapists, setTherapists] = useState<FilteredTherapist[]>([]);
+  const [selectedTherapist, setSelectedTherapist] = useState("");
+  const [selectedAppointment, setSelectedAppointment] = useState<string>("")
 
   const [bookingForm, setBookingForm] = useState<BookingForm>({
     specialization: '',
@@ -99,6 +108,8 @@ const UserProfilePage = () => {
   const [upcomingAppointments, setUpcomingAppointments] = useState<UpcomingAppointment[]>([]);
   const [pastAppointments, setPastAppointments] = useState<UpcomingAppointment[]>([]);
   const [timings, setTimings] = useState([]);
+  const [bookAgainPopup, setBookAgainPopup] = useState(false);
+  const [bookAgainType, setBookAgainType] = useState('');
 
   const INDIAN_LANGUAGES = [
     {
@@ -161,6 +172,13 @@ const UserProfilePage = () => {
 
     return slots;
   };
+
+  function handleOpenBookingPopup(therapist: string, type: string, appointmentId?: string) {
+    setSelectedTherapist(therapist);
+    setBookAgainPopup(true);
+    setBookAgainType(type);
+    setSelectedAppointment(appointmentId ?? "")
+  }
 
   // Handle language selection
   const handleLanguageSelect = (language: string) => {
@@ -314,37 +332,6 @@ const UserProfilePage = () => {
     return currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
   };
 
-  const therapists = [
-    {
-      id: 1,
-      name: "Dr. Ananya Patel",
-      specialization: "Clinical Psychologist",
-      experience: "10 years",
-      rating: 4.9,
-      sessions: 24,
-      image: "/therapist1.jpg",
-      bio: "Specializes in cognitive behavioral therapy and anxiety management. Focuses on creating personalized treatment plans.",
-      contact: {
-        email: "ananya.patel@therapy.com",
-        phone: "+91 87654 32109"
-      }
-    },
-    {
-      id: 2,
-      name: "Dr. Rajiv Mehta",
-      specialization: "Counseling Psychologist",
-      experience: "8 years",
-      rating: 4.8,
-      sessions: 12,
-      image: "/therapist2.jpg",
-      bio: "Expert in relationship counseling and stress management. Uses evidence-based approaches for emotional well-being.",
-      contact: {
-        email: "rajiv.mehta@therapy.com",
-        phone: "+91 76543 21098"
-      }
-    }
-  ];
-
   const bookAppointment = async (therapist: FilteredTherapist) => {
     if (!selectedDate || !selectedTime) {
       toast.error('Please select a date and time.');
@@ -369,14 +356,17 @@ const UserProfilePage = () => {
     } else {
       setLoading(false)
       toast.success(`Appointment booked with ${therapist.name}!`);
-      setShowResults(false);
-      setLoading(false);
       setSelectedDate(null);
+      setShowResults(false);
       setSelectedTime(null);
       setBookingForm({
         languages: [],
         specialization: ''
       });
+      getUserTherapists(userId)
+      getSpicialisationAndTiming()
+      getUpcomingAppointments(userId)
+      getPastAppointments(userId)
     }
   };
 
@@ -491,12 +481,33 @@ const UserProfilePage = () => {
     }
   }
 
+  async function getUserTherapists(id: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(getUserTherapist(id as any) as any);
+    if (response?.error) {
+      setLoading(false)
+      toast.error(response.error.message)
+    } else {
+      setLoading(false)
+      // console.log(response.payload.data.therapists)
+      setTherapists(response.payload.data.therapists)
+    }
+  }
+
+  function handlePopupClose() {
+    setBookAgainPopup(false)
+    setSelectedTherapist('')
+    setBookAgainType('')
+    setSelectedAppointment('')
+  }
   useEffect(() => {
     if (storedToken !== null) {
       const decodedToken = decodeToken(storedToken as string);
       if (decodedToken?.userId) {
+        window.scrollTo(0, 0);
         getUser(decodedToken.userId._id)
         setUserId(decodedToken.userId._id)
+        getUserTherapists(decodedToken.userId._id)
         getSpicialisationAndTiming()
         getUpcomingAppointments(decodedToken.userId._id)
         getPastAppointments(decodedToken.userId._id)
@@ -506,7 +517,7 @@ const UserProfilePage = () => {
     } else {
       router.push('/');
     }
-  }, [storedToken, router]);
+  }, [storedToken, router, bookAgainPopup, showResults]);
 
 
   if (loading) {
@@ -550,6 +561,10 @@ const UserProfilePage = () => {
             </div>
           )}
         </div>
+
+        {
+          bookAgainPopup && <BookingCalendar userId={userId} id={selectedTherapist} onClose={handlePopupClose} type={bookAgainType} appoinmentId={selectedAppointment} />
+        }
 
         <div className='w-full h-auto flex flex-col gap-5 pb-10'>
           {/* Profile Card */}
@@ -866,22 +881,61 @@ const UserProfilePage = () => {
 
                                     return availableSlots.length > 0 ? (
                                       availableSlots.map(time => {
+                                        // const [hours, minutes] = time.split(':');
+                                        // const nextHour = (parseInt(hours) + 1).toString().padStart(2, '0');
+                                        // const timeRange = `${time} - ${nextHour}:${minutes}`;
+
                                         const [hours, minutes] = time.split(':');
                                         const nextHour = (parseInt(hours) + 1).toString().padStart(2, '0');
                                         const timeRange = `${time} - ${nextHour}:${minutes}`;
 
+                                        // ✅ Check if this slot conflicts with upcoming appointments
+                                        const isAlreadyBooked = upcomingAppointments.some(appt => {
+                                          const apptDate = new Date(appt.scheduled_at);
+
+                                          // Extract the time in HH:mm format
+                                          const apptTime = apptDate.toTimeString().slice(0, 5); // e.g. "15:00"
+
+                                          // Extract just the date (without time) to compare
+                                          const apptDateOnly = apptDate.toDateString();
+                                          const selectedDateOnly = new Date(selectedDate).toDateString();
+
+                                          return (
+                                            apptDateOnly === selectedDateOnly && // same day
+                                            apptTime === time &&                 // same start time
+                                            appt.appointment_status === "scheduled" &&
+                                            !appt.is_deleted
+                                          );
+                                        });
                                         return (
                                           <button
                                             key={time}
-                                            className={`py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 border-2 ${selectedTime === time
-                                              ? 'bg-teal-500 border-teal-500 text-white shadow-md transform scale-105'
-                                              : 'bg-white border-gray-300 text-gray-700 hover:bg-teal-50 hover:border-teal-300 hover:shadow-sm'
+                                            disabled={isAlreadyBooked}
+                                            className={`py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 border-2 
+          ${isAlreadyBooked
+                                                ? 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed'
+                                                : selectedTime === time
+                                                  ? 'bg-teal-500 border-teal-500 text-white shadow-md transform scale-105'
+                                                  : 'bg-white border-gray-300 text-gray-700 hover:bg-teal-50 hover:border-teal-300 hover:shadow-sm'
                                               }`}
-                                            onClick={() => setSelectedTime(time)}
+                                            onClick={() => !isAlreadyBooked && setSelectedTime(time)}
                                           >
                                             {timeRange}
                                           </button>
                                         );
+
+                                        // return (
+                                        //   <button
+                                        //     key={time}
+                                        //     className={`py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 border-2 ${selectedTime === time
+                                        //       ? 'bg-teal-500 border-teal-500 text-white shadow-md transform scale-105'
+                                        //       : 'bg-white border-gray-300 text-gray-700 hover:bg-teal-50 hover:border-teal-300 hover:shadow-sm'
+                                        //       }`}
+                                        //     onClick={() => setSelectedTime(time)}
+                                        //   >
+                                        //     {timeRange}
+                                        //   </button>
+                                        // );
                                       })
                                     ) : (
                                       <div className="col-span-2 sm:col-span-3 xl:col-span-2 text-center text-gray-500 text-sm py-8 bg-gray-50 rounded-lg">
@@ -897,6 +951,10 @@ const UserProfilePage = () => {
                         </div>
 
                       </div>
+
+                      <p className="text-sm font-medium text-gray-700">
+                        <span className="font-semibold text-[#00bba7]">Note:</span> We protect your privacy like it’s our own.
+                      </p>
 
                       {/* Find My Match Button */}
                       <button
@@ -1037,42 +1095,55 @@ const UserProfilePage = () => {
                 </span>
               </div>
 
-              <div className="space-y-4 md:space-y-6 overflow-y-scroll" style={{
-                scrollbarWidth: 'none',
-              }}>
-                {therapists.map((therapist) => (
-                  <div key={therapist.id} className="flex items-center border-b border-gray-100 pb-4 md:pb-6 last:border-0 last:pb-0">
-                    <div className="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-teal-500 overflow-hidden bg-gray-200 mr-3 md:mr-4 flex-shrink-0">
-                      <Image
-                        src={therapist.image}
-                        alt={therapist.name}
-                        width={64}
-                        height={64}
-                        className="object-cover w-full h-full"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-gray-900 text-sm md:text-base truncate">{therapist.name}</h3>
-                      <p className="text-xs md:text-sm text-teal-600 truncate">{therapist.specialization}</p>
-                      <div className="flex items-center mt-1">
-                        <div className="flex items-center text-yellow-400 mr-2">
-                          {[...Array(5)].map((_, i) => (
-                            <FaStar key={i} className={`w-3 h-3 ${i < Math.floor(therapist.rating) ? "fill-current" : "fill-gray-300"}`} />
-                          ))}
+              <div className="space-y-4 md:space-y-6 overflow-y-scroll" style={{ scrollbarWidth: 'none' }}>
+                {
+                  therapists.length > 0
+                    ? (
+                      therapists.map((therapist, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center border-b border-gray-100 pb-4 md:pb-6 last:border-0 last:pb-0"
+                        >
+                          {/* Profile Image */}
+                          <div className="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-teal-500 overflow-hidden bg-gray-200 mr-3 md:mr-4 flex-shrink-0">
+                            <Image
+                              src={therapist.profile_image}
+                              alt={therapist.name}
+                              width={64}
+                              height={64}
+                              className="object-cover w-full h-full"
+                            />
+                          </div>
+
+                          {/* Info */}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-gray-900 text-sm md:text-base truncate">
+                              {therapist.name}
+                            </h3>
+                            <p className="text-xs md:text-sm text-teal-600 truncate">
+                              {therapist.specialization.join(", ")}
+                            </p>
+                            <p className="text-xs md:text-sm text-gray-500">
+                              {therapist.location.city}, {therapist.location.country}
+                            </p>
+                            <p className="text-xs md:text-sm text-gray-500">
+                              {therapist.academic_background.years_of_experience}+ yrs experience
+                            </p>
+                          </div>
                         </div>
-                        <span className="text-xs text-gray-500">{therapist.rating}</span>
+                      ))
+                    )
+                    : (
+                      <div className="text-center py-6 md:py-8">
+                        <div className="bg-gray-200 border-2 border-dashed rounded-xl w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 flex items-center justify-center">
+                          <FaHistory className="text-lg md:text-2xl text-gray-500" />
+                        </div>
+                        <h3 className="text-base md:text-lg font-medium text-gray-900 mb-2">No Therapists</h3>
                       </div>
-                      <div className="flex items-center text-xs md:text-sm text-gray-500 mt-1">
-                        <FaClock className="mr-1 w-3 h-3" />
-                        <span>{therapist.sessions} sessions</span>
-                      </div>
-                    </div>
-                    <button className="text-teal-600 hover:text-teal-800 flex-shrink-0">
-                      <FaChevronDown className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
+                    )
+                }
               </div>
+
             </div>
 
             {/* Upcoming Appointments */}
@@ -1146,7 +1217,7 @@ const UserProfilePage = () => {
                           <FaVideo className="mr-1 w-3 h-3" />
                           Join
                         </Link>
-                        <button className="text-xs text-teal-600 hover:text-teal-800">
+                        <button onClick={() => handleOpenBookingPopup(appointment.therapist_id._id, 'edit', appointment._id)} className="text-xs text-teal-600 hover:text-teal-800 cursor-pointer">
                           Reschedule
                         </button>
                       </div>
@@ -1234,11 +1305,7 @@ const UserProfilePage = () => {
                         </div>
                       </div>
                       <div className="flex flex-col gap-1 md:gap-2 flex-shrink-0">
-                        <button className="flex items-center px-2 md:px-3 py-1 md:py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs md:text-sm">
-                          <FaHistory className="mr-1 w-3 h-3" />
-                          Notes
-                        </button>
-                        <button className="text-xs text-teal-600 hover:text-teal-800">
+                        <button onClick={() => handleOpenBookingPopup(appointment.therapist_id._id, 'book')} className="text-xs text-teal-600 hover:text-teal-800">
                           Book Again
                         </button>
                       </div>
