@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
 import axios from "axios"
+import { trackAppointmentEvent } from "@/utils/clarity"
 
 const backend = process.env.NEXT_PUBLIC_BACKEND_URL
 
@@ -7,6 +8,10 @@ const backend = process.env.NEXT_PUBLIC_BACKEND_URL
 const bookAppointmentFunc = createAsyncThunk("appointment/book-appointment", async (data) => {
     try {
         const response = await axios.post(`${backend}/appointment/new`, data)
+        
+        // Track successful appointment booking in Clarity
+        trackAppointmentEvent('book', response.data?.data?.appointment?._id, data.therapist_id)
+        
         return response.data
     } catch (error) {
         if (error.response) {
@@ -19,6 +24,10 @@ const bookAppointmentFunc = createAsyncThunk("appointment/book-appointment", asy
 const rescheduleAppointmentFunc = createAsyncThunk("appointment/reschedule-appointment", async (payload) => {
     try {
         const response = await axios.post(`${backend}/appointment/${payload.id}/update`, payload.data)
+        
+        // Track appointment reschedule in Clarity
+        trackAppointmentEvent('reschedule', payload.id)
+        
         return response.data
     } catch (error) {
         if (error.response) {
