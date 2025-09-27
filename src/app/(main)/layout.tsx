@@ -5,6 +5,7 @@ import { Header } from "@/component/global/Header";
 import Footer from "@/component/global/Footer";
 import Providers from "@/app/(main)/provider";
 import FloatingFeedback from "@/component/global/FloatingFeedback";
+import ClarityProvider from "@/component/global/ClarityProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
+          <ClarityProvider />
           <Header />
           {children}
           <FloatingFeedback />
