@@ -1,6 +1,6 @@
 "use client";
 import { decodeToken } from '@/utils/decodeToken';
-import { TOKEN } from '@/utils/enum';
+import { INDIAN_LANGUAGES, SPECIALIZATIONS, TOKEN } from '@/utils/enum';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
@@ -11,6 +11,8 @@ import { toast } from 'react-toastify';
 import { FaEdit, FaPlus, FaTimes, FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
 import { getInitials } from '@/utils/GetInitials';
 import { AppointmentList } from './AppointmentList';
+import { getPastAppointmentsApi, getUpComingAppointments } from '@/store/appoinment';
+import AvailabilityScheduler from './AvailabilityCalender';
 
 interface Therapist {
   name: string;
@@ -36,16 +38,40 @@ interface Therapist {
   languages: string[];
 }
 
-type Appointment = {
-  id: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
-  date: Date;
-  duration: number;
-  client: {
-    name: string;
-    profilePic?: string;
-  };
-};
+
+// User model interface
+export interface IUser {
+  _id: string;
+  name: string;
+  username: string;
+  email: string;
+  email_verified: boolean;
+  phone: string;
+  password: string;
+  role: "user" | "employee";
+  status: "active" | "inactive";
+  isPrivate: boolean;
+  is_deleted: boolean;
+  blockedUsers: string[];
+  profile_image: string;
+  followers: string[];
+  following: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+// Appointment model interface
+export interface Appointment {
+  _id: string;
+  user_id: string | IUser;
+  therapist_id: string | IUser;
+  appointment_status: "scheduled" | "completed" | "cancelled";
+  scheduled_at: string;
+  meet_link: string;
+  is_deleted: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 
 export default function TherapistProfile() {
@@ -59,66 +85,14 @@ export default function TherapistProfile() {
   const [profileCompletion, setProfileCompletion] = useState(0);
   const [animatedProgress, setAnimatedProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pastAppointments, setPastAppointments] = useState<Appointment[]>([]);
+  const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
   const dispatch = useDispatch()
   const router = useRouter()
   const storedToken = typeof window !== 'undefined' ? localStorage.getItem(TOKEN) : null;
 
   const [therapist, setTherapist] = useState<Therapist | null>(null);
 
-  // Demo appointments data
-  const futureAppointments: Appointment[] = [
-    {
-      id: "1",
-      client: {
-        name: "John Doe",
-        profilePic: "/client1.jpg"
-      },
-      date: new Date(Date.now() + 86400000 * 1), // Tomorrow
-      duration: 50,
-      status: "scheduled"
-    },
-    {
-      id: "2",
-      client: {
-        name: "Alice Johnson",
-        profilePic: "/client2.jpg"
-      },
-      date: new Date(Date.now() + 86400000 * 3), // 3 days from now
-      duration: 50,
-      status: "scheduled"
-    },
-    {
-      id: "3",
-      client: {
-        name: "Robert Chen",
-      },
-      date: new Date(Date.now() + 86400000 * 5), // 5 days from now
-      duration: 50,
-      status: "scheduled"
-    }
-  ];
-
-  const pastAppointments: Appointment[] = [
-    {
-      id: "4",
-      client: {
-        name: "Sarah Williams",
-        profilePic: "/client3.jpg"
-      },
-      date: new Date(Date.now() - 86400000 * 2), // 2 days ago
-      duration: 50,
-      status: "completed"
-    },
-    {
-      id: "5",
-      client: {
-        name: "Michael Brown"
-      },
-      date: new Date(Date.now() - 86400000 * 5), // 5 days ago
-      duration: 50,
-      status: "completed"
-    }
-  ];
 
   async function getTherapist(id: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -152,6 +126,8 @@ export default function TherapistProfile() {
       // Create FormData object
       const formData = new FormData();
 
+      console.log(tempTherapistData)
+
       // Append all user data fields
       if (tempTherapistData) {
         if (tempTherapistData.name) formData.append('name', tempTherapistData.name);
@@ -166,9 +142,7 @@ export default function TherapistProfile() {
         }
 
         // Specialization
-        if (tempTherapistData.specialization?.length) {
-          formData.append('specialization', JSON.stringify(tempTherapistData.specialization));
-        }
+        formData.append('specialization', JSON.stringify(tempTherapistData.specialization));
 
         // Experience
         if (tempTherapistData.experience?.length) {
@@ -188,9 +162,7 @@ export default function TherapistProfile() {
         }
 
         // Languages
-        if (tempTherapistData.languages?.length) {
-          formData.append('languages', JSON.stringify(tempTherapistData.languages));
-        }
+        formData.append('languages', JSON.stringify(tempTherapistData.languages));
       }
 
       // Append new profile picture if selected
@@ -392,12 +364,38 @@ export default function TherapistProfile() {
     });
   };
 
+  async function getUpcomingAppointments(id: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(getUpComingAppointments(id as any) as any);
+    if (response?.error) {
+      setLoading(false)
+      toast.error(response.error.message)
+    } else {
+      setLoading(false)
+      setUpcomingAppointments(response.payload.data.appointments)
+    }
+  }
+
+  async function getPastAppointments(id: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(getPastAppointmentsApi(id as any) as any);
+    if (response?.error) {
+      setLoading(false)
+      toast.error(response.error.message)
+    } else {
+      setLoading(false)
+      setPastAppointments(response.payload.data.appointments)
+    }
+  }
+
   useEffect(() => {
     if (storedToken !== null) {
       const decodedToken = decodeToken(storedToken as string);
       if (decodedToken?.userId) {
         getTherapist(decodedToken.userId._id)
         setTherapistId(decodedToken.userId._id)
+        getUpcomingAppointments(decodedToken.userId._id)
+        getPastAppointments(decodedToken.userId._id)
         profileStatus(decodedToken.userId._id)
       } else {
         router.push('/')
@@ -563,14 +561,24 @@ export default function TherapistProfile() {
                           key={index}
                           className="flex items-center bg-gradient-to-r from-teal-50 to-teal-100 rounded-xl pl-3 pr-1 py-1"
                         >
-                          <input
+                          <select
                             value={spec}
-                            onChange={(e) => handleArrayChange('specialization', index, e.target.value)}
-                            className="bg-transparent text-teal-800 focus:outline-none w-40 text-sm"
-                            placeholder="Add specialization"
-                          />
+                            onChange={(e) =>
+                              handleArrayChange("specialization", index, e.target.value)
+                            }
+                            className="bg-transparent text-teal-800 focus:outline-none w-48 text-sm"
+                          >
+                            <option value="" disabled>
+                              Select specialization
+                            </option>
+                            {SPECIALIZATIONS.map((option, i) => (
+                              <option key={i} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
                           <button
-                            onClick={() => removeArrayItem('specialization', index)}
+                            onClick={() => removeArrayItem("specialization", index)}
                             className="text-teal-500 hover:text-teal-700 ml-1 transition-colors"
                           >
                             <FaTimes size={14} />
@@ -579,7 +587,7 @@ export default function TherapistProfile() {
                       ))}
                     </div>
                     <button
-                      onClick={() => addArrayItem('specialization', '')}
+                      onClick={() => addArrayItem("specialization", "")}
                       className="text-teal-600 hover:text-teal-800 text-sm flex mt-2 items-center transition-colors"
                     >
                       <FaPlus className="mr-1" size={12} /> Add Specialization
@@ -767,6 +775,9 @@ export default function TherapistProfile() {
           )}
         </div>
 
+        {/* Select Avaialbility */}
+        <AvailabilityScheduler therapistId={therapistId} />
+
         {/* Main Content */}
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Profile Details */}
@@ -940,11 +951,20 @@ export default function TherapistProfile() {
                         key={index}
                         className="flex items-center bg-gradient-to-r from-teal-50 to-teal-100 rounded-xl pl-4 pr-2 py-1"
                       >
-                        <input
+                        <select
                           value={lang}
                           onChange={(e) => handleArrayChange('languages', index, e.target.value)}
-                          className="bg-transparent text-teal-800 focus:outline-none w-24 text-sm"
-                        />
+                          className="bg-transparent text-teal-800 focus:outline-none w-36 text-sm"
+                        >
+                          <option value="" disabled>
+                            Select language
+                          </option>
+                          {INDIAN_LANGUAGES.map((language, i) => (
+                            <option key={i} value={language.code}>
+                              {language.name}
+                            </option>
+                          ))}
+                        </select>
                         <button
                           onClick={() => removeArrayItem('languages', index)}
                           className="text-teal-500 hover:text-teal-700 ml-1 transition-colors"
@@ -970,20 +990,13 @@ export default function TherapistProfile() {
                         className="px-4 py-2 bg-gradient-to-r from-teal-50 to-teal-100 text-teal-800 rounded-full text-sm font-medium flex items-center"
                       >
                         <span className="w-2 h-2 bg-teal-500 rounded-full mr-2"></span>
-                        {lang === 'en'
-                          ? 'English'
-                          : lang === 'hi'
-                            ? 'Hindi'
-                            : lang === 'es'
-                              ? 'Spanish'
-                              : lang}
+                        {INDIAN_LANGUAGES.find((l) => l.code === lang)?.name}
                       </span>
                     ))
                   ) : (
                     <p className="text-gray-500 italic">Add languages you speak</p>
                   )}
                 </div>
-
               )}
             </div>
           </div>
@@ -1006,7 +1019,7 @@ export default function TherapistProfile() {
                     </svg>
                     Upcoming Appointments
                     <span className="ml-2 bg-teal-100 text-teal-800 text-xs py-0.5 px-2.5 rounded-full">
-                      {futureAppointments.length}
+                      {upcomingAppointments.length}
                     </span>
                   </button>
                   <button
@@ -1031,7 +1044,7 @@ export default function TherapistProfile() {
               <div className="p-6">
                 {activeTab === 'future' ? (
                   <AppointmentList
-                    appointments={futureAppointments}
+                    appointments={upcomingAppointments}
                     emptyMessage="No upcoming appointments"
                     emptyDescription="You don't have any scheduled appointments yet."
                   />

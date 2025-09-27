@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useDispatch } from 'react-redux';
 import { getUserDetails, getUserTherapist, updateUserDetails } from '@/store/userSlice';
 import { toast } from 'react-toastify';
-import { TOKEN } from '@/utils/enum';
+import { INDIAN_LANGUAGES, TOKEN } from '@/utils/enum';
 import { decodeToken } from '@/utils/decodeToken';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinnerWithOverlay } from '../global/Loading';
@@ -111,48 +111,6 @@ const UserProfilePage = () => {
   const [bookAgainPopup, setBookAgainPopup] = useState(false);
   const [bookAgainType, setBookAgainType] = useState('');
 
-  const INDIAN_LANGUAGES = [
-    {
-      code: 'hi',
-      name: 'Hindi'
-    },
-    {
-      code: 'en',
-      name: 'English'
-    },
-    {
-      code: 'bn',
-      name: 'Bengali'
-    },
-    {
-      code: 'te',
-      name: 'Telugu'
-    },
-    {
-      code: 'mr',
-      name: 'Marathi'
-    },
-    {
-      code: 'ta',
-      name: 'Tamil'
-    },
-    {
-      code: 'gu',
-      name: 'Gujarati'
-    },
-    {
-      code: 'kn',
-      name: 'Kannada'
-    },
-    {
-      code: 'ml',
-      name: 'Malayalam'
-    },
-    {
-      code: 'pa',
-      name: 'Punjabi'
-    }
-  ];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const generateSlotsFromIntervals = (intervals: any) => {

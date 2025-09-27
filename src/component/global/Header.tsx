@@ -10,6 +10,7 @@ import { getInitials } from '@/utils/GetInitials';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserDetails, logoutUser } from '@/store/userSlice';
 import { getTherapistDetails, logoutTherapist } from '@/store/therapistSlice';
+import { logoutEmployee } from '@/store/employeeSlice';
 
 
 interface UserData {
@@ -51,6 +52,7 @@ export const Header = () => {
             setUser(false);
             dispatch(logoutTherapist())
             dispatch(logoutUser())
+            dispatch(logoutEmployee())
             setIsDropdownOpen(false);
             setLoading(false);
             router.push('/');
@@ -103,7 +105,7 @@ export const Header = () => {
             const decodedToken = decodeToken(storedToken as string);
             if (decodedToken?.userId) {
                 setUser(true);
-                if (decodedToken?.userId?.role === 'user') {
+                if (decodedToken?.userId?.role === 'user' || decodedToken?.userId?.role === 'employee') {
                     getUser(decodedToken?.userId?._id)
                 } else {
                     getTherapist(decodedToken?.userId?._id)

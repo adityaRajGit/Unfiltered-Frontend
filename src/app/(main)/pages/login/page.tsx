@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { FaUser, FaLock, FaEnvelope, FaPhone, FaEye, FaEyeSlash, FaUserMd, FaUserInjured } from 'react-icons/fa';
+import { FaUser, FaLock, FaEnvelope, FaPhone, FaEye, FaEyeSlash, FaUserMd, FaBuilding } from 'react-icons/fa';
 import { useDispatch } from 'react-redux';
 import { login, signup } from '@/store/userSlice';
 import { toast } from 'react-toastify';
@@ -10,11 +10,12 @@ import { LoadingSpinnerWithOverlay } from '@/component/global/Loading';
 import { GoogleSignIn, GoogleSignUp } from '@/component/Authentication';
 import { loginTherapist, signupTherapist } from '@/store/therapistSlice';
 import { sendOtp, verifyOtp } from '@/store/otpSlice';
+import { employeeSignup } from '@/store/employeeSlice';
 
 const AuthPages = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<'user' | 'therapist'>('user'); // Now used in both login and signup
+  const [role, setRole] = useState<'user' | 'therapist' | 'employee'>('employee'); // Now used in both login and signup
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -64,7 +65,7 @@ const AuthPages = () => {
       email: '',
       password: '',
     });
-    setRole('user');
+    setRole('employee');
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,6 +82,18 @@ const AuthPages = () => {
             toast.error(response.error.message)
           } else {
             toast.success("User Logged in Successfully")
+            router.push('/')
+            clearForm()
+          }
+        } else if (role === 'employee') {
+          const loginData = { ...formData, role };
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const response = await dispatch(login(loginData as any) as any);
+          if (response?.error) {
+            setLoading(false)
+            toast.error(response.error.message)
+          } else {
+            toast.success("Employee Logged in Successfully")
             router.push('/')
             clearForm()
           }
@@ -114,7 +127,20 @@ const AuthPages = () => {
             router.push('/');
             clearForm()
           }
-        } else {
+        } else if (role === 'employee') {
+          const signupData = { ...formData, role };
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const response = await dispatch(employeeSignup(signupData as any) as any);
+          if (response?.error) {
+            setLoading(false)
+            toast.error(response.error.message);
+          } else {
+            toast.success('Account created successfully!');
+            router.push('/');
+            clearForm()
+          }
+        }
+        else {
           const signupData = { ...formData, role };
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const response = await dispatch(signupTherapist(signupData as any) as any);
@@ -129,6 +155,7 @@ const AuthPages = () => {
         }
       }
     }
+    setLoading(false)
   };
 
 
@@ -163,14 +190,16 @@ const AuthPages = () => {
         const response = await dispatch(verifyOtp(data as any) as any);
         if (response?.error) {
           toast.error(response.error.message);
+          setLoading(false)
+          setOtp('')
         } else {
           // console.log(response.payload)
           toast.success('OTP Verified successfully!');
           setEmailOtpPopup(false)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           handleSubmit(new Event('submit') as any)
         }
-        setLoading(false)
+
       }
     }
   }
@@ -208,7 +237,7 @@ const AuthPages = () => {
       </header>
 
       {emailOtpPopup && (
-        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-40 p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto">
             {/* Popup Header */}
             <div className="bg-gradient-to-r from-teal-600 to-teal-700 p-6 rounded-t-2xl">
@@ -289,7 +318,7 @@ const AuthPages = () => {
       )}
 
       {/* Auth Card */}
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
+      <div className="w-full max-w-xl bg-white rounded-2xl shadow-xl overflow-hidden">
         {/* Tabs */}
         <div className="flex border-b">
           <button
@@ -342,41 +371,74 @@ const AuthPages = () => {
             <label className="block text-gray-700 mb-2 font-medium">
               {isLogin ? 'I am logging in as:' : 'I am signing up as:'}
             </label>
-            <div className="flex space-x-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+              {/* Employee */}
               <button
                 type="button"
-                onClick={() => setRole('user')}
-                className={`flex-1 flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${role === 'user'
+                onClick={() => setRole('employee')}
+                className={`flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all ${role === 'employee'
                   ? 'border-teal-500 bg-teal-50'
                   : 'border-gray-200 hover:border-teal-300'
                   }`}
               >
-                <div className={`w-12 h-12 rounded-full mb-2 flex items-center justify-center ${role === 'user' ? 'bg-teal-100' : 'bg-gray-100'
-                  }`}>
-                  <FaUserInjured className={`text-xl ${role === 'user' ? 'text-teal-600' : 'text-gray-500'
-                    }`} />
+                <div
+                  className={`w-12 h-12 rounded-full mb-3 flex items-center justify-center ${role === 'employee' ? 'bg-teal-100' : 'bg-gray-100'
+                    }`}
+                >
+                  <FaBuilding
+                    className={`text-xl ${role === 'employee' ? 'text-teal-600' : 'text-gray-500'
+                      }`}
+                  />
                 </div>
-                <span className="font-medium">Individual</span>
-                <span className="text-xs text-gray-500 mt-1">Seeking support</span>
+                <span className="font-semibold text-gray-900">Employee</span>
+                <span className="text-sm text-gray-500 mt-1">Corporate</span>
               </button>
 
+              {/* Therapist */}
               <button
                 type="button"
                 onClick={() => setRole('therapist')}
-                className={`flex-1 flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${role === 'therapist'
+                className={`flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all ${role === 'therapist'
                   ? 'border-teal-500 bg-teal-50'
                   : 'border-gray-200 hover:border-teal-300'
                   }`}
               >
-                <div className={`w-12 h-12 rounded-full mb-2 flex items-center justify-center ${role === 'therapist' ? 'bg-teal-100' : 'bg-gray-100'
-                  }`}>
-                  <FaUserMd className={`text-xl ${role === 'therapist' ? 'text-teal-600' : 'text-gray-500'
-                    }`} />
+                <div
+                  className={`w-12 h-12 rounded-full mb-3 flex items-center justify-center ${role === 'therapist' ? 'bg-teal-100' : 'bg-gray-100'
+                    }`}
+                >
+                  <FaUserMd
+                    className={`text-xl ${role === 'therapist' ? 'text-teal-600' : 'text-gray-500'
+                      }`}
+                  />
                 </div>
-                <span className="font-medium">Therapist</span>
-                <span className="text-xs text-gray-500 mt-1">Providing support</span>
+                <span className="font-semibold text-gray-900">Therapist</span>
+                <span className="text-sm text-gray-500 mt-1">Providing support</span>
+              </button>
+
+              {/* Individual */}
+              <button
+                type="button"
+                onClick={() => setRole('user')}
+                className={`flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all ${role === 'user'
+                  ? 'border-teal-500 bg-teal-50'
+                  : 'border-gray-200 hover:border-teal-300'
+                  }`}
+              >
+                <div
+                  className={`w-12 h-12 rounded-full mb-3 flex items-center justify-center ${role === 'user' ? 'bg-teal-100' : 'bg-gray-100'
+                    }`}
+                >
+                  <FaUser
+                    className={`text-xl ${role === 'user' ? 'text-teal-600' : 'text-gray-500'
+                      }`}
+                  />
+                </div>
+                <span className="font-semibold text-gray-900">Individual</span>
+                <span className="text-sm text-gray-500 mt-1">Seeking support</span>
               </button>
             </div>
+
           </div>
 
           <div className="mb-6">
@@ -467,8 +529,10 @@ const AuthPages = () => {
             className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-opacity-50"
           >
             {isLogin
-              ? (role === 'therapist' ? 'Login as Therapist' : 'Login as User')
-              : (role === 'therapist' ? 'Apply as Therapist' : 'Create Account')
+              ? (role === 'user' ? 'Login as User' :
+                role === 'therapist' ? 'Login as Therapist' : 'Login as Employee')
+              : (role === 'user' ? 'Create Account' :
+                role === 'therapist' ? 'Apply as Therapist' : 'Register Employee')
             }
           </button>
         </form>
@@ -486,7 +550,7 @@ const AuthPages = () => {
           </p>
 
           {
-            role === 'user'
+            role === 'employee'
               ? null
               : <>
                 <div className="mt-4 flex items-center justify-center">
@@ -510,19 +574,21 @@ const AuthPages = () => {
         <div className="mt-8 max-w-md bg-white rounded-xl p-6 shadow-sm">
           <h3 className="font-bold text-gray-900 mb-3">Which role should I choose?</h3>
           <div className="space-y-4">
+            {/* Employee */}
             <div className="flex items-start">
               <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center mr-3 flex-shrink-0">
-                <FaUserInjured className="text-teal-600" />
+                <FaBuilding className="text-teal-600" />
               </div>
               <div>
-                <h4 className="font-medium text-gray-900">Individual</h4>
+                <h4 className="font-medium text-gray-900">Employee</h4>
                 <p className="text-sm text-gray-600">
-                  Choose this if you&apos;re seeking mental health support, therapy sessions,
-                  or want to participate in our community.
+                  Choose this if you&apos;re part of a company or organization and want to access
+                  our mental health and wellness programs through your workplace.
                 </p>
               </div>
             </div>
 
+            {/* Therapist */}
             <div className="flex items-start">
               <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center mr-3 flex-shrink-0">
                 <FaUserMd className="text-teal-600" />
@@ -530,14 +596,29 @@ const AuthPages = () => {
               <div>
                 <h4 className="font-medium text-gray-900">Therapist</h4>
                 <p className="text-sm text-gray-600">
-                  Choose this if you&apos;re a licensed mental health professional
-                  interested in providing therapy through our platform.
+                  Choose this if you&apos;re a licensed mental health professional interested in
+                  providing therapy and support through our platform.
+                </p>
+              </div>
+            </div>
+
+            {/* Individual */}
+            <div className="flex items-start">
+              <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center mr-3 flex-shrink-0">
+                <FaUser className="text-teal-600" />
+              </div>
+              <div>
+                <h4 className="font-medium text-gray-900">Individual</h4>
+                <p className="text-sm text-gray-600">
+                  Choose this if you&apos;re seeking mental health support, therapy sessions, or
+                  want to participate in our community as an individual user.
                 </p>
               </div>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 };

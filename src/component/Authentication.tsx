@@ -77,7 +77,7 @@ export const GoogleSignIn = ({ role }: { role: string }) => {
             setLoading(false);
         } else {
             setLoading(false);
-            toast.success('Account created successfully!');
+            toast.success('User Logged in Successfully!');
             router.push('/');
         }
     };

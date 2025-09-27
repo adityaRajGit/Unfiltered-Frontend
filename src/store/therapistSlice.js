@@ -110,6 +110,44 @@ const recommendTherapist = createAsyncThunk('therapist/recommend-therapist', asy
 }
 );
 
+const setAvailabilityForTherapist = createAsyncThunk('therapist/set-therapist-availability', async (data) => {
+    try {
+        const response = await axios.post(`${backend}/availability/new`, data);
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw error.response.data.data.message
+        }
+        throw error.message || "An unexpected error occurred"
+    }
+}
+);
+
+const getAvailabilityForTherapist = createAsyncThunk('therapist/get-therapist-availability', async (id) => {
+    try {
+        const response = await axios.get(`${backend}/availability/get-by-therapist/${id}`);
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw error.response.data.data.message
+        }
+        throw error.message || "An unexpected error occurred"
+    }
+}
+);
+
+const updateAvailabilityForTherapist = createAsyncThunk('therapist/update-therapist-availability', async (payload) => {
+    try {
+        const response = await axios.post(`${backend}/availability/${payload.id}/update`, payload.data);
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw error.response.data.data.message
+        }
+        throw error.message || "An unexpected error occurred"
+    }
+}
+);
 
 const initialState = {
     therapist: null,
@@ -212,9 +250,42 @@ const therapistSlice = createSlice({
                 state.loading = false
                 state.error = action.error || "An error occurred"
             })
+            .addCase(setAvailabilityForTherapist.pending, (state) => {
+                state.loading = true
+                state.error = null
+            })
+            .addCase(setAvailabilityForTherapist.fulfilled, (state) => {
+                state.loading = false
+            })
+            .addCase(setAvailabilityForTherapist.rejected, (state, action) => {
+                state.loading = false
+                state.error = action.error || "An error occurred"
+            })
+            .addCase(getAvailabilityForTherapist.pending, (state) => {
+                state.loading = true
+                state.error = null
+            })
+            .addCase(getAvailabilityForTherapist.fulfilled, (state) => {
+                state.loading = false
+            })
+            .addCase(getAvailabilityForTherapist.rejected, (state, action) => {
+                state.loading = false
+                state.error = action.error || "An error occurred"
+            })
+            .addCase(updateAvailabilityForTherapist.pending, (state) => {
+                state.loading = true
+                state.error = null
+            })
+            .addCase(updateAvailabilityForTherapist.fulfilled, (state) => {
+                state.loading = false
+            })
+            .addCase(updateAvailabilityForTherapist.rejected, (state, action) => {
+                state.loading = false
+                state.error = action.error || "An error occurred"
+            })
     }
 })
 
 export const { logoutTherapist } = therapistSlice.actions;
-export { signupTherapist, loginTherapist, getTherapistDetails, updateTherapistDetails, therapistProfileStatus, getTherapistSpecialisationAndTiming, recommendTherapist }
+export { signupTherapist, loginTherapist, getTherapistDetails, updateTherapistDetails, therapistProfileStatus, getTherapistSpecialisationAndTiming, recommendTherapist, setAvailabilityForTherapist, getAvailabilityForTherapist, updateAvailabilityForTherapist }
 export default therapistSlice.reducer

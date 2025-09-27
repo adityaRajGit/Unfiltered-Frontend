@@ -44,7 +44,7 @@ function Page() {
     return (
         <>
             {
-                user?.userId?.role === 'user'
+                user?.userId?.role === 'user' || user?.userId?.role === 'employee'
                     ? <UserProfilePage />
                     : <TherapistProfile />
             }
