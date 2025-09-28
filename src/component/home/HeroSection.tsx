@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FaChevronRight, FaChevronLeft, FaPlay, FaUsers, FaAppleAlt, FaHeart } from "react-icons/fa";
+import { FaChevronRight, FaChevronLeft, FaPlay, FaUsers, FaAppleAlt, FaHeart} from "react-icons/fa";
 
 function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -78,6 +78,39 @@ function HeroSection() {
         title: "Complete Health",
         subtitle: "Mind + Body wellness"
       }
+    },
+    {
+      id: 4,
+      badge: "One-on-One Therapy Sessions",
+      title: {
+        main: "Your Journey to",
+        highlight: "Healing & Self-Discovery"
+      },
+      description: "Work through stress, anxiety, and personal challenges in a safe and supportive space. Our licensed therapists provide confidential, one-on-one sessions tailored to your unique needs.",
+      primaryButton: {
+        text: "Start Therapy Today",
+        href: "/therapy"
+      },
+      secondaryButton: {
+        text: "Meet Our Therapists"
+      },
+      image: "/landing1.jpg",
+      imageAlt: "Individual talking with a therapist in a private session",
+      floatingCard: {
+        icon: "smile",
+        title: "Your Safe Space",
+        subtitle: "Talk. Heal. Grow."
+      },
+      tags: [
+        "Stress Management",
+        "Anxiety Relief",
+        "Depression Support",
+        "Relationship Guidance",
+        "Personal Growth",
+        "Self-Confidence",
+        "Trauma Healing",
+        "Life Transitions"
+      ]
     }
   ];
 
@@ -94,12 +127,11 @@ function HeroSection() {
 
   const handleSlideChange = (newSlideIndex: number | ((prev: number) => number)) => {
     if (isTransitioning) return;
-    
+
     setIsTransitioning(true);
     const nextSlide = typeof newSlideIndex === 'function' ? newSlideIndex(currentSlide) : newSlideIndex;
     setCurrentSlide(nextSlide);
-    
-    // Reset transition state after animation completes
+
     setTimeout(() => {
       setIsTransitioning(false);
     }, 500);
@@ -134,6 +166,12 @@ function HeroSection() {
         return <FaUsers className="h-4 w-4 text-cyan-700" />;
       case "heart":
         return <FaHeart className="h-4 w-4 text-emerald-700" />;
+      case "smile":
+        return (
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        );
       default:
         return null;
     }
@@ -168,7 +206,7 @@ function HeroSection() {
 
       {/* Slides Container */}
       <div className="relative overflow-hidden">
-        <div 
+        <div
           className="flex transition-transform duration-500 ease-in-out"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
         >
@@ -179,19 +217,17 @@ function HeroSection() {
                 <div className="grid items-center grid-cols-1 gap-12 lg:grid-cols-2 pb-10 lg:pb-4">
                   {/* Text content */}
                   <div className="text-center lg:text-left">
-                    <div 
-                      className={`inline-block px-4 py-1 mb-4 text-sm font-medium text-teal-800 bg-teal-200 rounded-full transition-all duration-700 ${
-                        index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                      }`}
+                    <div
+                      className={`inline-block px-4 py-1 mb-4 text-sm font-medium text-teal-800 bg-teal-200 rounded-full transition-all duration-700 ${index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                        }`}
                       style={{ transitionDelay: index === currentSlide ? '200ms' : '0ms' }}
                     >
                       {slideData.badge}
                     </div>
 
-                    <h1 
-                      className={`text-4xl font-bold leading-tight text-gray-900 sm:text-4xl md:text-5xl font-pj transition-all duration-700 ${
-                        index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-                      }`}
+                    <h1
+                      className={`text-4xl font-bold leading-tight text-gray-900 sm:text-4xl md:text-5xl font-pj transition-all duration-700 ${index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                        }`}
                       style={{ transitionDelay: index === currentSlide ? '300ms' : '0ms' }}
                     >
                       <span className="block">{slideData.title.main}</span>
@@ -200,20 +236,39 @@ function HeroSection() {
                       </span>
                     </h1>
 
-                    <p 
-                      className={`max-w-xl mt-6 text-lg text-gray-700 md:mt-8 mx-auto md:text-xl font-inter transition-all duration-700 ${
-                        index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-                      }`}
+                    <p
+                      className={`max-w-xl mt-6 text-lg text-gray-700 md:mt-8 mx-auto md:text-xl font-inter transition-all duration-700 ${index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                        }`}
                       style={{ transitionDelay: index === currentSlide ? '400ms' : '0ms' }}
                     >
                       {slideData.description}
                     </p>
 
-                    <div 
-                      className={`flex flex-col items-center justify-center mt-10 space-y-4 sm:flex-row sm:space-y-0 lg:flex-col lg:gap-2 xl:gap-0 xl:flex-row  sm:space-x-6 lg:justify-start transition-all duration-700 ${
-                        index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-                      }`}
-                      style={{ transitionDelay: index === currentSlide ? '500ms' : '0ms' }}
+                    {/* Tags Section - Only for slide 4 */}
+                    {slideData.tags && (
+                      <div
+                        className={`mt-6 transition-all duration-700 ${index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                          }`}
+                        style={{ transitionDelay: index === currentSlide ? '450ms' : '0ms' }}
+                      >
+                        <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+                          {slideData.tags.map((tag, tagIndex) => (
+                            <span
+                              key={tagIndex}
+                              className="px-3 py-1 text-xs font-medium text-teal-700 bg-teal-100 rounded-full border border-teal-200"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Buttons */}
+                    <div
+                      className={`flex flex-col items-center justify-center mt-10 space-y-4 sm:flex-row sm:space-y-0 lg:flex-col lg:gap-2 xl:gap-0 xl:flex-row sm:space-x-6 lg:justify-start transition-all duration-700 ${index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                        }`}
+                      style={{ transitionDelay: index === currentSlide ? '600ms' : '0ms' }}
                     >
                       <Link
                         href={slideData.primaryButton.href}
@@ -231,10 +286,9 @@ function HeroSection() {
 
                   {/* Image section */}
                   <div className="relative">
-                    <div 
-                      className={`relative overflow-hidden rounded-2xl shadow-xl transform transition-all duration-700 hover:scale-[1.02] ${
-                        index === currentSlide ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-8 scale-95'
-                      }`}
+                    <div
+                      className={`relative overflow-hidden rounded-2xl shadow-xl transform transition-all duration-700 hover:scale-[1.02] ${index === currentSlide ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-8 scale-95'
+                        }`}
                       style={{ transitionDelay: index === currentSlide ? '300ms' : '0ms' }}
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-teal-500/10 to-cyan-500/10 z-10"></div>
@@ -249,11 +303,10 @@ function HeroSection() {
                     </div>
 
                     {/* Floating card */}
-                    <div 
-                      className={`absolute z-20 -bottom-4 -left-4 bg-white p-4 rounded-xl shadow-lg border border-gray-100 transform transition-all duration-700 hover:shadow-xl ${
-                        index === currentSlide ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95'
-                      }`}
-                      style={{ transitionDelay: index === currentSlide ? '600ms' : '0ms' }}
+                    <div
+                      className={`absolute z-20 -bottom-4 -left-4 bg-white p-4 rounded-xl shadow-lg border border-gray-100 transform transition-all duration-700 hover:shadow-xl ${index === currentSlide ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-95'
+                        }`}
+                      style={{ transitionDelay: index === currentSlide ? '650ms' : '0ms' }}
                     >
                       <div className="flex items-center">
                         <div className="flex -space-x-2">
@@ -274,12 +327,11 @@ function HeroSection() {
                       </div>
                     </div>
 
-                    {/* Additional floating elements for webinar slide */}
+                    {/* Additional floating elements */}
                     {index === 1 && (
-                      <div 
-                        className={`absolute z-20 -top-4 -right-4 bg-white p-3 rounded-lg shadow-lg border border-gray-100 transition-all duration-700 ${
-                          currentSlide === 1 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-4 scale-95'
-                        }`}
+                      <div
+                        className={`absolute z-20 -top-4 -right-4 bg-white p-3 rounded-lg shadow-lg border border-gray-100 transition-all duration-700 ${currentSlide === 1 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-4 scale-95'
+                          }`}
                         style={{ transitionDelay: currentSlide === 1 ? '700ms' : '0ms' }}
                       >
                         <div className="flex items-center space-x-2">
@@ -291,18 +343,30 @@ function HeroSection() {
                       </div>
                     )}
 
-                    {/* Additional floating elements for nutrition slide */}
                     {index === 2 && (
-                      <div 
-                        className={`absolute z-20 -top-4 -right-4 bg-white p-3 rounded-lg shadow-lg border border-gray-100 transition-all duration-700 ${
-                          currentSlide === 2 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-4 scale-95'
-                        }`}
+                      <div
+                        className={`absolute z-20 -top-4 -right-4 bg-white p-3 rounded-lg shadow-lg border border-gray-100 transition-all duration-700 ${currentSlide === 2 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-4 scale-95'
+                          }`}
                         style={{ transitionDelay: currentSlide === 2 ? '700ms' : '0ms' }}
                       >
                         <div className="flex items-center space-x-2">
                           <FaAppleAlt className="text-green-500 text-lg" />
                           <span className="text-xs font-medium text-gray-700">Healthy Living</span>
                         </div>
+                      </div>
+                    )}
+
+                    {index === 3 && (
+                      <div
+                        className={`absolute z-20 -top-4 -right-4 bg-white p-3 rounded-lg shadow-lg border border-gray-100 transition-all duration-700 ${currentSlide === 3 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-4 scale-95'
+                          }`}
+                        style={{ transitionDelay: currentSlide === 3 ? '700ms' : '0ms' }}
+                      >
+                        <div className="flex items-center space-x-2 bg-red-50 px-3 py-1 rounded-full">
+                          <span className="text-sm font-semibold text-red-600">🔥 40% OFF</span>
+                          <span className="text-xs text-gray-600">This Week Only</span>
+                        </div>
+
                       </div>
                     )}
                   </div>
@@ -321,11 +385,10 @@ function HeroSection() {
               key={index}
               onClick={() => goToSlide(index)}
               disabled={isTransitioning}
-              className={`h-3 rounded-full transition-all duration-300 disabled:cursor-not-allowed ${
-                index === currentSlide
-                  ? 'bg-teal-600 w-8'
-                  : 'bg-white/60 hover:bg-white/80 w-3'
-              }`}
+              className={`h-3 rounded-full transition-all duration-300 disabled:cursor-not-allowed ${index === currentSlide
+                ? 'bg-teal-600 w-8'
+                : 'bg-white/60 hover:bg-white/80 w-3'
+                }`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}

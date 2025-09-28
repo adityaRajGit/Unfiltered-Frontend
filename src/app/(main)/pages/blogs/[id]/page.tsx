@@ -1,6 +1,6 @@
 "use client";
 import Link from 'next/link';
-import { blogPosts } from '@/utils/FakeBlogs';
+import { blogPosts } from '@/utils/demoData';
 import { notFound } from 'next/navigation';
 import { useParams } from 'next/navigation';
 

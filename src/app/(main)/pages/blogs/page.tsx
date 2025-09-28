@@ -1,7 +1,7 @@
 "use client";
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { blogPosts } from '@/utils/FakeBlogs';
+import { blogPosts } from '@/utils/demoData';
 
 
 export default function BlogsPage() {

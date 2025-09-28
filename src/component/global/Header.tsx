@@ -6,11 +6,11 @@ import { FaUser, FaSignInAlt, FaTimes } from 'react-icons/fa';
 import { TOKEN } from '@/utils/enum';
 import { decodeToken } from '@/utils/decodeToken';
 import Image from 'next/image';
-import { getInitials } from '@/utils/GetInitials';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserDetails, logoutUser } from '@/store/userSlice';
 import { getTherapistDetails, logoutTherapist } from '@/store/therapistSlice';
 import { logoutEmployee } from '@/store/employeeSlice';
+import { getInitials } from '@/utils/GetInitials';
 
 
 interface UserData {
@@ -86,7 +86,7 @@ export const Header = () => {
         { name: 'Home', href: '/' },
         { name: 'Corporate Wellness', href: '/pages/corporate' },
         { name: 'Blogs', href: '/pages/blogs' },
-        // { name: 'Therapy', href: '/counsellor' },
+        { name: 'One on One', href: '/pages/one-on-one' },
         { name: 'About', href: '/pages/about' },
         { name: 'FAQ', href: '/pages/faq' },
     ];
