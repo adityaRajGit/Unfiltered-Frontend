@@ -44,20 +44,6 @@ function Footer() {
                         </div>
                     </div>
 
-                    {/* Navigation Links */}
-                    <div className="flex flex-col">
-                        <h3 className="text-lg font-semibold mb-4">Popular</h3>
-                        <ul className="space-y-3">
-                            {["Mental Health", "Men's Performance", "Women's Health", "For Business", "Content Hub"].map((item, i) => (
-                                <li key={i}>
-                                    <Link href="#" className="text-gray-400 hover:text-teal-400 transition-colors">
-                                        {item}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
                     <div className="flex flex-col">
                         <h3 className="text-lg font-semibold mb-4">Learn</h3>
                         <ul className="space-y-3">
@@ -82,8 +68,9 @@ function Footer() {
                                 </li>
                             ))}
                         </ul>
-
-                        <h3 className="text-lg font-semibold mt-8 mb-4">Careers</h3>
+                    </div>
+                    <div className="flex flex-col">
+                        <h3 className="text-lg font-semibold mb-4">Careers</h3>
                         <ul className="space-y-3">
                             {["For Psychologists", "For Doctors", "Others"].map((item, i) => (
                                 <li key={i}>

@@ -239,13 +239,13 @@ function Section3() {
                         href="/therapists"
                         className="inline-flex items-center px-8 py-4 bg-teal-600 text-white font-bold rounded-full hover:bg-teal-700 transition-colors text-lg"
                     >
-                        Find an Indian Therapist
+                        Find an Therapist
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>
                     </Link>
                     <p className="mt-4 text-gray-600 max-w-xl mx-auto">
-                        Join thousands of Indians who have transformed their mental health with culturally-aware therapy
+                        Join thousands who have transformed their mental health with culturally-aware therapy
                     </p>
                 </div>
             </div>
