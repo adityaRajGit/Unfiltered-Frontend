@@ -4,6 +4,51 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Custom Scrollbar Styles */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #e2e8f0 #f8fafc; /* Light gray when inactive */
+  transition: scrollbar-color 0.3s ease;
+}
+
+/* When hovering over the container or actively scrolling */
+.custom-scrollbar:hover,
+.custom-scrollbar:active {
+  scrollbar-color: #14b8a6 #f1f5f9; /* Teal when active */
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f8fafc; /* Very light background */
+  border-radius: 10px;
+}
+
+/* Default light scrollbar thumb */
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0; /* Light gray when inactive */
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+/* Teal color when hovering over the container */
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: #14b8a6; /* Teal color */
+}
+
+/* Darker teal when directly hovering over the scrollbar thumb */
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #0d9488; /* Darker teal on direct hover */
+}
+
+/* Active state when scrolling */
+.custom-scrollbar::-webkit-scrollbar-thumb:active {
+  background: #0f766e; /* Even darker teal when actively scrolling */
+}
+
 input[type='number']::-webkit-outer-spin-button,
 input[type='number']::-webkit-inner-spin-button {
   -webkit-appearance: none;

@@ -1053,7 +1053,9 @@ const UserProfilePage = () => {
                 </span>
               </div>
 
-              <div className="space-y-4 md:space-y-6 overflow-y-scroll" style={{ scrollbarWidth: 'none' }}>
+              <div className="space-y-4 md:space-y-5 overflow-y-auto custom-scrollbar" style={{ 
+                maxHeight: '600px'
+              }}>
                 {
                   therapists.length > 0
                     ? (
@@ -1113,8 +1115,8 @@ const UserProfilePage = () => {
                 </span>
               </div>
 
-              <div className="space-y-4 md:space-y-6 overflow-y-scroll " style={{
-                scrollbarWidth: "none",
+              <div className="space-y-4 md:space-y-6 overflow-y-auto custom-scrollbar" style={{
+                maxHeight: '600px'
               }}>
                 {upcomingAppointments?.length > 0 ? (
                   upcomingAppointments?.map((appointment: UpcomingAppointment) => (
@@ -1203,8 +1205,8 @@ const UserProfilePage = () => {
                 </span>
               </div>
 
-              <div className="space-y-4 md:space-y-6 overflow-y-scroll" style={{
-                scrollbarWidth: 'none'
+              <div className="space-y-4 md:space-y-6 overflow-y-auto custom-scrollbar" style={{
+                maxHeight: '600px'
               }}>
                 {pastAppointments?.length > 0 ? (
                   pastAppointments?.map((appointment: UpcomingAppointment) => (
