@@ -35,6 +35,39 @@ function HeroSection() {
     },
     {
       id: 2,
+      badge: "One-on-One Therapy Sessions",
+      title: {
+        main: "Your Journey to",
+        highlight: "Healing & Self-Discovery"
+      },
+      description: "Work through stress, anxiety, and personal challenges in a safe and supportive space. Our licensed therapists provide confidential, one-on-one sessions tailored to your unique needs.",
+      primaryButton: {
+        text: "Start Therapy Today",
+        href: "/therapy"
+      },
+      secondaryButton: {
+        text: "Meet Our Therapists"
+      },
+      image: "/therapy1.jpeg",
+      imageAlt: "Individual talking with a therapist in a private session",
+      floatingCard: {
+        icon: "smile",
+        title: "Your Safe Space",
+        subtitle: "Talk. Heal. Grow."
+      },
+      tags: [
+        "Stress Management",
+        "Anxiety Relief",
+        "Depression Support",
+        "Relationship Guidance",
+        "Personal Growth",
+        "Self-Confidence",
+        "Trauma Healing",
+        "Life Transitions"
+      ]
+    },
+    {
+      id: 3,
       badge: "Free Educational Webinars",
       title: {
         main: "Join Our",
@@ -57,7 +90,7 @@ function HeroSection() {
       }
     },
     {
-      id: 3,
+      id: 4,
       badge: "Holistic Wellness Programs",
       title: {
         main: "Nutrition & Diet",
@@ -79,39 +112,7 @@ function HeroSection() {
         subtitle: "Mind + Body wellness"
       }
     },
-    {
-      id: 4,
-      badge: "One-on-One Therapy Sessions",
-      title: {
-        main: "Your Journey to",
-        highlight: "Healing & Self-Discovery"
-      },
-      description: "Work through stress, anxiety, and personal challenges in a safe and supportive space. Our licensed therapists provide confidential, one-on-one sessions tailored to your unique needs.",
-      primaryButton: {
-        text: "Start Therapy Today",
-        href: "/therapy"
-      },
-      secondaryButton: {
-        text: "Meet Our Therapists"
-      },
-      image: "/landing1.jpg",
-      imageAlt: "Individual talking with a therapist in a private session",
-      floatingCard: {
-        icon: "smile",
-        title: "Your Safe Space",
-        subtitle: "Talk. Heal. Grow."
-      },
-      tags: [
-        "Stress Management",
-        "Anxiety Relief",
-        "Depression Support",
-        "Relationship Guidance",
-        "Personal Growth",
-        "Self-Confidence",
-        "Trauma Healing",
-        "Life Transitions"
-      ]
-    }
+    
   ];
 
   // Auto-play functionality
