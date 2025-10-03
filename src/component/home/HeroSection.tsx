@@ -329,11 +329,11 @@ function HeroSection() {
                     </div>
 
                     {/* Additional floating elements */}
-                    {index === 1 && (
+                    {index === 2 && (
                       <div
-                        className={`absolute z-20 -top-4 -right-4 bg-white p-3 rounded-lg shadow-lg border border-gray-100 transition-all duration-700 ${currentSlide === 1 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-4 scale-95'
+                        className={`absolute z-20 -top-4 -right-4 bg-white p-3 rounded-lg shadow-lg border border-gray-100 transition-all duration-700 ${currentSlide === 2 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-4 scale-95'
                           }`}
-                        style={{ transitionDelay: currentSlide === 1 ? '700ms' : '0ms' }}
+                        style={{ transitionDelay: currentSlide === 2 ? '700ms' : '0ms' }}
                       >
                         <div className="flex items-center space-x-2">
                           <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center">
@@ -344,11 +344,11 @@ function HeroSection() {
                       </div>
                     )}
 
-                    {index === 2 && (
+                    {index === 3 && (
                       <div
-                        className={`absolute z-20 -top-4 -right-4 bg-white p-3 rounded-lg shadow-lg border border-gray-100 transition-all duration-700 ${currentSlide === 2 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-4 scale-95'
+                        className={`absolute z-20 -top-4 -right-4 bg-white p-3 rounded-lg shadow-lg border border-gray-100 transition-all duration-700 ${currentSlide === 3 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-4 scale-95'
                           }`}
-                        style={{ transitionDelay: currentSlide === 2 ? '700ms' : '0ms' }}
+                        style={{ transitionDelay: currentSlide === 3 ? '700ms' : '0ms' }}
                       >
                         <div className="flex items-center space-x-2">
                           <FaAppleAlt className="text-green-500 text-lg" />
@@ -357,11 +357,11 @@ function HeroSection() {
                       </div>
                     )}
 
-                    {index === 3 && (
+                    {index === 1 && (
                       <div
-                        className={`absolute z-20 -top-4 -right-4 bg-white p-3 rounded-lg shadow-lg border border-gray-100 transition-all duration-700 ${currentSlide === 3 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-4 scale-95'
+                        className={`absolute z-20 -top-4 -right-4 bg-white p-3 rounded-lg shadow-lg border border-gray-100 transition-all duration-700 ${currentSlide === 1 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-4 scale-95'
                           }`}
-                        style={{ transitionDelay: currentSlide === 3 ? '700ms' : '0ms' }}
+                        style={{ transitionDelay: currentSlide === 1 ? '700ms' : '0ms' }}
                       >
                         <div className="flex items-center space-x-2 bg-red-50 px-3 py-1 rounded-full">
                           <span className="text-sm font-semibold text-red-600">🔥 40% OFF</span>
