@@ -7,31 +7,37 @@ function Section2() {
             title: "Individual Therapy",
             desc: "One-on-one sessions to address personal challenges such as anxiety, trauma, grief, and more, while developing healthy coping strategies.",
             img: '/therapy1.jpeg',
+            link: '/pages/one-on-one'
         },
         {
             title: "Nutrition & Diet Consulting",
             desc: "Personalized nutrition plans and wellness guidance from certified experts to support both physical and mental well-being, boost energy levels, and improve workplace performance.",
             img: '/therapy5.jpeg',
+            link: ''
         },
         {
             title: "Soft Skills Training & Development",
             desc: "Interactive sessions led by professionals focusing on communication, emotional intelligence, teamwork, adaptability, leadership, and conflict resolution to enhance workplace effectiveness.",
             img: '/therapy3.jpeg',
+            link: '/pages/corporate#corporate-contact'
         },
         {
             title: "Workplace Counseling & Support",
             desc: "Focus on work-related mental health concerns: Performance anxiety, conflict with coworkers/managers, workplace harassment or bullying, career dissatisfaction, remote work isolation.",
             img: '/therapy6.jpeg',
+            link: '/pages/corporate#corporate-contact'
         },
         {
             title: "Webinars & Workshops",
             desc: "Preventive and educational sessions covering: Managing stress and burnout, mindfulness & emotional resilience, conflict resolution at work, mental health first aid, empathy and leadership, sleep, diet, and mental health.",
             img: '/therapy2.jpg',
+            link: '/pages/corporate#corporate-contact'
         },
         {
             title: "Managerial Coaching | Leadership",
             desc: "Well-being focused therapy-like support and strategic coaching: Emotional intelligence coaching, executive stress and pressure support, coaching on supporting struggling employees, and preventing toxic leadership traits.",
             img: '/therapy4.jpg',
+            link: '/pages/corporate#corporate-contact'
         },
     ];
 
@@ -76,7 +82,7 @@ function Section2() {
                                 <div className="flex justify-between items-center">
                                     <Link
                                         className="text-teal-700 font-medium hover:text-teal-900 transition-colors flex items-center"
-                                        href="/"
+                                        href={therapy.link}
                                     >
                                         Learn more
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">

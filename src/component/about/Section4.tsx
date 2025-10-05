@@ -257,7 +257,7 @@ function Section4() {
 
                 <div className="text-center">
                     <Link
-                        href="/employers"
+                        href="/pages/corporate#corporate-contact"
                         className="inline-flex items-center px-8 py-3 bg-teal-600 text-white font-medium rounded-full hover:bg-teal-700 transition-colors"
                     >
                         Become a Partner

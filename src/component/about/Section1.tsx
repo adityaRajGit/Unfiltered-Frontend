@@ -23,9 +23,6 @@ function Section1() {
                             <Link href="/services" className="px-8 py-3 bg-white text-teal-700 font-medium rounded-full hover:bg-gray-100 transition-colors">
                                 Explore Our Services
                             </Link>
-                            <Link href="/contact" className="px-8 py-3 border-2 border-white text-white font-medium rounded-full hover:bg-white/10 transition-colors">
-                                Contact Our Team
-                            </Link>
                         </div>
                     </div>
 

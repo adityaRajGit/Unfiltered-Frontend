@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { FaChevronRight, FaChevronLeft, FaPlay, FaUsers, FaAppleAlt, FaHeart} from "react-icons/fa";
+import { FaChevronRight, FaChevronLeft, FaPlay, FaUsers, FaAppleAlt, FaHeart } from "react-icons/fa";
 
 function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -22,9 +22,6 @@ function HeroSection() {
         text: "Request Corporate Demo",
         href: "pages/corporate#corporate-contact"
       },
-      secondaryButton: {
-        text: "View Packages"
-      },
       image: "/landing.jpeg",
       imageAlt: "Corporate therapy dashboard showing employee wellbeing metrics",
       floatingCard: {
@@ -43,7 +40,7 @@ function HeroSection() {
       description: "Work through stress, anxiety, and personal challenges in a safe and supportive space. Our licensed therapists provide confidential, one-on-one sessions tailored to your unique needs.",
       primaryButton: {
         text: "Start Therapy Today",
-        href: "/therapy"
+        href: "pages/one-on-one"
       },
       secondaryButton: {
         text: "Meet Our Therapists"
@@ -76,7 +73,7 @@ function HeroSection() {
       description: "Access free webinars covering stress management, work-life balance, team building, and workplace mental health. Learn from certified professionals and improve your team's wellbeing.",
       primaryButton: {
         text: "Browse Free Webinars",
-        href: "/webinars"
+        href: "pages/webinar#webinarForm"
       },
       secondaryButton: {
         text: "Schedule Demo"
@@ -101,9 +98,6 @@ function HeroSection() {
         text: "Explore Nutrition Plans",
         href: "/nutrition"
       },
-      secondaryButton: {
-        text: "Learn More"
-      },
       image: "/landing1.jpg",
       imageAlt: "Healthy meal planning and nutrition consultation for workplace wellness",
       floatingCard: {
@@ -112,7 +106,7 @@ function HeroSection() {
         subtitle: "Mind + Body wellness"
       }
     },
-    
+
   ];
 
   // Auto-play functionality
@@ -279,9 +273,13 @@ function HeroSection() {
                         <FaChevronRight className="ml-2 text-sm" />
                       </Link>
 
-                      <button className="px-8 py-4 text-base font-medium text-teal-700 transition-all bg-white rounded-full shadow-md md:text-lg hover:bg-gray-50 hover:shadow-lg transform hover:scale-105">
-                        {slideData.secondaryButton.text}
-                      </button>
+                      {
+                        slideData.secondaryButton && (
+                          <button className="px-8 py-4 text-base font-medium text-teal-700 transition-all bg-white rounded-full shadow-md md:text-lg hover:bg-gray-50 hover:shadow-lg transform hover:scale-105">
+                            {slideData.secondaryButton.text}
+                          </button>
+                        )
+                      }
                     </div>
                   </div>
 

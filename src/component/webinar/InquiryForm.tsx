@@ -43,7 +43,7 @@ function InquiryForm() {
         });
     };
     return (
-        <section className="py-16 bg-[#009689] px-4">
+        <section id="webinarForm" className="py-16 bg-[#009689] px-4">
             <div className="max-w-4xl mx-auto">
                 <div className="bg-white rounded-xl shadow-xl p-8">
                     <h2 className="text-3xl font-bold text-center mb-2">Request a Webinar</h2>

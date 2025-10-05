@@ -197,18 +197,6 @@ function Section3() {
                                 </button>
                             </div>
                         </div>
-
-                        <div className="mt-10 text-center">
-                            <Link
-                                href="/testimonials"
-                                className="inline-flex items-center px-6 py-3 bg-teal-600 text-white font-medium rounded-full hover:bg-teal-700 transition-colors"
-                            >
-                                Read more Indian success stories
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
-                            </Link>
-                        </div>
                     </div>
                 </div>
 
@@ -236,7 +224,7 @@ function Section3() {
                 {/* CTA */}
                 <div className="mt-16 text-center">
                     <Link
-                        href="/therapists"
+                        href="/pages/one-on-one"
                         className="inline-flex items-center px-8 py-4 bg-teal-600 text-white font-bold rounded-full hover:bg-teal-700 transition-colors text-lg"
                     >
                         Find an Therapist

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { FaChevronRight, FaHandshake, FaChartLine, FaLightbulb } from "react-icons/fa";
 
 const CorporateCTA = () => {
@@ -31,10 +32,10 @@ const CorporateCTA = () => {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Book a Demo</h3>
                 <p className="text-gray-600 mb-6">See our platform in action with a personalized walkthrough</p>
-                <button className="w-full flex items-center justify-center px-6 py-3 text-base font-bold text-white bg-teal-600 rounded-full shadow hover:bg-teal-700 transition-colors">
+                <Link href='/pages/corporate#corporate-contact' className="w-full flex items-center justify-center px-6 py-3 text-base font-bold text-white bg-teal-600 rounded-full shadow hover:bg-teal-700 transition-colors">
                   Schedule Demo
                   <FaChevronRight className="ml-2 text-sm" />
-                </button>
+                </Link>
               </div>
             </div>
             
@@ -46,9 +47,9 @@ const CorporateCTA = () => {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Partner With Us</h3>
                 <p className="text-gray-600 mb-6">Become a preferred provider for your organization</p>
-                <button className="w-full flex items-center justify-center px-6 py-3 text-base font-medium text-teal-700 bg-white rounded-full shadow border border-teal-200 hover:bg-gray-50 transition-colors">
+                <Link href='/pages/corporate#corporate-contact' className="w-full flex items-center justify-center px-6 py-3 text-base font-medium text-teal-700 bg-white rounded-full shadow border border-teal-200 hover:bg-gray-50 transition-colors">
                   Explore Partnership
-                </button>
+                </Link>
               </div>
             </div>
             
@@ -60,9 +61,9 @@ const CorporateCTA = () => {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">Explore Solutions</h3>
                 <p className="text-gray-600 mb-6">Discover tailored packages for your company&apos;s needs</p>
-                <button className="w-full flex items-center justify-center px-6 py-3 text-base font-medium text-teal-700 bg-white rounded-full shadow border border-teal-200 hover:bg-gray-50 transition-colors">
+                <Link href='/pages/corporate#corporate-contact' className="w-full flex items-center justify-center px-6 py-3 text-base font-medium text-teal-700 bg-white rounded-full shadow border border-teal-200 hover:bg-gray-50 transition-colors">
                   View Corporate Plans
-                </button>
+                </Link>
               </div>
             </div>
           </div>

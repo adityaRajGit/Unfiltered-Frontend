@@ -16,10 +16,7 @@ function Section6() {
                     <Link href="/pages/signup" className="px-8 py-3 bg-white text-teal-700 font-medium rounded-full hover:bg-gray-100 transition-colors">
                         Create Your Account
                     </Link>
-                    <Link href="/careers" className="px-8 py-3 border-2 border-white text-white font-medium rounded-full hover:bg-white/10 transition-colors">
-                        Explore Careers
-                    </Link>
-                    <Link href="/partners" className="px-8 py-3 border-2 border-white text-white font-medium rounded-full hover:bg-white/10 transition-colors">
+                    <Link href="/pages/corporate#corporate-contact" className="px-8 py-3 border-2 border-white text-white font-medium rounded-full hover:bg-white/10 transition-colors">
                         Partner With Us
                     </Link>
                 </div>

@@ -2,11 +2,21 @@ import Link from "next/link";
 import { FaInstagram, FaLinkedin /*, FaFacebook */ } from "react-icons/fa";
 
 function Footer() {
+    const data = [
+        {
+            label: 'Instagram',
+            link: 'https://www.instagram.com/stay_unfiltered_?igsh=MTR6cGE0aXU1OWsxaw=='
+        },
+        {
+            label: 'LinkedIn',
+            link: 'https://www.linkedin.com/company/stay-unfiltered/'
+        }
+    ]
     return (
         <footer className="bg-gray-900 text-white">
             <div className="max-w-7xl mx-auto px-4 py-16">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
-                    {/* Brand & Newsletter */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
+                    {/* Brand & Description */}
                     <div className="lg:col-span-2">
                         <div className="flex items-center mb-6">
                             <div className="text-2xl font-bold">
@@ -19,67 +29,47 @@ function Footer() {
                             compassionate care for everyone.
                         </p>
 
-                        <div className="mb-8">
-                            <h3 className="text-lg font-semibold mb-4">Subscribe to our newsletter</h3>
-                            <div className="flex">
-                                <input
-                                    type="email"
-                                    placeholder="Enter your email"
-                                    className="flex-grow w-[54%] sm:w-auto py-3 px-4 rounded-l-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                                />
-                                <button className="bg-teal-600 hover:bg-teal-700 text-white px-6 rounded-r-lg transition duration-300">
-                                    Submit
-                                </button>
-                            </div>
-                        </div>
-
                         <div className="mt-8">
                             <h3 className="font-semibold mb-2">Have a question?</h3>
-                            <p>
-                                Email us anytime:
-                                <a href="mailto:care@stayunfiltered.com" className="text-teal-400 hover:text-teal-300 ml-1">
-                                    stay.unfiltered.2025@gmail.com
+                            <p className="text-gray-400">
+                                Email us anytime:{" "}
+                                <a href="mailto:contact@stayunfiltered.com" className="text-teal-400 hover:text-teal-300 transition-colors">
+                                    contact@stayunfiltered.com
                                 </a>
                             </p>
                         </div>
                     </div>
 
+                    {/* Connect Links */}
                     <div className="flex flex-col">
-                        <h3 className="text-lg font-semibold mb-4">Learn</h3>
+                        <h3 className="text-lg font-semibold mb-4">Connect</h3>
                         <ul className="space-y-3">
-                            {["How It Works", "About Us", "Testimonials", "Cancel Stigma", "Our Medical Team"].map((item, i) => (
+                            {data.map((item, i) => (
                                 <li key={i}>
-                                    <Link href="#" className="text-gray-400 hover:text-teal-400 transition-colors">
-                                        {item}
+                                    <Link href={item.link} target="_blank" className="text-gray-400 hover:text-teal-400 transition-colors duration-200">
+                                        {item.label}
                                     </Link>
                                 </li>
                             ))}
                         </ul>
                     </div>
 
+                    {/* Newsletter Subscription - Moved to right */}
                     <div className="flex flex-col">
-                        <h3 className="text-lg font-semibold mb-4">Connect</h3>
-                        <ul className="space-y-3">
-                            {["WhatsApp", "Instagram", "Facebook", "Twitter", "LinkedIn"].map((item, i) => (
-                                <li key={i}>
-                                    <Link href="#" className="text-gray-400 hover:text-teal-400 transition-colors">
-                                        {item}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                    <div className="flex flex-col">
-                        <h3 className="text-lg font-semibold mb-4">Careers</h3>
-                        <ul className="space-y-3">
-                            {["For Psychologists", "For Doctors", "Others"].map((item, i) => (
-                                <li key={i}>
-                                    <Link href="#" className="text-gray-400 hover:text-teal-400 transition-colors">
-                                        {item}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
+                        <h3 className="text-lg font-semibold mb-4">Subscribe to our newsletter</h3>
+                        <p className="text-gray-400 mb-4 text-sm">
+                            Get the latest updates on mental wellness tips and resources.
+                        </p>
+                        <div className="flex flex-col space-y-4">
+                            <input
+                                type="email"
+                                placeholder="Enter your email"
+                                className="w-full py-3 px-4 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 border border-gray-700 transition-colors duration-200"
+                            />
+                            <button className="bg-teal-600 hover:bg-teal-700 text-white py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 font-medium">
+                                Subscribe
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -87,30 +77,30 @@ function Footer() {
                 <div className="border-t border-gray-800 my-10"></div>
 
                 {/* Bottom Row */}
-                <div className="flex flex-col md:flex-row justify-between items-center">
-                    <p className="text-gray-500 text-sm mb-4 md:mb-0">
-                        © 2025 Unfilter. All rights reserved.
+                <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
+                    <p className="text-gray-500 text-sm text-center md:text-left">
+                        © 2025 StayUnfiltered. All rights reserved.
                     </p>
 
-                    <div className="flex space-x-8">
-                        <Link href="#terms" className="text-gray-400 hover:text-teal-400 text-sm transition-colors">
+                    <div className="flex flex-wrap justify-center gap-6 md:gap-8">
+                        <Link href="#terms" className="text-gray-400 hover:text-teal-400 text-sm transition-colors duration-200">
                             Terms and Conditions
                         </Link>
-                        <Link href="/pages/privacy" className="text-gray-400 hover:text-teal-400 text-sm transition-colors">
+                        <Link href="/pages/privacy" className="text-gray-400 hover:text-teal-400 text-sm transition-colors duration-200">
                             Privacy Policy
                         </Link>
-                        <Link href="#privacy" className="text-gray-400 hover:text-teal-400 text-sm transition-colors">
+                        <Link href="#compliance" className="text-gray-400 hover:text-teal-400 text-sm transition-colors duration-200">
                             GDPR & DPDP Compliance
                         </Link>
                     </div>
 
-                    {/* Social icons: only Instagram and LinkedIn enabled; Facebook commented out */}
-                    <div className="flex space-x-4 mt-4 md:mt-0">
+                    {/* Social Icons */}
+                    <div className="flex space-x-4">
                         <Link
                             href="https://www.instagram.com/stay_unfiltered_?igsh=MTR6cGE0aXU1OWsxaw=="
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-teal-600 transition-colors"
+                            className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-teal-600 transition-all duration-300 transform hover:scale-110"
                             aria-label="Instagram"
                         >
                             <FaInstagram className="w-5 h-5 text-gray-300" />
@@ -120,23 +110,11 @@ function Footer() {
                             href="https://www.linkedin.com/company/stay-unfiltered/"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-teal-600 transition-colors"
+                            className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-teal-600 transition-all duration-300 transform hover:scale-110"
                             aria-label="LinkedIn"
                         >
                             <FaLinkedin className="w-5 h-5 text-gray-300" />
                         </Link>
-
-                        {/*
-            <Link
-              href="#"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-teal-600 transition-colors"
-              aria-label="Facebook"
-            >
-              <FaFacebook className="w-5 h-5 text-gray-300" />
-            </Link>
-            */}
                     </div>
                 </div>
             </div>
