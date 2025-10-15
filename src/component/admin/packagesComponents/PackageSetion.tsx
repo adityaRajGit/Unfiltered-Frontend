@@ -19,13 +19,18 @@ export interface Package {
     name: string;
     package_type: PackageType;
     description?: string;
-    max_webinars_per_month: number;
-    max_attendees_per_webinar: number;
-    max_duration_minutes: number;
-    max_sessions_per_month: number;
-    max_sessions_minutes: number;
+    max_webinars_per_month?: number;
+    max_attendees_per_webinar?: number;
+    max_duration_minutes?: number;
+    max_sessions_per_month?: number;
+    max_sessions_minutes?: number;
+    user_type?: string;
+    points?: [];
+    total_sessions?: number;
+    resultCheck?: string;
     timeLine: number;
-    price: number;
+    discountedPrice: number;
+    realPrice: number;
     is_active: boolean;
     created_at: string;
 }
@@ -33,7 +38,7 @@ export interface Package {
 function PackageSections() {
     const [packages, setPackages] = useState<Package[]>([]);
     const [loading, setLoading] = useState(false);
-    const [sortField, setSortField] = useState<"price" | "created_at" | null>(null);
+    const [sortField, setSortField] = useState<"discountedPrice" | "created_at" | null>(null);
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
     const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -111,18 +116,25 @@ function PackageSections() {
         const {
             name,
             package_type,
+            user_type,
+            description,
             max_webinars_per_month,
             max_attendees_per_webinar,
             max_duration_minutes,
             max_sessions_per_month,
             max_sessions_minutes,
+            total_sessions,
+            points,
+            resultCheck,
             timeLine,
-            price,
+            discountedPrice,
+            realPrice,
             is_active,
         } = formData;
 
-        if (!name || typeof name !== "string") {
-            toast.error("Package name is required and must be a string.");
+        // Common validations for all user types
+        if (!name || typeof name !== "string" || name.trim() === "") {
+            toast.error("Package name is required and must be a valid string.");
             return false;
         }
 
@@ -131,44 +143,89 @@ function PackageSections() {
             return false;
         }
 
-        if (typeof max_webinars_per_month !== "number" || max_webinars_per_month <= 0) {
-            toast.error("Max webinars per month must be a positive number.");
+        if (!user_type || typeof user_type !== "string" || !['individual', 'corporate'].includes(user_type)) {
+            toast.error("User type is required and must be either 'individual' or 'corporate'.");
             return false;
         }
 
-        if (typeof max_attendees_per_webinar !== "number" || max_attendees_per_webinar <= 0) {
-            toast.error("Max attendees per webinar must be a positive number.");
+        if (typeof timeLine !== "number" || timeLine <= 0) {
+            toast.error("Timeline must be a positive number.");
             return false;
         }
 
-        if (typeof max_duration_minutes !== "number" || max_duration_minutes <= 0) {
-            toast.error("Max duration in minutes must be a positive number.");
+        if (typeof discountedPrice !== "number" || discountedPrice < 0) {
+            toast.error("Discounted Price must be a non-negative number.");
             return false;
         }
 
-        if (typeof max_sessions_per_month !== "number" || max_sessions_per_month <= 0) {
-            toast.error("Max sessions per month must be a positive number.");
-            return false;
-        }
-
-        if (typeof max_sessions_minutes !== "number" || max_sessions_minutes <= 0) {
-            toast.error("Max sessions minutes must be a positive number.");
-            return false;
-        }
-
-        if (!timeLine || typeof timeLine !== "number") {
-            toast.error("Time line is required and must be a number.");
-            return false;
-        }
-
-        if (typeof price !== "number" || price < 0) {
-            toast.error("Price must be a non-negative number.");
+        if (typeof realPrice !== "number" || realPrice < 0) {
+            toast.error("Real Price must be a non-negative number.");
             return false;
         }
 
         if (typeof is_active !== "boolean") {
             toast.error("Active status must be a boolean.");
             return false;
+        }
+
+        // Description is optional but if provided, should be string
+        if (description && typeof description !== "string") {
+            toast.error("Description must be a string.");
+            return false;
+        }
+
+        // User type specific validations
+        if (user_type === 'individual') {
+            // Individual package validations
+            if (typeof total_sessions !== "number" || total_sessions < 0) {
+                toast.error("Total sessions must be a non-negative number.");
+                return false;
+            }
+
+            // Points validation - should be an array of strings
+            if (!Array.isArray(points)) {
+                toast.error("Points must be an array.");
+                return false;
+            }
+
+            // Check if all points are strings
+            if (points.some(point => typeof point !== 'string')) {
+                toast.error("All points must be strings.");
+                return false;
+            }
+
+            // Result check validation - optional but should be string if provided
+            if (resultCheck && typeof resultCheck !== "string") {
+                toast.error("Result check must be a string.");
+                return false;
+            }
+
+        } else if (user_type === 'corporate') {
+            // Corporate package validations
+            if (typeof max_webinars_per_month !== "number" || max_webinars_per_month < 0) {
+                toast.error("Max webinars per month must be a non-negative number.");
+                return false;
+            }
+
+            if (typeof max_attendees_per_webinar !== "number" || max_attendees_per_webinar < 0) {
+                toast.error("Max attendees per webinar must be a non-negative number.");
+                return false;
+            }
+
+            if (typeof max_duration_minutes !== "number" || max_duration_minutes < 0) {
+                toast.error("Max duration in minutes must be a non-negative number.");
+                return false;
+            }
+
+            if (typeof max_sessions_per_month !== "number" || max_sessions_per_month < 0) {
+                toast.error("Max sessions per month must be a non-negative number.");
+                return false;
+            }
+
+            if (typeof max_sessions_minutes !== "number" || max_sessions_minutes < 0) {
+                toast.error("Max sessions minutes must be a non-negative number.");
+                return false;
+            }
         }
 
         return true;
@@ -262,7 +319,7 @@ function PackageSections() {
         }
     };
 
-    const toggleSort = (field: "price" | "created_at") => {
+    const toggleSort = (field: "discountedPrice" | "created_at") => {
         if (sortField === field) {
             setSortDirection(prev => prev === "asc" ? "desc" : "asc");
         } else {
@@ -285,7 +342,7 @@ function PackageSections() {
         });
     };
 
-    const getSortIcon = (field: "price" | "created_at") => {
+    const getSortIcon = (field: "discountedPrice" | "created_at") => {
         if (sortField !== field) return <FaSort className="text-gray-400" />;
         return sortDirection === "asc" ? <FaSortUp /> : <FaSortDown />;
     };
@@ -302,14 +359,14 @@ function PackageSections() {
 
                     <div className="flex gap-2">
                         <button
-                            onClick={() => toggleSort("price")}
-                            className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm transition-all ${sortField === "price"
+                            onClick={() => toggleSort("discountedPrice")}
+                            className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm transition-all ${sortField === "discountedPrice"
                                 ? "bg-blue-50 text-blue-700 font-medium border border-blue-200"
                                 : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                                 }`}
                         >
                             <span>Price</span>
-                            {getSortIcon("price")}
+                            {getSortIcon("discountedPrice")}
                         </button>
 
                         <button
@@ -382,59 +439,95 @@ function PackageSections() {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                            <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                            <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price (₹)</th>
-                            <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                            <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th scope="col" className="py-3.5 px-4 text-left text-sm font-semibold text-gray-900">
+                                Package Name
+                            </th>
+                            <th scope="col" className="py-3.5 px-4 text-left text-sm font-semibold text-gray-900">
+                                Package Type
+                            </th>
+                            <th scope="col" className="py-3.5 px-4 text-left text-sm font-semibold text-gray-900">
+                                User Type
+                            </th>
+                            <th scope="col" className="py-3.5 px-4 text-left text-sm font-semibold text-gray-900">
+                                Discounted Price
+                            </th>
+
+                            <th scope="col" className="py-3.5 px-4 text-left text-sm font-semibold text-gray-900">
+                                Status
+                            </th>
+                            <th scope="col" className="py-3.5 px-4 text-left text-sm font-semibold text-gray-900">
+                                Created Date
+                            </th>
+                            <th scope="col" className="py-3.5 px-4 text-left text-sm font-semibold text-gray-900">
+                                Actions
+                            </th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {sortedPackages.length > 0 ? (
                             sortedPackages.map((pkg) => (
-                                <tr onClick={() => {
-                                    setSelectedPackage(pkg);
-                                    setIsDetailsModalOpen(true);
-                                }} key={pkg._id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="py-4 px-4 text-sm font-medium text-gray-900">{pkg.name}</td>
-                                    <td className="py-4 px-4 text-sm text-gray-700 capitalize">{pkg.package_type}</td>
-                                    <td className="py-4 px-4 text-sm text-gray-700">₹{pkg.price.toFixed(2)}</td>
+                                <tr
+                                    onClick={() => {
+                                        setSelectedPackage(pkg);
+                                        setIsDetailsModalOpen(true);
+                                    }}
+                                    key={pkg._id}
+                                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                                >
+                                    <td className="py-4 px-4 text-sm font-medium text-gray-900">
+                                        {pkg.name}
+                                    </td>
+                                    <td className="py-4 px-4 text-sm text-gray-700 capitalize">
+                                        {pkg.package_type}
+                                    </td>
+                                    <td className="py-4 px-4 text-sm text-gray-700 capitalize">
+                                        {pkg.user_type || 'individual'}
+                                    </td>
+                                    <td className="py-4 px-4 text-sm text-gray-700">
+                                        ₹{pkg.discountedPrice.toFixed(2)}
+                                    </td>
+
+
                                     <td className="py-4 px-4">
-                                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${pkg.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                                            {pkg.is_active ? 'Active' : 'Inactive'}
+                                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${pkg.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                            }`}>
+                                            {pkg.is_active ? 'Featured' : 'Non-Featured'}
                                         </span>
                                     </td>
                                     <td className="py-4 px-4 text-sm text-gray-500">
                                         {formatDate(pkg.created_at)}
                                     </td>
-                                    <td className="py-4 px-4 text-sm text-gray-700 flex gap-5">
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setSelectedPackage(pkg)
-                                                setIsCreateModalOpen(true)
-                                            }}
-                                            className="text-indigo-600 hover:text-indigo-900"
-                                        >
-                                            <MdEdit size={20} className="cursor-pointer" />
-                                        </button>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setSelectedPackage(pkg);
-                                                setIsDeleteModalOpen(true);
-                                            }}
-                                            className="text-red-600 hover:text-red-900"
-                                        >
-                                            <MdDeleteForever size={20} className="cursor-pointer" />
-                                        </button>
+                                    <td className="py-4 px-4 text-sm text-gray-700">
+                                        <div className="flex gap-3">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSelectedPackage(pkg)
+                                                    setIsCreateModalOpen(true)
+                                                }}
+                                                className="text-indigo-600 hover:text-indigo-900 transition-colors"
+                                                title="Edit Package"
+                                            >
+                                                <MdEdit size={20} />
+                                            </button>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSelectedPackage(pkg);
+                                                    setIsDeleteModalOpen(true);
+                                                }}
+                                                className="text-red-600 hover:text-red-900 transition-colors"
+                                                title="Delete Package"
+                                            >
+                                                <MdDeleteForever size={20} />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={9} className="py-8 text-center text-gray-500">
+                                <td colSpan={10} className="py-8 text-center text-gray-500">
                                     No packages found
                                 </td>
                             </tr>

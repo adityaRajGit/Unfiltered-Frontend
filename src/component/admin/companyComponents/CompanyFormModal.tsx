@@ -281,7 +281,7 @@ const CompanyFormModal = ({
                             >
                                 <option value="">Select a package</option>
                                 {
-                                    packages.map((item) => (<option key={item._id} value={item._id}>{item.name}</option>))
+                                    packages.map((item) => (<option key={item._id} value={item._id}>{item.name} - {item.is_active? "Featured" : "Non-Featured"}</option>))
                                 }
                             </select>
                         </div>

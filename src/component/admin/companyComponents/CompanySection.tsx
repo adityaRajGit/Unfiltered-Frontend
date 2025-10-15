@@ -22,6 +22,7 @@ export interface Company {
     address: string;
     package: string;
     status: string;
+    is_active?: boolean;
     webinarsCompleted: number;
     sessionsCompleted: number;
     created_at: string;

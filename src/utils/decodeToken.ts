@@ -1,6 +1,6 @@
 import { jwtDecode } from "jwt-decode";
 
-interface MyTokenPayload {
+export interface MyTokenPayload {
     userId: {
         name: string;
         email: string;

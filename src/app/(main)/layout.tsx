@@ -6,6 +6,7 @@ import Footer from "@/component/global/Footer";
 import Providers from "@/app/(main)/provider";
 import FloatingFeedback from "@/component/global/FloatingFeedback";
 import ClarityProvider from "@/component/global/ClarityProvider";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +40,10 @@ export default function RootLayout({
           <FloatingFeedback />
           <Footer />
         </Providers>
+         <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );

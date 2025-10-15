@@ -6,11 +6,11 @@ import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
 import { googleLogin, googleSignup } from "@/store/userSlice";
 import { LoadingSpinnerWithOverlay } from "./global/Loading";
-import { identifyClarityUser, setClarityCustomTag } from "@/utils/clarity";
+// import { identifyClarityUser, setClarityCustomTag } from "@/utils/clarity";
 
 const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID as string;
 
-export const GoogleSignUp = ({ role }: { role: string }) => {
+export const GoogleSignUp = ({ role, redirectFrom }: { role: string, redirectFrom?: boolean }) => {
     const router = useRouter();
     const dispatch = useDispatch()
     const [loading, setLoading] = useState(false);
@@ -31,20 +31,25 @@ export const GoogleSignUp = ({ role }: { role: string }) => {
         } else {
             setLoading(false)
             toast.success("User Logged in Successfully")
-            
+
             // Track user signup in Clarity
-            if (response2.payload?.data?.user) {
-                const user = response2.payload.data.user;
-                identifyClarityUser(user._id || user.id, {
-                    role: role as 'user' | 'therapist' | 'admin',
-                    email: user.email,
-                    name: user.name
-                });
-                setClarityCustomTag('loginMethod', 'google');
-                setClarityCustomTag('userAction', 'signup');
+            // if (response2.payload?.data?.user) {
+            //     const user = response2.payload.data.user;
+            //     identifyClarityUser(user._id || user.id, {
+            //         role: role as 'user' | 'therapist' | 'admin',
+            //         email: user.email,
+            //         name: user.name
+            //     });
+            //     setClarityCustomTag('loginMethod', 'google');
+            //     setClarityCustomTag('userAction', 'signup');
+            // }
+
+            if (redirectFrom) {
+                sessionStorage.setItem("redirectInfo", JSON.stringify({ from: "buypackage" }));
+                router.push('/pages/one-on-one')
+            } else {
+                router.push('/')
             }
-            
-            router.push('/')
         }
     };
 
@@ -72,7 +77,7 @@ export const GoogleSignUp = ({ role }: { role: string }) => {
     );
 };
 
-export const GoogleSignIn = ({ role }: { role: string }) => {
+export const GoogleSignIn = ({ role, redirectFrom }: { role: string, redirectFrom?: boolean }) => {
     const router = useRouter();
     const dispatch = useDispatch()
     const [loading, setLoading] = useState(false);
@@ -92,7 +97,12 @@ export const GoogleSignIn = ({ role }: { role: string }) => {
         } else {
             setLoading(false);
             toast.success('User Logged in Successfully!');
-            router.push('/');
+            if (redirectFrom) {
+                sessionStorage.setItem("redirectInfo", JSON.stringify({ from: "buypackage" }));
+                router.push('/pages/one-on-one')
+            } else {
+                router.push('/')
+            }
         }
     };
 

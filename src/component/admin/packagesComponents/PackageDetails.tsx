@@ -22,136 +22,225 @@ const PackageDetailsModal: React.FC<PackageDetailsModalProps> = ({ isOpen, onClo
         });
     };
 
-    const formatDuration = (minutes: number) => {
-        const hours = Math.floor(minutes / 60);
-        const mins = minutes % 60;
-        if (hours > 0) {
-            return `${hours}h ${mins > 0 ? `${mins}m` : ''}`;
-        }
-        return `${mins}m`;
-    };
-
     return (
-        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+            <div className="bg-gradient-to-br from-white to-teal-50 rounded-2xl shadow-2xl w-full max-w-3xl p-8 h-[90vh] overflow-y-auto custom-scrollbar">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white p-6 rounded-t-xl">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <h2 className="text-2xl font-bold mb-2">{pkg.name}</h2>
-                            <div className="flex items-center gap-3">
-                                <span className="bg-white text-teal-600 bg-opacity-20 px-3 py-1 rounded-full text-sm font-medium capitalize">
-                                    {pkg.package_type}
-                                </span>
-                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                    pkg.is_active 
-                                        ? 'bg-teal-500 bg-opacity-20 text-teal-100' 
-                                        : 'bg-red-500 bg-opacity-20 text-red-100'
-                                }`}>
-                                    {pkg.is_active ? 'Active' : 'Inactive'}
-                                </span>
-                            </div>
-                        </div>
-                        <button
-                            onClick={onClose}
-                            className="text-white hover:bg-white hover:text-teal-500 hover:bg-opacity-20 rounded-full p-2 transition-colors"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
+                <div className="flex justify-between items-start mb-6">
+                    <div>
+                        <h2 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-teal-800 bg-clip-text text-transparent">
+                            Package Details
+                        </h2>
+                        <div className="w-16 h-1 bg-gradient-to-r from-teal-400 to-teal-600 rounded-full mt-2"></div>
                     </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-6">
-                    {/* Price Section */}
-                    <div className="bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200 rounded-lg p-4 mb-6">
-                        <div className="text-center">
-                            <p className="text-sm text-teal-600 font-medium mb-1">Package Price</p>
-                            <p className="text-3xl font-bold text-teal-700">₹{pkg.price.toFixed(2)}</p>
-                            <p className="text-sm text-teal-600 mt-1">Timeline: {pkg.timeLine} months</p>
-                        </div>
-                    </div>
-
-                    {/* Description */}
-                    {pkg.description && (
-                        <div className="mb-6">
-                            <h3 className="text-lg font-semibold text-gray-800 mb-2">Description</h3>
-                            <p className="text-gray-600 bg-teal-50 p-4 rounded-lg border border-teal-100">{pkg.description}</p>
-                        </div>
-                    )}
-
-                    {/* Features Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Webinar Features */}
-                        <div className="bg-teal-50 border border-teal-200 rounded-lg p-5">
-                            <h3 className="text-lg font-semibold text-teal-800 mb-4 flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                </svg>
-                                Webinar Features
-                            </h3>
-                            <div className="space-y-3">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-700">Max Webinars/Month</span>
-                                    <span className="font-semibold text-teal-700">{pkg.max_webinars_per_month}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-700">Max Attendees/Webinar</span>
-                                    <span className="font-semibold text-teal-700">{pkg.max_attendees_per_webinar}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-700">Max Duration</span>
-                                    <span className="font-semibold text-teal-700">{formatDuration(pkg.max_duration_minutes)}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Session Features */}
-                        <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-5">
-                            <h3 className="text-lg font-semibold text-cyan-800 mb-4 flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
-                                Session Features
-                            </h3>
-                            <div className="space-y-3">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-700">Max Sessions/Month</span>
-                                    <span className="font-semibold text-cyan-700">{pkg.max_sessions_per_month}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-700">Max Session Duration</span>
-                                    <span className="font-semibold text-cyan-700">{formatDuration(pkg.max_sessions_minutes)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Package Info */}
-                    <div className="mt-6 bg-teal-50 rounded-lg p-5 border border-teal-100">
-                        <h3 className="text-lg font-semibold text-teal-800 mb-4">Package Information</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <p className="text-sm text-teal-600">Package ID</p>
-                                <p className="font-mono text-sm text-teal-800 bg-white px-2 py-1 rounded border border-teal-200">{pkg._id}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-teal-600">Created On</p>
-                                <p className="font-medium text-teal-800">{formatDate(pkg.created_at)}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Footer */}
-                <div className="bg-teal-50 px-6 py-4 rounded-b-xl flex justify-end border-t border-teal-100">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+                        className="p-2 hover:bg-teal-100 rounded-full transition-all duration-200 group"
                     >
-                        Close
+                        <svg className="w-6 h-6 text-teal-600 group-hover:text-teal-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div className="space-y-6">
+                    {/* Basic Information Card */}
+                    <div className="bg-white rounded-xl p-6 shadow-lg border border-teal-100">
+                        <h3 className="text-lg font-semibold text-teal-800 mb-4 flex items-center">
+                            <span className="w-2 h-2 bg-teal-400 rounded-full mr-2"></span>
+                            Basic Information
+                        </h3>
+                        
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-teal-700 mb-2">
+                                        Package Name
+                                    </label>
+                                    <div className="w-full px-4 py-3 border border-teal-200 rounded-lg bg-teal-50 text-teal-900 font-medium">
+                                        {pkg.name}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-teal-700 mb-2">
+                                        Package Type
+                                    </label>
+                                    <div className="w-full px-4 py-3 border border-teal-200 rounded-lg bg-teal-50 capitalize text-teal-900">
+                                        {pkg.package_type}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-teal-700 mb-2">
+                                    User Type
+                                </label>
+                                <div className="w-full px-4 py-3 border border-teal-200 rounded-lg bg-teal-50 capitalize">
+                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                                        pkg.user_type === 'corporate' 
+                                            ? 'bg-blue-100 text-blue-800' 
+                                            : 'bg-teal-100 text-teal-800'
+                                    }`}>
+                                        {pkg.user_type || 'individual'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Description */}
+                            {pkg.description && (
+                                <div>
+                                    <label className="block text-sm font-medium text-teal-700 mb-2">
+                                        Description
+                                    </label>
+                                    <div className="w-full px-4 py-3 border border-teal-200 rounded-lg bg-teal-50 text-teal-800 leading-relaxed">
+                                        {pkg.description}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Package Features Card */}
+                    <div className="bg-white rounded-xl p-6 shadow-lg border border-teal-100">
+                        <h3 className="text-lg font-semibold text-teal-800 mb-4 flex items-center">
+                            <span className="w-2 h-2 bg-teal-400 rounded-full mr-2"></span>
+                            Package Features
+                        </h3>
+
+                        {/* Individual Package Details */}
+                        {pkg.user_type === 'individual' && (
+                            <div className="space-y-4">
+                                {/* Total Sessions */}
+                                <div className="flex items-center justify-between p-3 bg-teal-50 rounded-lg border border-teal-200">
+                                    <span className="text-sm font-medium text-teal-700">Total Sessions</span>
+                                    <span className="px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm font-semibold">
+                                        {pkg.total_sessions || 0}
+                                    </span>
+                                </div>
+
+                                {/* Points */}
+                                {pkg.points && pkg.points.length > 0 && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-teal-700 mb-2">
+                                            Key Features
+                                        </label>
+                                        <div className="space-y-2">
+                                            {pkg.points.map((point, index) => (
+                                                <div key={index} className="flex items-start space-x-3 p-3 bg-teal-50 rounded-lg border border-teal-200">
+                                                    <div className="w-2 h-2 bg-teal-400 rounded-full mt-2 flex-shrink-0"></div>
+                                                    <span className="text-teal-800 text-sm">{point}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Result Check */}
+                                {pkg.resultCheck && (
+                                    <div className="flex items-center justify-between p-3 bg-teal-50 rounded-lg border border-teal-200">
+                                        <span className="text-sm font-medium text-teal-700">Result Check</span>
+                                        <span className="text-teal-800 font-medium">{pkg.resultCheck}</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Corporate Package Details */}
+                        {pkg.user_type === 'corporate' && (
+                            <div className="space-y-4">
+                                {/* Webinar Features */}
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div className="text-center p-4 bg-teal-50 rounded-lg border border-teal-200">
+                                        <div className="text-2xl font-bold text-teal-600">{pkg.max_webinars_per_month || 0}</div>
+                                        <div className="text-xs text-teal-700 mt-1">Webinars/Month</div>
+                                    </div>
+                                    <div className="text-center p-4 bg-teal-50 rounded-lg border border-teal-200">
+                                        <div className="text-2xl font-bold text-teal-600">{pkg.max_attendees_per_webinar || 0}</div>
+                                        <div className="text-xs text-teal-700 mt-1">Max Attendees</div>
+                                    </div>
+                                    <div className="text-center p-4 bg-teal-50 rounded-lg border border-teal-200">
+                                        <div className="text-2xl font-bold text-teal-600">{pkg.max_duration_minutes || 0}</div>
+                                        <div className="text-xs text-teal-700 mt-1">Duration (min)</div>
+                                    </div>
+                                </div>
+
+                                {/* Session Features */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="text-center p-4 bg-teal-50 rounded-lg border border-teal-200">
+                                        <div className="text-2xl font-bold text-teal-600">{pkg.max_sessions_per_month || 0}</div>
+                                        <div className="text-xs text-teal-700 mt-1">Sessions/Month</div>
+                                    </div>
+                                    <div className="text-center p-4 bg-teal-50 rounded-lg border border-teal-200">
+                                        <div className="text-2xl font-bold text-teal-600">{pkg.max_sessions_minutes || 0}</div>
+                                        <div className="text-xs text-teal-700 mt-1">Session Duration</div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Common Fields */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                            <div className="text-center p-4 bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg border border-teal-200">
+                                <div className="text-2xl font-bold text-teal-700">{pkg.timeLine}</div>
+                                <div className="text-xs text-teal-600 mt-1">Timeline (Days)</div>
+                            </div>
+                            <div className="text-center p-4 bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg border border-teal-200">
+                                <div className="text-2xl font-bold text-teal-700">₹{pkg.discountedPrice.toFixed(2)}</div>
+                                <div className="text-xs text-teal-600 mt-1">Discounted Price</div>
+                            </div>
+                            <div className="text-center p-4 bg-gradient-to-br from-teal-50 to-teal-100 rounded-lg border border-teal-200">
+                                <div className="text-2xl font-bold text-teal-700 line-through">₹{pkg.realPrice.toFixed(2)}</div>
+                                <div className="text-xs text-teal-600 mt-1">Real Price</div>
+                            </div>
+                        </div>
+
+                        {/* Status */}
+                        <div className="flex items-center justify-center mt-4 p-3 bg-teal-50 rounded-lg border border-teal-200">
+                            <div className={`w-3 h-3 rounded-full mr-3 ${pkg.is_active ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
+                            <span className="text-sm font-medium text-teal-700">
+                                {pkg.is_active ? 'Featured Package' : 'Non-Featured Package'}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Package Metadata Card */}
+                    <div className="bg-white rounded-xl p-6 shadow-lg border border-teal-100">
+                        <h3 className="text-lg font-semibold text-teal-800 mb-4 flex items-center">
+                            <span className="w-2 h-2 bg-teal-400 rounded-full mr-2"></span>
+                            Package Information
+                        </h3>
+                        <div className="space-y-3">
+                            <div>
+                                <label className="block text-sm font-medium text-teal-700 mb-2">
+                                    Package ID
+                                </label>
+                                <div className="w-full px-4 py-3 border border-teal-200 rounded-lg bg-teal-50 font-mono text-sm text-teal-800">
+                                    {pkg._id}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-teal-700 mb-2">
+                                        Created At
+                                    </label>
+                                    <div className="w-full px-4 py-3 border border-teal-200 rounded-lg bg-teal-50 text-sm text-teal-800">
+                                        {formatDate(pkg.created_at)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Buttons */}
+                <div className="mt-8 flex justify-end">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-6 py-3 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-lg font-semibold hover:from-teal-700 hover:to-teal-800 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                    >
+                        Close Details
                     </button>
                 </div>
             </div>

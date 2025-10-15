@@ -10,6 +10,7 @@ import otpReducer from './otpSlice.js'
 import appointmentReducer from './appoinment.js'
 import availabilityReducer from './availability.js'
 import employeeReducer from './employeeSlice.js'
+import paymentReducer from './paymentSlice.js'
 
 const store = configureStore({
     reducer: {
@@ -23,7 +24,8 @@ const store = configureStore({
         otp: otpReducer,
         appointment: appointmentReducer,
         availability: availabilityReducer,
-        employee: employeeReducer
+        employee: employeeReducer,
+        payment: paymentReducer
     }
 })
 

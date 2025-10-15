@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { FaUser, FaLock, FaEnvelope, FaPhone, FaEye, FaEyeSlash, FaUserMd, FaBuilding } from 'react-icons/fa';
 import { useDispatch } from 'react-redux';
@@ -22,6 +22,7 @@ const AuthPages = () => {
     phone: '',
     password: ''
   });
+  const [redirectFrom, setRedirectFrom] = useState(false);
   const [otp, setOtp] = useState('');
   const [emailOtpPopup, setEmailOtpPopup] = useState(false);
   const dispatch = useDispatch()
@@ -82,7 +83,11 @@ const AuthPages = () => {
             toast.error(response.error.message)
           } else {
             toast.success("User Logged in Successfully")
-            router.push('/')
+            if (redirectFrom) {
+              router.push('/pages/one-on-one')
+            } else {
+              router.push('/')
+            }
             clearForm()
           }
         } else if (role === 'employee') {
@@ -124,7 +129,11 @@ const AuthPages = () => {
             toast.error(response.error.message);
           } else {
             toast.success('Account created successfully!');
-            router.push('/');
+            if (redirectFrom) {
+              router.push('/pages/one-on-one')
+            } else {
+              router.push('/')
+            }
             clearForm()
           }
         } else if (role === 'employee') {
@@ -158,7 +167,6 @@ const AuthPages = () => {
     setLoading(false)
   };
 
-
   async function sendEmailOtp() {
     if (validateForm()) {
       if (!isLogin) {
@@ -176,7 +184,6 @@ const AuthPages = () => {
       }
     }
   }
-
 
   async function verifyEmailOtp() {
     if (validateForm()) {
@@ -219,6 +226,16 @@ const AuthPages = () => {
   const togglePassword = () => {
     setShowPassword(!showPassword);
   };
+
+  useEffect(() => {
+    const data = JSON.parse(sessionStorage.getItem("redirectInfo") || "{}");
+    if (data.from) {
+      setRole(data.from);
+      setRedirectFrom(true);
+      // clear after use
+      sessionStorage.removeItem("redirectInfo");
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-teal-100 flex flex-col items-center justify-center p-4">
@@ -561,8 +578,8 @@ const AuthPages = () => {
 
                 {
                   isLogin
-                    ? <GoogleSignIn role={role} />
-                    : <GoogleSignUp role={role} />
+                    ? <GoogleSignIn role={role} redirectFrom={redirectFrom} />
+                    : <GoogleSignUp role={role} redirectFrom={redirectFrom} />
                 }
               </>
           }
