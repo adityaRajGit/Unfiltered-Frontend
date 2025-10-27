@@ -1054,7 +1054,7 @@ const UserProfilePage = () => {
           }
 
           {
-            ((user?.role === "user" && user.sessions_balance === 0) || user?.role !== "employee") && (
+            user?.role === "user" && user.sessions_balance === 0 && (
               <NoActivePackage />
             )
           }
