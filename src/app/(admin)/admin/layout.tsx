@@ -7,6 +7,11 @@ import Providers from "./provider";
 export const metadata: Metadata = {
   title: "Admin Panel",
   description: "Admin dashboard",
+  icons: {
+    icon: '/stay_unfiltered_logo.jpg',
+    shortcut: '/stay_unfiltered_logo.jpg',
+    apple: '/stay_unfiltered_logo.jpg',
+  },
 };
 
 export default function AdminLayout({

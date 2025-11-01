@@ -21,6 +21,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Stay Unfiltered",
   description: "Stay Unfiltered",
+  icons: {
+    icon: '/stay_unfiltered_logo.jpg',
+    shortcut: '/stay_unfiltered_logo.jpg',
+    apple: '/stay_unfiltered_logo.jpg',
+  },
 };
 
 export default function RootLayout({
