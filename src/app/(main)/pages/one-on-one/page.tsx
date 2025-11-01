@@ -11,6 +11,9 @@ import Testimonials from '@/component/one-on-one/Testimonials';
 import CTA from '@/component/one-on-one/CTA';
 import { useEffect } from 'react';
 
+// Note: Since this is a client component, metadata should be added via next/head or parent layout
+// For SEO, consider converting to server component or adding dynamic metadata
+
 export default function SessionsPage() {
     useEffect(() => {
         const data = JSON.parse(sessionStorage.getItem("redirectInfo") || "{}");

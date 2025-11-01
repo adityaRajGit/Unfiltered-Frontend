@@ -1,0 +1,93 @@
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Stay Unfiltered",
+  "alternateName": "Stay Unfiltered Mental Health Platform",
+  "url": "https://stayunfiltered.com",
+  "description": "India's premier mental health platform featuring world's leading psychologists and certified mental health professionals for therapy, corporate wellness, and mental health education",
+  "inLanguage": "en-IN",
+  "audience": {
+    "@type": "Audience",
+    "audienceType": ["Individuals seeking mental health support", "Corporate organizations", "HR professionals", "Mental health advocates"]
+  },
+  "provider": {
+    "@type": "MedicalOrganization",
+    "name": "Stay Unfiltered",
+    "description": "World-class mental health services provider",
+    "hasCredential": "Licensed and certified mental health professionals"
+  },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://stayunfiltered.com/search?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  },
+  "mainEntity": {
+    "@type": "MedicalBusiness",
+    "name": "Stay Unfiltered",
+    "image": "https://stayunfiltered.com/stay_unfiltered_logo.jpg",
+    "telephone": "+91-XXXXXXXXXX",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "India"
+    },
+    "priceRange": "₹₹",
+    "medicalSpecialty": [
+      "Psychology",
+      "Psychiatry",
+      "Clinical Psychology",
+      "Counseling Psychology",
+      "Organizational Psychology",
+      "Health Psychology"
+    ],
+    "availableService": [
+      {
+        "@type": "MedicalTherapy",
+        "name": "Individual Psychotherapy",
+        "description": "One-on-one therapy sessions with licensed psychologists for stress, anxiety, depression, trauma, and personal growth"
+      },
+      {
+        "@type": "MedicalTherapy",
+        "name": "Corporate Mental Wellness",
+        "description": "Enterprise mental health programs reducing burnout by 42% and increasing satisfaction by 68%"
+      },
+      {
+        "@type": "EducationalOccupationalProgram",
+        "name": "Mental Health Webinars",
+        "description": "Free expert-led educational sessions on workplace wellness, stress management, and mental health awareness"
+      },
+      {
+        "@type": "DietNutrition",
+        "name": "Nutrition Counseling",
+        "description": "Personalized diet plans and holistic wellness coaching for complete mind-body health"
+      }
+    ]
+  },
+  "significantLinks": [
+    "https://stayunfiltered.com/pages/one-on-one",
+    "https://stayunfiltered.com/pages/corporate",
+    "https://stayunfiltered.com/pages/webinar",
+    "https://stayunfiltered.com/pages/about"
+  ],
+  "keywords": [
+    "world's leading psychologists",
+    "mental health therapy India",
+    "online counseling",
+    "corporate wellness programs",
+    "stress management therapy",
+    "anxiety treatment",
+    "depression counseling",
+    "certified therapists",
+    "licensed psychologists",
+    "workplace mental health",
+    "burnout prevention",
+    "confidential therapy",
+    "mental health professionals",
+    "psychological counseling",
+    "therapy sessions online",
+    "mental wellness solutions",
+    "employee assistance program",
+    "mental health webinars",
+    "holistic wellness",
+    "nutrition counseling"
+  ]
+}
