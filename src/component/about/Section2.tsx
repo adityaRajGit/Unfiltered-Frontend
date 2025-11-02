@@ -49,7 +49,7 @@ function Section2() {
                             <h3 className="text-xl font-semibold text-gray-900 mb-3">Introduction</h3>
                             <p className="text-gray-700">
                                 Stay Unfiltered is a cutting-edge mental health platform designed for organizations worldwide.
-                                Through our Employee Assistance Program (EAP) services, we offer confidential, online counseling, live
+                                Through our One-on-One Counselling and Employee Assistance Program (EAP) services, we offer confidential, online counseling, live
                                 webinars, and interactive workshops to enhance employees well-being and productivity.
                             </p>
                         </div>
