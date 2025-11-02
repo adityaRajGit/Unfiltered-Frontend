@@ -20,12 +20,8 @@ const FAQPage = () => {
                     answer: "Stay Unfiltered is an online mental health platform designed to support emotional well-being in the workplace. We specialize in Employee Assistance Programs (EAPs), offering one-on-one therapy, corporate workshops, and webinars focused on building happier, more resilient teams through B2B partnerships."
                 },
                 {
-                    question: "Who do you focus on — individuals or organizations?",
+                    question: "Who do you focus on individuals or organizations?",
                     answer: `We work with both — because lasting change begins at both the individual and organizational level.
-                    For individuals, we offer one-on-one counselling that provides a safe, judgment-free space to talk, heal, and grow. Everyone’s journey is unique, and our therapists help people manage stress, anxiety, and relationship challenges while building emotional resilience and self-awareness.
-
-                    For organizations, we partner through Employee Assistance Programs (EAPs) to create emotionally healthier workplaces. We help companies address burnout, improve engagement, and build cultures of empathy and support — because when employees feel cared for, performance and retention naturally improve.
-
                     Our goal is simple: to make mental health support accessible, personal, and sustainable — for individuals and for the organizations they’re part of.`
                 },
                 {
