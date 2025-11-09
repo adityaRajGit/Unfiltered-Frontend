@@ -435,7 +435,7 @@ export default function TherapistProfile() {
                 ? "Keep going! Add more details to boost your profile."
                 : animatedProgress < 100
                   ? "Great progress! Just a few more details needed. After that, your therapies will be live."
-                  : "Congratulations! Your profile is complete!"}
+                  : "Congratulations! Your profile is complete!, Now Your Therapy is Live"}
             </p>
           </div>
 

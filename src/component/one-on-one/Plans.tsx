@@ -104,7 +104,7 @@ function Plans() {
         } catch (error) {
             console.log("Error fetching location:", error);
             // Default to INR on error
-            setCurrency({ code: "USD", symbol: "$", conversionRate: 1 });
+            setCurrency({ code: 'INR', symbol: '₹', conversionRate: 1 });
         }
     };
 
