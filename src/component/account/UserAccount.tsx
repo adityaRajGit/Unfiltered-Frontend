@@ -1267,7 +1267,7 @@ const UserProfilePage = () => {
                           <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                             Completed
                           </span>
-                          <div className="flex items-center">
+                          {/* <div className="flex items-center">
                             {[...Array(5)].map((_, i) => (
                               <FaStar
                                 key={i}
@@ -1277,7 +1277,7 @@ const UserProfilePage = () => {
                           </div>
                           <span className="text-xs md:text-sm text-gray-600">
                             {appointment.therapist_id.session_details.currency}{appointment.therapist_id.session_details.cost}
-                          </span>
+                          </span> */}
                         </div>
                       </div>
                       <div className="flex flex-col gap-1 md:gap-2 flex-shrink-0">

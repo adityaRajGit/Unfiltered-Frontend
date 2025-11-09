@@ -25,11 +25,110 @@ interface Package {
     popular?: boolean;
 }
 
+interface CurrencyInfo {
+    code: string;
+    symbol: string;
+    conversionRate: number;
+}
+
 function Plans() {
     const [loading, setLoading] = useState(true);
     const dispatch = useDispatch()
     const [packages, setPackages] = useState<Package | []>([]);
+    const [currency, setCurrency] = useState<CurrencyInfo>({ code: 'INR', symbol: '₹', conversionRate: 1 });
     const router = useRouter()
+
+    const countryCurrencyMap = {
+        AT: { code: "EUR", symbol: "€" }, // Austria
+        BE: { code: "EUR", symbol: "€" }, // Belgium
+        BG: { code: "BGN", symbol: "лв" }, // Bulgaria
+        HR: { code: "EUR", symbol: "€" }, // Croatia
+        CY: { code: "EUR", symbol: "€" }, // Cyprus
+        CZ: { code: "CZK", symbol: "Kč" }, // Czech Republic
+        DK: { code: "DKK", symbol: "kr" }, // Denmark
+        EE: { code: "EUR", symbol: "€" }, // Estonia
+        FI: { code: "EUR", symbol: "€" }, // Finland
+        FR: { code: "EUR", symbol: "€" }, // France
+        DE: { code: "EUR", symbol: "€" }, // Germany
+        GR: { code: "EUR", symbol: "€" }, // Greece
+        HU: { code: "HUF", symbol: "Ft" }, // Hungary
+        IS: { code: "ISK", symbol: "kr" }, // Iceland
+        IE: { code: "EUR", symbol: "€" }, // Ireland
+        IT: { code: "EUR", symbol: "€" }, // Italy
+        LV: { code: "EUR", symbol: "€" }, // Latvia
+        LT: { code: "EUR", symbol: "€" }, // Lithuania
+        LU: { code: "EUR", symbol: "€" }, // Luxembourg
+        MT: { code: "EUR", symbol: "€" }, // Malta
+        NL: { code: "EUR", symbol: "€" }, // Netherlands
+        NO: { code: "NOK", symbol: "kr" }, // Norway
+        PL: { code: "PLN", symbol: "zł" }, // Poland
+        PT: { code: "EUR", symbol: "€" }, // Portugal
+        RO: { code: "RON", symbol: "lei" }, // Romania
+        SK: { code: "EUR", symbol: "€" }, // Slovakia
+        SI: { code: "EUR", symbol: "€" }, // Slovenia
+        ES: { code: "EUR", symbol: "€" }, // Spain
+        SE: { code: "SEK", symbol: "kr" }, // Sweden
+        CH: { code: "CHF", symbol: "CHF" }, // Switzerland
+        GB: { code: "GBP", symbol: "£" }, // United Kingdom
+        US: { code: "USD", symbol: "$" }, // United States
+        IN: { code: "INR", symbol: "₹" }, // India
+    };
+
+
+    const fetchLocation = async () => {
+        try {
+            const fetchedLoc = await axios.get(`http://ip-api.com/json`);
+            const countryCode = fetchedLoc.data.countryCode;
+            // console.log("Country Code:", countryCode);
+
+            // Get currency info for the country
+            const currencyInfo = countryCurrencyMap[countryCode as keyof typeof countryCurrencyMap];
+            // console.log("Currency Info:", currencyInfo);
+
+            if (currencyInfo && currencyInfo.code !== 'INR') {
+                // Fetch conversion rate
+                const conversionRate = await fetchConversionRate(currencyInfo.code);
+                
+                setCurrency({
+                    code: currencyInfo.code,
+                    symbol: currencyInfo.symbol,
+                    conversionRate: conversionRate
+                });
+            } else if (countryCode === 'IN') {
+                // Default to INR
+                setCurrency({ code: 'INR', symbol: '₹', conversionRate: 1 });
+            } else {
+                // Default to INR
+                setCurrency({ code: "USD", symbol: "$", conversionRate: 1 });
+            }
+        } catch (error) {
+            console.log("Error fetching location:", error);
+            // Default to INR on error
+            setCurrency({ code: "USD", symbol: "$", conversionRate: 1 });
+        }
+    };
+
+    const fetchConversionRate = async (targetCurrency: string): Promise<number> => {
+        try {
+            // Using a free currency conversion API
+            const response = await axios.get(
+                `https://api.exchangerate-api.com/v4/latest/INR`
+            );
+
+            // console.log("Conversion rates:", response.data.rates);
+
+            const rate = response.data.rates[targetCurrency];
+            return rate || 1;
+        } catch (error) {
+            console.log("Error fetching conversion rate:", error);
+            return 1;
+        }
+    };
+
+    const convertPrice = (priceInINR: number): number => {
+        return Math.round(priceInINR * currency.conversionRate);
+    };
+
 
     const fetchPackages = async () => {
         setLoading(true);
@@ -60,6 +159,7 @@ function Plans() {
                     }
                 });
                 // console.log("packages", packages)
+                await fetchLocation()
                 setPackages(packages);
             }
         } catch (error) {
@@ -85,10 +185,15 @@ function Plans() {
                 toast.error("You are not allowed to book package")
                 return
             }
-            const amount = plan.discountedPrice
+            const amount = convertPrice(plan.discountedPrice)
             const id = plan._id
+            const code = currency.code
+            const option = {
+                amount: amount.toFixed(0),
+                currency: code,
+            }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const response = await dispatch(bookPackage({ amount } as any) as any);
+            const response = await dispatch(bookPackage(option as any) as any);
             if (response?.error) {
                 toast.error(response.error.message);
             }
@@ -100,7 +205,7 @@ function Plans() {
                 key: "rzp_live_RKKqo4uLM9Dmie",
                 order_id: data.id,
                 ...data,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 handler: function (response: any) {
                     const option2 = {
                         orderId: response.razorpay_order_id,
@@ -190,7 +295,7 @@ function Plans() {
                                                 </div>
                                             </div>
 
-                                            <div className="mb-6">
+                                            {/* <div className="mb-6">
                                                 <div className="flex flex-wrap items-baseline gap-2">
                                                     <span className="text-3xl font-bold text-[#03978a]">₹{plan.discountedPrice}</span>
                                                     <span className="text-lg text-gray-500 line-through">₹{plan.realPrice}</span>
@@ -198,6 +303,24 @@ function Plans() {
                                                         Save ₹{plan.realPrice - plan.discountedPrice}
                                                     </span>
                                                 </div>
+                                            </div> */}
+                                            <div className="mb-6">
+                                                <div className="flex flex-wrap items-baseline gap-2">
+                                                    <span className="text-3xl font-bold text-[#03978a]">
+                                                        {currency.symbol}{convertPrice(plan.discountedPrice)}
+                                                    </span>
+                                                    <span className="text-lg text-gray-500 line-through">
+                                                        {currency.symbol}{convertPrice(plan.realPrice)}
+                                                    </span>
+                                                    <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full ml-2">
+                                                        Save {currency.symbol}{convertPrice(plan.realPrice - plan.discountedPrice)}
+                                                    </span>
+                                                </div>
+                                                {currency.code !== 'INR' && (
+                                                    <p className="text-xs text-gray-500 mt-1">
+                                                        Prices converted from INR to {currency.code}
+                                                    </p>
+                                                )}
                                             </div>
 
                                             <p className="text-gray-600 mb-6">{plan.description}</p>

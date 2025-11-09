@@ -126,7 +126,7 @@ export default function TherapistProfile() {
       // Create FormData object
       const formData = new FormData();
 
-      console.log(tempTherapistData)
+      // console.log(tempTherapistData)
 
       // Append all user data fields
       if (tempTherapistData) {
@@ -671,7 +671,7 @@ export default function TherapistProfile() {
                 </div>
               </div>
             </div>
-            <div className="mt-5 sm:mt-0">
+            {/* <div className="mt-5 sm:mt-0">
               <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-xl p-4 text-white">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Session Rate</span>
@@ -742,7 +742,7 @@ export default function TherapistProfile() {
                   )}
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -761,7 +761,7 @@ export default function TherapistProfile() {
               placeholder='Add something about yourself'
               onChange={handleInputChange}
               rows={4}
-              className="w-full p-3 border rounded-lg bg-teal-50"
+              className="w-full p-3 border rounded-lg bg-teal-50 resize-none"
             />
           ) : (
             <p className="text-gray-600 leading-relaxed">
@@ -1003,7 +1003,7 @@ export default function TherapistProfile() {
 
           {/* Right Column - Appointments */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-teal-100">
+            <div className="bg-white rounded-2xl shadow-lg h-full overflow-hidden border border-teal-100">
               {/* Appointment Tabs */}
               <div className="border-b border-gray-200 bg-gradient-to-r from-teal-50 to-teal-100">
                 <nav className="flex flex-col sm:flex-row">
@@ -1060,7 +1060,7 @@ export default function TherapistProfile() {
             </div>
 
             {/* Stats Card */}
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-2xl shadow-lg p-6 text-white">
                 <div className="flex justify-between items-center">
                   <div>
@@ -1120,7 +1120,7 @@ export default function TherapistProfile() {
                   <span className="ml-1">0.3h from last month</span>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

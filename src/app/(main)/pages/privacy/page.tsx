@@ -74,7 +74,7 @@ const PrivacyPolicyPage = () => {
                     </div>
                 </div>
 
-                {/* Data Collected */}
+                {/* Data We Collect */}
                 <div className="bg-white rounded-2xl shadow-md p-6 mb-8 border-l-4 border-teal-500">
                     <div className="flex items-start mb-4">
                         <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center mr-4 flex-shrink-0">
@@ -83,7 +83,7 @@ const PrivacyPolicyPage = () => {
                         <div>
                             <h2 className="text-xl font-bold text-gray-900 mb-1">Data We Collect</h2>
                             <p className="text-gray-600 mb-4">
-                                We collect only the personal data needed to provide our services. This includes:
+                                We collect only the personal data needed to provide our services and improve your overall experience. This includes:
                             </p>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
@@ -108,12 +108,15 @@ const PrivacyPolicyPage = () => {
                                 </div>
 
                                 <div className="bg-teal-50 p-4 rounded-lg">
-                                    <h3 className="font-semibold text-teal-700 mb-2">Usage Data</h3>
+                                    <h3 className="font-semibold text-teal-700 mb-2">Usage & Location Data</h3>
                                     <ul className="list-disc pl-5 space-y-1 text-gray-600">
                                         <li>Website/app usage</li>
                                         <li>Service preferences</li>
                                         <li>Survey responses</li>
                                         <li>Feedback data</li>
+                                        <li>
+                                            <span className="font-medium text-gray-700">Approximate location</span> — fetched automatically to provide region-specific packages and pricing based on your local currency. We do <span className="font-semibold text-gray-800">not</span> use your location for tracking, marketing, or any unrelated purposes.
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -130,7 +133,7 @@ const PrivacyPolicyPage = () => {
                         <div>
                             <h2 className="text-xl font-bold text-gray-900 mb-1">How We Use Your Data</h2>
                             <p className="text-gray-600 mb-4">
-                                Your data is used strictly to deliver and improve our services, and for related administrative purposes.
+                                Your data is used strictly to deliver, personalize, and improve our services, and for necessary administrative purposes.
                             </p>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -149,6 +152,7 @@ const PrivacyPolicyPage = () => {
                                         <li>Tailoring advice based on health data</li>
                                         <li>Personalizing care based on dietary information</li>
                                         <li>Improving services through anonymized analytics</li>
+                                        <li>Displaying packages and pricing according to your location and currency for a seamless experience</li>
                                     </ul>
                                 </div>
 
@@ -173,6 +177,7 @@ const PrivacyPolicyPage = () => {
                         </div>
                     </div>
                 </div>
+
 
                 {/* Cookies & Tracking */}
                 <div className="bg-white rounded-2xl shadow-md p-6 mb-8 border-l-4 border-teal-500">
@@ -340,14 +345,14 @@ const PrivacyPolicyPage = () => {
 
                                 <div className="bg-teal-50 p-5 rounded-lg">
                                     <h3 className="font-bold text-lg text-teal-700 mb-2">Post-Service Retention</h3>
-                                    <p className="text-gray-600">
+                                    <div className="text-gray-600">
                                         After service completion, we retain data only as required:
                                         <ul className="list-disc pl-5 mt-2 space-y-1">
                                             <li>For legal or regulatory requirements</li>
                                             <li>For financial record keeping (7 years)</li>
                                             <li>For dispute resolution purposes</li>
                                         </ul>
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
 
