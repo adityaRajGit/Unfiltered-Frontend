@@ -48,11 +48,11 @@ interface FilteredTherapist {
     from: string;
     to: string;
   };
-  session_details: {
-    cost: number;
-    currency: string;
-    duration: number;
-  };
+  // session_details: {
+  //   cost: number;
+  //   currency: string;
+  //   duration: number;
+  // };
   location: {
     city: string;
     country: string;
@@ -64,11 +64,11 @@ interface TherapistId {
   _id: string;
   name: string;
   profile_image: string;
-  session_details: {
-    duration: number;
-    cost: number;
-    currency: string;
-  };
+  // session_details: {
+  //   duration: number;
+  //   cost: number;
+  //   currency: string;
+  // };
 }
 
 interface UpcomingAppointment {
@@ -1015,9 +1015,9 @@ const UserProfilePage = () => {
 
                                     {/* Price and Book Button */}
                                     <div className="flex flex-col items-end justify-between">
-                                      <p className="text-gray-900 font-semibold">
+                                      {/* <p className="text-gray-900 font-semibold">
                                         {therapist.session_details.currency}{therapist.session_details.cost} / {therapist.session_details.duration} min
-                                      </p>
+                                      </p> */}
                                       <button
                                         onClick={() => bookAppointment(therapist)}
                                         className="px-6 py-2 mt-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors"
@@ -1180,9 +1180,9 @@ const UserProfilePage = () => {
                             }`}>
                             {appointment.appointment_status}
                           </span>
-                          <span className="text-xs md:text-sm text-gray-600">
+                          {/* <span className="text-xs md:text-sm text-gray-600">
                             {appointment.therapist_id.session_details.duration} min
-                          </span>
+                          </span> */}
                         </div>
                       </div>
                       <div className="flex flex-col gap-1 md:gap-2 flex-shrink-0">
