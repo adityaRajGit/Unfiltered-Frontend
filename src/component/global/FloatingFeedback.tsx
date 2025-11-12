@@ -1,4 +1,5 @@
 "use client";
+import { addFeedback } from "@/store/feedbackSlice";
 import { useState, useRef, useEffect } from "react";
 import {
     FiMessageSquare,
@@ -7,6 +8,8 @@ import {
     FiSend,
     FiX
 } from 'react-icons/fi';
+import { useDispatch } from "react-redux";
+import { toast } from "react-toastify";
 
 const EnhancedFeedbackButton = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -14,18 +17,30 @@ const EnhancedFeedbackButton = () => {
     const [feedback, setFeedback] = useState('');
     const [isSubmitted, setIsSubmitted] = useState(false);
     const formRef = useRef<HTMLDivElement>(null);
+    const dispatch = useDispatch()
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // console.log('Feedback submitted:', { type: feedbackType, message: feedback });
-        setIsSubmitted(true);
-        setFeedback('');
-        setFeedbackType(null);
+        const data = {
+            type_of_feedback: feedbackType === 'positive' ? true : false,
+            feedback_content: feedback,
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response = await dispatch(addFeedback(data as any) as any);
+        if (response?.error) {
+            toast.error(response.error.message);
+        } else if (response.payload?.data) {
 
-        setTimeout(() => {
-            setIsSubmitted(false);
-            setIsOpen(false);
-        }, 3000);
+            setIsSubmitted(true);
+            setFeedback('');
+            setFeedbackType(null);
+
+            setTimeout(() => {
+                setIsSubmitted(false);
+                setIsOpen(false);
+            }, 3000);
+            toast.success('Feedback submitted successfully');
+        }
     };
 
     useEffect(() => {
