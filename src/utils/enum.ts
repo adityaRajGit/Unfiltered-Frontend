@@ -23,7 +23,7 @@ export const SPECIALIZATIONS = [
   "General Counseling",
   "Other"
 ];
-
+ 
 export const INDIAN_LANGUAGES = [
     {
       code: 'hi',
