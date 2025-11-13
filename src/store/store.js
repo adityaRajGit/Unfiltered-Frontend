@@ -11,6 +11,8 @@ import appointmentReducer from './appoinment.js'
 import availabilityReducer from './availability.js'
 import employeeReducer from './employeeSlice.js'
 import paymentReducer from './paymentSlice.js'
+import feedbackReducer from './feedbackSlice.js'
+import individualFormReducer from './individualForm.js'
 
 const store = configureStore({
     reducer: {
@@ -25,7 +27,9 @@ const store = configureStore({
         appointment: appointmentReducer,
         availability: availabilityReducer,
         employee: employeeReducer,
-        payment: paymentReducer
+        payment: paymentReducer,
+        feedback: feedbackReducer,
+        individualFormReducer: individualFormReducer
     }
 })
 

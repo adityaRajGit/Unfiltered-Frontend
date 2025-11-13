@@ -77,8 +77,8 @@ function Plans() {
 
     const fetchLocation = async () => {
         try {
-            const fetchedLoc = await axios.get(`http://ip-api.com/json`);
-            const countryCode = fetchedLoc.data.countryCode;
+            const fetchedLoc = await axios.get(`https://ipapi.co/json/`);
+            const countryCode = fetchedLoc.data.country_code;
             // console.log("Country Code:", countryCode);
 
             // Get currency info for the country
