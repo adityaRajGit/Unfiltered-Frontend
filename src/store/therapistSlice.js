@@ -149,6 +149,19 @@ const updateAvailabilityForTherapist = createAsyncThunk('therapist/update-therap
 }
 );
 
+const getAllTherapist = createAsyncThunk('therapist/get-all-therapist', async (payload) => {
+    try {
+        const response = await axios.post(`${backend}/therapist/list`, payload);
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw error.response.data.data.message
+        }
+        throw error.message || "An unexpected error occurred"
+    }
+}
+);
+
 const initialState = {
     therapist: null,
     loading: false,
@@ -283,9 +296,20 @@ const therapistSlice = createSlice({
                 state.loading = false
                 state.error = action.error || "An error occurred"
             })
+            .addCase(getAllTherapist.pending, (state) => {
+                state.loading = true
+                state.error = null
+            })
+            .addCase(getAllTherapist.fulfilled, (state) => {
+                state.loading = false
+            })
+            .addCase(getAllTherapist.rejected, (state, action) => {
+                state.loading = false
+                state.error = action.error || "An error occurred"
+            })
     }
 })
 
 export const { logoutTherapist } = therapistSlice.actions;
-export { signupTherapist, loginTherapist, getTherapistDetails, updateTherapistDetails, therapistProfileStatus, getTherapistSpecialisationAndTiming, recommendTherapist, setAvailabilityForTherapist, getAvailabilityForTherapist, updateAvailabilityForTherapist }
+export { signupTherapist, loginTherapist, getTherapistDetails, updateTherapistDetails, therapistProfileStatus, getTherapistSpecialisationAndTiming, recommendTherapist, setAvailabilityForTherapist, getAvailabilityForTherapist, updateAvailabilityForTherapist, getAllTherapist }
 export default therapistSlice.reducer

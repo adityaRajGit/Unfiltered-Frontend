@@ -26,6 +26,8 @@ import { useDispatch } from 'react-redux';
 import PackageSections from '@/component/admin/packagesComponents/PackageSetion';
 import CompanySections from '@/component/admin/companyComponents/CompanySection';
 import WebinarSection from '@/component/admin/webinarComponents/WebinarSection';
+import TherapistsSection from '@/component/admin/therapistComponents/TherapistsSection';
+import UsersSection from '@/component/admin/usersComponents/UsersSection';
 
 interface Admin {
     name: string;
@@ -33,8 +35,6 @@ interface Admin {
 }
 
 // Placeholder components for other sections
-const TherapistsSection = () => <SectionPlaceholder title="Therapists Management" />;
-const UsersSection = () => <SectionPlaceholder title="Users Management" />;
 const BlogsSection = () => <SectionPlaceholder title="Blogs Management" />;
 
 const SectionPlaceholder = ({ title }: { title: string }) => (
@@ -136,7 +136,7 @@ export default function Dashboard() {
                     : <>
                         {/* Mobile sidebar toggle button */}
                         <button
-                            className="md:hidden fixed top-4 left-4 z-30 p-2 rounded-md bg-[#009689] text-white"
+                            className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-[#009689] text-white"
                             onClick={() => setSidebarOpen(!sidebarOpen)}
                         >
                             {sidebarOpen ? (
@@ -146,56 +146,76 @@ export default function Dashboard() {
                             )}
                         </button>
 
-                        {/* Sidebar */}
+                        {/* Fixed Sidebar */}
                         <aside
-                            className={`fixed md:relative z-20 w-64 bg-gray-800 text-white min-h-screen transition-transform duration-300 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                                } md:translate-x-0`}
+                            className={`fixed z-40 w-64 bg-gray-800 text-white h-screen transition-transform duration-300 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                                } md:translate-x-0 md:static md:z-auto`}
+                            style={{
+                                position: 'fixed',
+                                top: 0,
+                                left: 0,
+                                bottom: 0,
+                                height: '100vh',
+                                overflowY: 'auto',
+                            }}
                         >
-                            <div className="p-4 border-b border-gray-700">
-                                <div className="text-xl font-bold text-[#009689] flex items-center">
-                                    <FaCog className="mr-2" /> Admin Panel
-                                </div>
-                                <div className="text-sm text-gray-400">Dashboard</div>
-                            </div>
-
-                            <nav className="mt-4">
-                                <ul>
-                                    {navItems.map((item) => (
-                                        <li key={item.id}>
-                                            <button
-                                                className={`w-full text-left px-6 py-3 flex items-center transition-colors ${activeSection === item.id
-                                                    ? 'bg-[#009689] text-white'
-                                                    : 'text-gray-300 hover:bg-gray-700'
-                                                    }`}
-                                                onClick={() => {
-                                                    setActiveSection(item.id);
-                                                    if (window.innerWidth < 768) setSidebarOpen(false);
-                                                }}
-                                            >
-                                                <item.icon className="h-5 w-5 mr-3" />
-                                                {item.label}
-                                            </button>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </nav>
-
-                            <div className="absolute bottom-0 w-full p-4 border-t border-gray-700">
-                                <div className="flex items-center">
-                                    <div className="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 flex items-center justify-center">
-                                        <FaUser className="text-gray-600" />
+                            <div className="flex flex-col h-full">
+                                {/* Logo and Title */}
+                                <div className="p-4 border-b border-gray-700 flex-shrink-0">
+                                    <div className="text-xl font-bold text-[#009689] flex items-center">
+                                        <FaCog className="mr-2" /> Admin Panel
                                     </div>
-                                    <div className="ml-3">
-                                        <div className="text-sm font-medium">{adminDetails?.name}</div>
-                                        <div className="text-xs text-gray-400">{adminDetails?.email}</div>
+                                    <div className="text-sm text-gray-400">Dashboard</div>
+                                </div>
+
+                                {/* Navigation - Scrollable if needed */}
+                                <nav style={{
+                                    scrollbarWidth: "none"
+                                }} className="flex-1 overflow-y-auto">
+                                    <ul>
+                                        {navItems.map((item) => (
+                                            <li key={item.id}>
+                                                <button
+                                                    className={`w-full text-left px-6 py-3 flex items-center transition-colors ${activeSection === item.id
+                                                        ? 'bg-[#009689] text-white'
+                                                        : 'text-gray-300 hover:bg-gray-700'
+                                                        }`}
+                                                    onClick={() => {
+                                                        setActiveSection(item.id);
+                                                        if (window.innerWidth < 768) setSidebarOpen(false);
+                                                    }}
+                                                >
+                                                    <item.icon className="h-5 w-5 mr-3" />
+                                                    {item.label}
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </nav>
+
+                                {/* Admin Info - Fixed at bottom */}
+                                <div className="p-4 border-t border-gray-700 flex-shrink-0">
+                                    <div className="flex items-center">
+                                        <div className="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10 flex items-center justify-center">
+                                            <FaUser className="text-gray-600" />
+                                        </div>
+                                        <div className="ml-3">
+                                            <div className="text-sm font-medium">{adminDetails?.name}</div>
+                                            <div className="text-xs text-gray-400">{adminDetails?.email}</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </aside>
 
-                        {/* Main content */}
-                        <main className="flex-1 overflow-x-hidden">
-                            <header className="bg-white shadow p-4 flex justify-between items-center">
+                        {/* Main content with proper spacing */}
+                        <main 
+                            className={`flex-1 min-h-screen transition-all duration-300 ${
+                                sidebarOpen ? 'md:ml-64' : 'md:ml-0'
+                            }`}
+                        >
+                            {/* Fixed Header */}
+                            <header className="bg-white shadow p-4 flex justify-between items-center sticky top-0 z-30">
                                 <h1 className="text-xl font-bold capitalize">
                                     {navItems.find(item => item.id === activeSection)?.label || 'Dashboard'}
                                 </h1>
@@ -226,6 +246,7 @@ export default function Dashboard() {
                                 </div>
                             </header>
 
+                            {/* Scrollable Content Area */}
                             <div className="p-6">
                                 {renderSection()}
                             </div>
