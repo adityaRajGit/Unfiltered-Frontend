@@ -11,6 +11,7 @@ import { GoogleSignIn, GoogleSignUp } from '@/component/Authentication';
 import { loginTherapist, signupTherapist } from '@/store/therapistSlice';
 import { sendOtp, verifyOtp } from '@/store/otpSlice';
 import { employeeSignup } from '@/store/employeeSlice';
+import { fbLead } from '@/lib/PixelHelpers';
 
 const AuthPages = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -83,6 +84,7 @@ const AuthPages = () => {
             toast.error(response.error.message)
           } else {
             toast.success("User Logged in Successfully")
+            fbLead(loginData)
             if (redirectFrom) {
               router.push('/pages/one-on-one')
             } else {
@@ -99,6 +101,7 @@ const AuthPages = () => {
             toast.error(response.error.message)
           } else {
             toast.success("Employee Logged in Successfully")
+            fbLead(loginData)
             router.push('/')
             clearForm()
           }
@@ -111,6 +114,7 @@ const AuthPages = () => {
             toast.error(response.error.message)
           } else {
             toast.success("Therapist Logged in Successfully")
+            fbLead(loginData)
             router.push('/')
             clearForm()
           }
@@ -129,6 +133,7 @@ const AuthPages = () => {
             toast.error(response.error.message);
           } else {
             toast.success('Account created successfully!');
+            fbLead(signupData)
             if (redirectFrom) {
               router.push('/pages/one-on-one')
             } else {
@@ -145,6 +150,7 @@ const AuthPages = () => {
             toast.error(response.error.message);
           } else {
             toast.success('Account created successfully!');
+            fbLead(signupData)
             router.push('/');
             clearForm()
           }
@@ -158,6 +164,7 @@ const AuthPages = () => {
             toast.error(response.error.message);
           } else {
             toast.success('Account created successfully!');
+            fbLead(signupData)
             router.push('/');
             clearForm()
           }

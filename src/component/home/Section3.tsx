@@ -10,21 +10,21 @@ const reviews = [
         author: "Rajesh M.",
         therapist: "Dr. Priya Sharma (Clinical Psychologist)",
         location: "Mumbai, India",
-        image: '/people/indian1.jpg',
+        image: '/people/testimonial1.jpg',
     },
     {
         text: "The community support I found here changed my life. Being able to share anonymously made me feel safe to express my deepest struggles for the first time.",
         author: "Ananya P.",
         therapist: "Sanjay Kumar (Counselor)",
         location: "Delhi, India",
-        image: '/people/indian2.jpg',
+        image: '/people/testimonial5.jpg',
     },
     {
         text: "As a college student dealing with depression, StayUnfiltered made therapy affordable and accessible. My counselor Vikram understood my cultural context perfectly.",
         author: "Arjun S.",
         therapist: "Vikram Patel (LCSW)",
         location: "Bangalore, India",
-        image: '/people/indian3.jpg',
+        image: '/people/testimonial2.jpg',
     },
     {
         text: "After my divorce, I felt completely lost. The combination of therapy and community support helped me rebuild my confidence and find joy again.",
@@ -45,7 +45,7 @@ const reviews = [
         author: "Rahul D.",
         therapist: "Dr. Amit Kapoor (Psychiatrist)",
         location: "Kolkata, India",
-        image: '/people/indian6.jpg',
+        image: '/people/testimonial3.jpg',
     }
 ];
 

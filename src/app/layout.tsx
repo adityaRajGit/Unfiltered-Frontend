@@ -1,3 +1,4 @@
+import TrackPageView from "@/component/meta-pixel/TrackPageView";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 
@@ -196,8 +197,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             t.src=v;s=b.getElementsByTagName(e)[0];
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '2133226870826855');
-            fbq('track', 'PageView');
+            fbq('init', '2133226870826855')
           `}
         </Script>
 
@@ -211,6 +211,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           />
         </noscript>
         {children}
+        <TrackPageView />
       </body>
     </html>
   );

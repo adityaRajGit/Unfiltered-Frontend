@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { LoadingSpinnerWithOverlay } from '../global/Loading';
+import { fbLead } from '@/lib/PixelHelpers';
 
 interface FormData {
     name: string;
@@ -18,8 +19,9 @@ interface FormErrors {
     help?: string;
 }
 
-export default function TherapyPopupForm() {
-    const [isOpen, setIsOpen] = useState(true);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default function TherapyPopupForm({ popup, setPopup }: any) {
+    const [isOpen, setIsOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [loading, setLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -35,6 +37,12 @@ export default function TherapyPopupForm() {
     const dispatch = useDispatch()
 
     useEffect(() => {
+        setIsOpen(popup);
+        if (!popup) {
+            setTimeout(() => {
+                setIsOpen(true);
+            }, 2000)
+        }
         // Check if popup was recently closed
         const popupClosedAt = localStorage.getItem('popupClosedAt');
         const now = Date.now();
@@ -52,6 +60,7 @@ export default function TherapyPopupForm() {
     const handleClose = () => {
         setIsOpen(false);
         setIsSubmitted(false); // Reset for next time
+        setPopup(false)
         // Store close time in localStorage
         localStorage.setItem('popupClosedAt', Date.now().toString());
     };
@@ -108,6 +117,7 @@ export default function TherapyPopupForm() {
 
         setIsSubmitting(true);
         setLoading(true);
+        fbLead(formData)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const response = await dispatch(addIndividualForm(formData as any) as any);
         if (response?.error) {

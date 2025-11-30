@@ -1,4 +1,5 @@
 "use client";
+import { fbLead } from "@/lib/PixelHelpers";
 import { addLead } from "@/store/leadSlice";
 import { useState } from "react";
 import { FaPhone, FaEnvelope, FaBuilding, FaInfoCircle } from "react-icons/fa";
@@ -25,6 +26,8 @@ function ContactForm() {
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
+        fbLead(formData)
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const response = await dispatch(addLead(formData as any) as any);
         if (response?.error) {
