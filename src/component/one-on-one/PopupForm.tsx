@@ -37,25 +37,23 @@ export default function TherapyPopupForm({ popup, setPopup }: any) {
     const dispatch = useDispatch()
 
     useEffect(() => {
-        setIsOpen(popup);
-        if (!popup) {
-            setTimeout(() => {
-                setIsOpen(true);
-            }, 2000)
-        }
-        // Check if popup was recently closed
-        const popupClosedAt = localStorage.getItem('popupClosedAt');
-        const now = Date.now();
+    const popupClosedAt = localStorage.getItem('popupClosedAt');
+    const now = Date.now();
 
-        if (!popupClosedAt || (now - parseInt(popupClosedAt)) > 5 * 60 * 1000) {
-            // Show popup after 5 minutes
-            const timer = setTimeout(() => {
-                setIsOpen(true);
-            }, 5 * 60 * 1000); // 5 minutes
+    // If popup was closed within last 5 minutes → do nothing
+    if (popupClosedAt && now - Number(popupClosedAt) < 5 * 60 * 1000) {
+        return;
+    }
 
-            return () => clearTimeout(timer);
-        }
-    }, []);
+    // Show popup after 30 seconds
+    const timer = setTimeout(() => {
+        setIsOpen(true);
+        setPopup(true);
+    }, 30 * 1000); // 30 seconds
+
+    return () => clearTimeout(timer);
+}, []);
+
 
     const handleClose = () => {
         setIsOpen(false);
