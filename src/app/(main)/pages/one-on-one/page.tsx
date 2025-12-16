@@ -57,7 +57,7 @@ export default function SessionsPage() {
             {/* Final CTA */}
             <CTA />
 
-            <TherapyPopupForm />
+            <TherapyPopupForm popup={false} setPopup={() => { }} />
         </div>
     );
 }

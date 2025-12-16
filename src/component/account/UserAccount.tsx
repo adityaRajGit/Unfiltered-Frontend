@@ -243,7 +243,7 @@ const UserProfilePage = () => {
       setLoading(false)
       const therapists = response.payload.data.recommendedTherapist;
       const filtered = []
-      filtered.push(therapists)
+      filtered.push(therapists !== null ? therapists : {})
       setFilteredTherapists(filtered);
       setShowResults(true);
     }

@@ -9,6 +9,8 @@ import { TOKEN } from '@/utils/enum';
 import { decodeToken } from '@/utils/decodeToken';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import TherapyPopupForm from './PopupForm';
+import { fbPurchase } from '@/lib/PixelHelpers';
 
 const backend = process.env.NEXT_PUBLIC_BACKEND_URL
 
@@ -33,6 +35,7 @@ interface CurrencyInfo {
 
 function Plans() {
     const [loading, setLoading] = useState(true);
+    const [popup, setPopup] = useState(false)
     const dispatch = useDispatch()
     const [packages, setPackages] = useState<Package | []>([]);
     const [currency, setCurrency] = useState<CurrencyInfo>({ code: 'INR', symbol: '₹', conversionRate: 1 });
@@ -88,7 +91,7 @@ function Plans() {
             if (currencyInfo && currencyInfo.code !== 'INR') {
                 // Fetch conversion rate
                 const conversionRate = await fetchConversionRate(currencyInfo.code);
-                
+
                 setCurrency({
                     code: currencyInfo.code,
                     symbol: currencyInfo.symbol,
@@ -170,6 +173,11 @@ function Plans() {
         }
     };
 
+    function handlePopup(){
+        localStorage.removeItem("popupClosedAt")
+        setPopup(true)
+    }
+
     async function handleSubmit(plan: Package) {
         try {
             // setLoading(true);
@@ -220,6 +228,7 @@ function Plans() {
                             // console.log("response", response)
                             if (response.status === 200) {
                                 setLoading(true)
+                                fbPurchase(Number(amount.toFixed(0)), code)
                                 toast.success("Package Order Placed successfully")
                                 router.push('/pages/account')
                             } else {
@@ -258,7 +267,8 @@ function Plans() {
         <section id='plans' className="py-16">
             <div className="container mx-auto px-4">
                 <h2 className="text-3xl font-bold text-center text-gray-800 mb-4">Choose Your Healing Journey</h2>
-                <p className="text-center text-gray-600 mb-12">Select the program that matches your needs and goals</p>
+                <p className="text-center text-gray-600 mb-1">Select the program that matches your needs and goals</p>
+                 <p className='text-gray-600 font-semibold mt-2 text-center mb-14'>We Suggest you to take a Discovery Call first before Booking a Plan. <span onClick={handlePopup} className='text-[#03978a] cursor-pointer md:hover:underline md:hover:underline-offset-2'>Click Here</span></p>
 
                 {
                     loading
@@ -345,6 +355,7 @@ function Plans() {
                                             <button onClick={() => handleSubmit(plan)} className="w-full bg-[#03978a] text-white py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors duration-300">
                                                 Book Now - Limited Spots
                                             </button>
+                                            <p className='text-xs font-semibold mt-2'>We Suggest you to take a Discovery Call first before Booking a Plan. <span onClick={handlePopup} className='text-[#03978a] cursor-pointer md:hover:underline md:hover:underline-offset-2'>Click Here</span></p>
                                         </div>
                                     </div>
                                 ))}
@@ -354,6 +365,9 @@ function Plans() {
 
 
             </div>
+            {
+                popup && <TherapyPopupForm popup={popup} setPopup={setPopup} />
+            }
         </section>
     )
 }
