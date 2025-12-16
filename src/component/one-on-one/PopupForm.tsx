@@ -48,7 +48,7 @@ export default function TherapyPopupForm({ popup, setPopup }: any) {
     // Show popup after 30 seconds
     const timer = setTimeout(() => {
         setIsOpen(true);
-        setPopup(true);
+        setPopup(popup);
     }, 30 * 1000); // 30 seconds
 
     return () => clearTimeout(timer);
