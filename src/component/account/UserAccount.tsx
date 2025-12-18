@@ -243,9 +243,13 @@ const UserProfilePage = () => {
       setLoading(false)
       const therapists = response.payload.data.recommendedTherapist;
       const filtered = []
-      filtered.push(therapists !== null ? therapists : {})
-      setFilteredTherapists(filtered);
-      setShowResults(true);
+      if (therapists !== null) {
+        filtered.push(therapists)
+        setFilteredTherapists(filtered);
+        setShowResults(true);
+      }else{
+        toast.error('No therapist found for this criteria !!')
+      }
     }
   }
 
@@ -1282,13 +1286,13 @@ const UserProfilePage = () => {
                       </div>
                       <div className="flex flex-col gap-1 md:gap-2 flex-shrink-0">
                         <button onClick={() => {
-                          if(user?.role === 'user' && user?.sessions_balance === 0) {
+                          if (user?.role === 'user' && user?.sessions_balance === 0) {
                             toast.error('You have no Active Package')
-                            return 
+                            return
                           }
                           handleOpenBookingPopup(appointment.therapist_id._id, 'book')
-                        }} 
-                        className="text-xs text-teal-600 hover:text-teal-800">
+                        }}
+                          className="text-xs text-teal-600 hover:text-teal-800">
                           Book Again
                         </button>
                       </div>
