@@ -17,6 +17,8 @@ import { getTherapistSpecialisationAndTiming, recommendTherapist } from '@/store
 import { bookAppointmentFunc, getPastAppointmentsApi, getUpComingAppointments } from '@/store/appoinment';
 import BookingCalendar from './BookAppointmentPoup';
 import NoActivePackage from './NoActivePackage';
+import { NotesIcon } from './AppointmentList';
+import { NotesModal } from './NotesModal';
 
 interface User {
   name: string;
@@ -77,7 +79,8 @@ interface UpcomingAppointment {
   scheduled_at: string;
   appointment_status: 'scheduled' | 'completed';
   meet_link: string;
-  is_deleted: boolean
+  is_deleted: boolean;
+  is_notes: boolean;
 }
 
 
@@ -113,7 +116,8 @@ const UserProfilePage = () => {
   const [timings, setTimings] = useState([]);
   const [bookAgainPopup, setBookAgainPopup] = useState(false);
   const [bookAgainType, setBookAgainType] = useState('');
-
+  const [selectedAppointmentForNotes, setSelectedAppointmentForNotes] = useState<UpcomingAppointment | null>(null);
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const generateSlotsFromIntervals = (intervals: any) => {
@@ -140,6 +144,12 @@ const UserProfilePage = () => {
     setBookAgainType(type);
     setSelectedAppointment(appointmentId ?? "")
   }
+
+
+  const handleOpenNotes = (appointment: UpcomingAppointment) => {
+    setSelectedAppointmentForNotes(appointment);
+    setIsNotesModalOpen(true);
+  };
 
   // Handle language selection
   const handleLanguageSelect = (language: string) => {
@@ -247,7 +257,7 @@ const UserProfilePage = () => {
         filtered.push(therapists)
         setFilteredTherapists(filtered);
         setShowResults(true);
-      }else{
+      } else {
         toast.error('No therapist found for this criteria !!')
       }
     }
@@ -1184,6 +1194,16 @@ const UserProfilePage = () => {
                             }`}>
                             {appointment.appointment_status}
                           </span>
+                          <button
+                            onClick={() => handleOpenNotes(appointment)}
+                            className={`flex items-center ml-2 py-2 px-3 text-sm text-white justify-center rounded-md cursor-pointer md:hover:scale-105 duration-300 ease-in-out ${appointment.is_notes ? 'bg-[#009689]' : 'bg-teal-500'}`}
+                          >
+                            <NotesIcon />
+                            <span className="ml-2">
+                              View Notes
+                            </span>
+
+                          </button>
                           {/* <span className="text-xs md:text-sm text-gray-600">
                             {appointment.therapist_id.session_details.duration} min
                           </span> */}
@@ -1267,10 +1287,20 @@ const UserProfilePage = () => {
                             </span>
                           </div>
                         </div>
-                        <div className="flex items-center mt-2 gap-2 md:gap-3">
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        <div className="flex items-center mt-4 gap-2 md:gap-3">
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                             Completed
                           </span>
+                          <button
+                            onClick={() => handleOpenNotes(appointment)}
+                            className={`flex items-center ml-2 py-2 px-3 text-sm text-white justify-center rounded-md cursor-pointer md:hover:scale-105 duration-300 ease-in-out ${appointment.is_notes ? 'bg-[#009689]' : 'bg-teal-500'}`}
+                          >
+                            <NotesIcon />
+                            <span className="ml-2">
+                              View Notes
+                            </span>
+
+                          </button>
                           {/* <div className="flex items-center">
                             {[...Array(5)].map((_, i) => (
                               <FaStar
@@ -1313,6 +1343,18 @@ const UserProfilePage = () => {
           </div>
         </div>
       </div>
+      {
+        isNotesModalOpen && (
+          <NotesModal
+            onClose={() => { setIsNotesModalOpen(false); setSelectedAppointmentForNotes(null) }}
+            // @ts-ignore
+            appointment={selectedAppointmentForNotes}
+            onSaveNote={() => { }}
+            therapistName={""}
+            isPast={false}
+          />
+        )
+      }
     </div >
   );
 };

@@ -1047,13 +1047,18 @@ export default function TherapistProfile() {
                     appointments={upcomingAppointments}
                     emptyMessage="No upcoming appointments"
                     emptyDescription="You don't have any scheduled appointments yet."
+                    isPast={false}
+                    therapistName={therapist.name}
+                    functionToCall={getUpcomingAppointments}
                   />
                 ) : (
                   <AppointmentList
                     appointments={pastAppointments}
                     emptyMessage="No past appointments"
                     emptyDescription="Your completed appointments will appear here."
-                    isPast
+                    isPast={true}
+                    therapistName={therapist.name}
+                    functionToCall={getPastAppointments}
                   />
                 )}
               </div>
