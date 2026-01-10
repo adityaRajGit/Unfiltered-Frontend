@@ -21,7 +21,7 @@ const verifyOtp = createAsyncThunk("otp/verify-otp", async (data) => {
         return response.data
     } catch (error) {
         if (error.response) {
-            throw error.response.data.data.message
+            throw error.response.data.message
         }
         throw error.message || "An unexpected error occurred"
     }

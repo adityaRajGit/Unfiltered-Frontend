@@ -542,7 +542,7 @@ const AuthPages = () => {
 
           {isLogin && (
             <div className="flex justify-end items-center mb-6">
-              <Link href="/forgot-password" className="text-sm text-teal-600 hover:text-teal-800 transition-colors">
+              <Link href="/pages/login/forgot-password" className="text-sm text-teal-600 hover:text-teal-800 transition-colors">
                 Forgot password?
               </Link>
             </div>
