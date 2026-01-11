@@ -464,7 +464,7 @@ export default function ForgotPasswordPage() {
                                     ) : 'Verify & Continue'}
                                 </button>
 
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-end">
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -474,16 +474,6 @@ export default function ForgotPasswordPage() {
                                         className="text-teal-600 hover:text-teal-800 font-medium transition-colors"
                                     >
                                         ← Use different email
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            startCountdown();
-                                        }}
-                                        disabled={countdown > 0}
-                                        className="text-teal-600 hover:text-teal-800 font-medium disabled:text-gray-400 transition-colors"
-                                    >
-                                        Resend code {countdown > 0 && `(${Math.ceil(countdown / 60)} min)`}
                                     </button>
                                 </div>
                             </div>
