@@ -109,7 +109,6 @@ function HeroSection() {
 
   ];
 
-  // Auto-play functionality
   useEffect(() => {
     if (!isAutoPlaying || isTransitioning) return;
 
