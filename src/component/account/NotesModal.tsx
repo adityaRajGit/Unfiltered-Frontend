@@ -53,7 +53,7 @@ export const NotesModal = ({ onClose, appointment, onSaveNote, therapistName, is
   const [notes, setNotes] = useState([])
   const dispatch = useDispatch()
 
-  console.log("appointment", appointment)
+  // console.log("appointment", appointment)
   // if (!isOpen || !appointment) return null;
   const client = typeof appointment.user_id === 'string' ? appointment.therapist_id : appointment.user_id
 

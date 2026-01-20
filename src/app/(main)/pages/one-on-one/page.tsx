@@ -11,6 +11,7 @@ import Testimonials from '@/component/one-on-one/Testimonials';
 import CTA from '@/component/one-on-one/CTA';
 import { useEffect } from 'react';
 import TherapyPopupForm from '@/component/one-on-one/PopupForm';
+import BudgetPackage from '@/component/one-on-one/BudgetPackage';
 
 // Note: Since this is a client component, metadata should be added via next/head or parent layout
 // For SEO, consider converting to server component or adding dynamic metadata
@@ -18,7 +19,7 @@ import TherapyPopupForm from '@/component/one-on-one/PopupForm';
 export default function SessionsPage() {
     useEffect(() => {
         const data = JSON.parse(sessionStorage.getItem("redirectInfo") || "{}");
-        if (data.from) {
+        if (data.from === "user") {
             setTimeout(() => {
                 const section = document.getElementById("plans");
                 if (section) {
@@ -27,6 +28,15 @@ export default function SessionsPage() {
             }, 300);
             // clear after use
             sessionStorage.removeItem("redirectInfo");
+        } else {
+            setTimeout(() => {
+                const section = document.getElementById("budgetFriendly");
+                if (section) {
+                    section.scrollIntoView({ behavior: "smooth" });
+                }
+            }, 300);
+            // clear after use
+            sessionStorage.removeItem("redirectInfo")
         }
     }, [])
 
@@ -48,6 +58,8 @@ export default function SessionsPage() {
 
             {/* Success Metrics */}
             <Metrices />
+
+            <BudgetPackage />
 
             <HealingSection />
 

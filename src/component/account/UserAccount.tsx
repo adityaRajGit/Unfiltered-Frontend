@@ -426,7 +426,7 @@ const UserProfilePage = () => {
       toast.error(response.error.message)
     } else {
       setLoading(false)
-      console.log(response.payload.data.user)
+      // console.log(response.payload.data.user)
       setUser(response.payload.data.user)
       setTempUserData(response.payload.data.user)
     }

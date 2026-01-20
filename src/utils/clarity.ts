@@ -7,7 +7,7 @@ import clarity from '@microsoft/clarity';
 export const initClarity = (projectId: string) => {
   if (typeof window !== 'undefined' && projectId) {
     clarity.init(projectId);
-    console.log('Microsoft Clarity initialized with project ID:', projectId);
+    // console.log('Microsoft Clarity initialized with project ID:', projectId);
   }
 };
 

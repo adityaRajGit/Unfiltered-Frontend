@@ -27,11 +27,47 @@ interface Package {
     popular?: boolean;
 }
 
-interface CurrencyInfo {
+export interface CurrencyInfo {
     code: string;
     symbol: string;
     conversionRate: number;
 }
+
+export const countryCurrencyMap = {
+    AT: { code: "EUR", symbol: "€" }, // Austria
+    BE: { code: "EUR", symbol: "€" }, // Belgium
+    BG: { code: "BGN", symbol: "лв" }, // Bulgaria
+    HR: { code: "EUR", symbol: "€" }, // Croatia
+    CY: { code: "EUR", symbol: "€" }, // Cyprus
+    CZ: { code: "CZK", symbol: "Kč" }, // Czech Republic
+    DK: { code: "DKK", symbol: "kr" }, // Denmark
+    EE: { code: "EUR", symbol: "€" }, // Estonia
+    FI: { code: "EUR", symbol: "€" }, // Finland
+    FR: { code: "EUR", symbol: "€" }, // France
+    DE: { code: "EUR", symbol: "€" }, // Germany
+    GR: { code: "EUR", symbol: "€" }, // Greece
+    HU: { code: "HUF", symbol: "Ft" }, // Hungary
+    IS: { code: "ISK", symbol: "kr" }, // Iceland
+    IE: { code: "EUR", symbol: "€" }, // Ireland
+    IT: { code: "EUR", symbol: "€" }, // Italy
+    LV: { code: "EUR", symbol: "€" }, // Latvia
+    LT: { code: "EUR", symbol: "€" }, // Lithuania
+    LU: { code: "EUR", symbol: "€" }, // Luxembourg
+    MT: { code: "EUR", symbol: "€" }, // Malta
+    NL: { code: "EUR", symbol: "€" }, // Netherlands
+    NO: { code: "NOK", symbol: "kr" }, // Norway
+    PL: { code: "PLN", symbol: "zł" }, // Poland
+    PT: { code: "EUR", symbol: "€" }, // Portugal
+    RO: { code: "RON", symbol: "lei" }, // Romania
+    SK: { code: "EUR", symbol: "€" }, // Slovakia
+    SI: { code: "EUR", symbol: "€" }, // Slovenia
+    ES: { code: "EUR", symbol: "€" }, // Spain
+    SE: { code: "SEK", symbol: "kr" }, // Sweden
+    CH: { code: "CHF", symbol: "CHF" }, // Switzerland
+    GB: { code: "GBP", symbol: "£" }, // United Kingdom
+    US: { code: "USD", symbol: "$" }, // United States
+    IN: { code: "INR", symbol: "₹" }, // India
+};
 
 function Plans() {
     const [loading, setLoading] = useState(true);
@@ -40,42 +76,6 @@ function Plans() {
     const [packages, setPackages] = useState<Package | []>([]);
     const [currency, setCurrency] = useState<CurrencyInfo>({ code: 'INR', symbol: '₹', conversionRate: 1 });
     const router = useRouter()
-
-    const countryCurrencyMap = {
-        AT: { code: "EUR", symbol: "€" }, // Austria
-        BE: { code: "EUR", symbol: "€" }, // Belgium
-        BG: { code: "BGN", symbol: "лв" }, // Bulgaria
-        HR: { code: "EUR", symbol: "€" }, // Croatia
-        CY: { code: "EUR", symbol: "€" }, // Cyprus
-        CZ: { code: "CZK", symbol: "Kč" }, // Czech Republic
-        DK: { code: "DKK", symbol: "kr" }, // Denmark
-        EE: { code: "EUR", symbol: "€" }, // Estonia
-        FI: { code: "EUR", symbol: "€" }, // Finland
-        FR: { code: "EUR", symbol: "€" }, // France
-        DE: { code: "EUR", symbol: "€" }, // Germany
-        GR: { code: "EUR", symbol: "€" }, // Greece
-        HU: { code: "HUF", symbol: "Ft" }, // Hungary
-        IS: { code: "ISK", symbol: "kr" }, // Iceland
-        IE: { code: "EUR", symbol: "€" }, // Ireland
-        IT: { code: "EUR", symbol: "€" }, // Italy
-        LV: { code: "EUR", symbol: "€" }, // Latvia
-        LT: { code: "EUR", symbol: "€" }, // Lithuania
-        LU: { code: "EUR", symbol: "€" }, // Luxembourg
-        MT: { code: "EUR", symbol: "€" }, // Malta
-        NL: { code: "EUR", symbol: "€" }, // Netherlands
-        NO: { code: "NOK", symbol: "kr" }, // Norway
-        PL: { code: "PLN", symbol: "zł" }, // Poland
-        PT: { code: "EUR", symbol: "€" }, // Portugal
-        RO: { code: "RON", symbol: "lei" }, // Romania
-        SK: { code: "EUR", symbol: "€" }, // Slovakia
-        SI: { code: "EUR", symbol: "€" }, // Slovenia
-        ES: { code: "EUR", symbol: "€" }, // Spain
-        SE: { code: "SEK", symbol: "kr" }, // Sweden
-        CH: { code: "CHF", symbol: "CHF" }, // Switzerland
-        GB: { code: "GBP", symbol: "£" }, // United Kingdom
-        US: { code: "USD", symbol: "$" }, // United States
-        IN: { code: "INR", symbol: "₹" }, // India
-    };
 
 
     const fetchLocation = async () => {
@@ -173,7 +173,7 @@ function Plans() {
         }
     };
 
-    function handlePopup(){
+    function handlePopup() {
         localStorage.removeItem("popupClosedAt")
         setPopup(true)
     }
@@ -267,8 +267,12 @@ function Plans() {
         <section id='plans' className="py-16">
             <div className="container mx-auto px-4">
                 <h2 className="text-3xl font-bold text-center text-gray-800 mb-4">Choose Your Healing Journey</h2>
-                <p className="text-center text-gray-600 mb-1">Select the program that matches your needs and goals</p>
-                 <p className='text-gray-600 font-semibold mt-2 text-center mb-14'>We Suggest you to take a Discovery Call first before Booking a Plan. <span onClick={handlePopup} className='text-[#03978a] cursor-pointer md:hover:underline md:hover:underline-offset-2'>Click Here</span></p>
+                <p className="text-center text-gray-600 mb-1">Select the program that matches your needs and goals. Explore Budget Friendly Packages.
+                    <span
+                        onClick={() => document.getElementById("budgetFriendly")?.scrollIntoView({
+                            behavior: "smooth",
+                        })} className='text-[#03978a] cursor-pointer md:hover:underline md:hover:underline-offset-2'>Click Here</span> </p>
+                <p className='text-gray-600 font-semibold mt-2 text-center mb-14'>We Suggest you to take a Discovery Call first before Booking a Plan. <span onClick={handlePopup} className='text-[#03978a] cursor-pointer md:hover:underline md:hover:underline-offset-2'>Click Here</span></p>
 
                 {
                     loading

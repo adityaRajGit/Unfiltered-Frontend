@@ -64,7 +64,7 @@ function TherapistsSection() {
             if (response?.error) {
                 toast.error(response.error.message);
             } else if (response.payload?.data) {
-                console.log(response.payload.data)
+                // console.log(response.payload.data)
                 setTherapists(response.payload.data.therapistList);
                 const therapistCount = response.payload.data.therapistCount;
                 const totalPages = Math.ceil(therapistCount / pagination.pageSize);
@@ -194,6 +194,8 @@ function TherapistsSection() {
                                                 {
                                                     therapist.profile_image
                                                         ? <Image
+                                                            width={45}
+                                                            height={45}
                                                             className="h-12 w-12 rounded-full object-cover border-2 border-teal-100"
                                                             src={therapist.profile_image}
                                                             alt={therapist.name}
@@ -382,6 +384,8 @@ function TherapistsSection() {
                                     <div className="h-16 w-16 flex-shrink-0">
                                         {selectedTherapist.profile_image ? (
                                             <Image
+                                                width={100}
+                                                height={100}
                                                 className="h-16 w-16 rounded-full object-cover border-2 border-white"
                                                 src={selectedTherapist.profile_image}
                                                 alt={selectedTherapist.name}

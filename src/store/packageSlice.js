@@ -22,11 +22,7 @@ const addPackage = createAsyncThunk("package/add-package", async (data) => {
 
 const listPackage = createAsyncThunk("package/list-package", async (data) => {
     try {
-        const response = await axios.post(`${backend}/package/list`, data, {
-            headers: {
-                Authorization: `Bearer ${JSON.parse(localStorage.getItem(ADMINTOKEN))}`
-            },
-        })
+        const response = await axios.post(`${backend}/package/list`, data)
         return response.data
     } catch (error) {
         if (error.response) {

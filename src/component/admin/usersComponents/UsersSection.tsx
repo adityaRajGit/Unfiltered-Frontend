@@ -207,6 +207,8 @@ function UsersSection() {
                                                 {
                                                     user.profile_image
                                                         ? <Image
+                                                            width={48}
+                                                            height={48}
                                                             className="h-12 w-12 rounded-full object-cover border-2 border-teal-100"
                                                             src={user.profile_image}
                                                             alt={user.name}
@@ -406,6 +408,8 @@ function UsersSection() {
                                     <div className="h-16 w-16 flex-shrink-0">
                                         {selectedUser.profile_image ? (
                                             <Image
+                                                width={100}
+                                                height={100}
                                                 className="h-16 w-16 rounded-full object-cover border-2 border-white"
                                                 src={selectedUser.profile_image}
                                                 alt={selectedUser.name}

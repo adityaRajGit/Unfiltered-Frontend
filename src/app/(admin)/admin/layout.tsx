@@ -20,12 +20,12 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
+    // <html lang="en">
+    //   <body>
         <Providers >
           <main className="">{children}</main>
         </Providers>
-      </body>
-    </html>
+    //   </body>
+    // </html>
   );
 }
