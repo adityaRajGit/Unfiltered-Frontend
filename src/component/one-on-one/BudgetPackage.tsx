@@ -14,6 +14,7 @@ import { countryCurrencyMap, CurrencyInfo } from './Plans';
 import { bookPackage } from '@/store/paymentSlice';
 import axios from 'axios';
 import { fbPurchase } from '@/lib/PixelHelpers';
+import TherapyPopupForm from './PopupForm';
 
 const backend = process.env.NEXT_PUBLIC_BACKEND_URL
 
@@ -31,6 +32,7 @@ export default function BudgetPackage() {
     const [currency, setCurrency] = useState<CurrencyInfo>({ code: 'INR', symbol: '₹', conversionRate: 1 });
 
     const dispatch = useDispatch();
+    const [popup, setPopup] = useState(false)
     const router = useRouter()
     const [sessions, setSessions] = useState(1);
     const maxSessions = 5;
@@ -47,6 +49,11 @@ export default function BudgetPackage() {
             setSessions(prev => prev - 1);
         }
     };
+
+    function handlePopup() {
+        localStorage.removeItem("popupClosedAt")
+        setPopup(true)
+    }
 
     const calculateSavingsPercentage = () => {
         return Math.round(((packageDetails.realPrice - packageDetails.discountedPrice) / packageDetails.realPrice) * 100);
@@ -246,96 +253,106 @@ export default function BudgetPackage() {
                 <p className="text-gray-600 mt-2 max-w-2xl mx-auto">
                     Premium quality at an accessible price point
                 </p>
+                <p className='text-gray-600 font-semibold mt-2 text-center mb-14'>Free Discovery Call. <span onClick={handlePopup} className='text-[#03978a] cursor-pointer md:hover:underline md:hover:underline-offset-2'>Click Here</span></p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column - Package Card */}
+            <div className="grid grid-cols-1 gap-8 max-w-5xl mx-auto">
                 <div className="lg:col-span-2 relative">
-
                     {loading && (
                         <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-2xl">
                             <LoadingSpinnerWithoutOverlay />
                         </div>
                     )}
-                    {/* Package Card */}
-                    <div className={`bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden h-full ${loading ? 'blur-sm pointer-events-none' : ''}
-    transition-all duration-300`}>
-                        {/* Card Header */}
-                        <div className="bg-gradient-to-r from-[#009689] to-[#00b09b] p-6 text-white">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h2 className="text-2xl font-bold">{packageDetails.name}</h2>
-                                    <div className="flex flex-col md:flex-row md:items-center gap-4 mt-2">
-                                        <div className="flex  items-center gap-1">
-                                            <TrendingUp className="w-4 h-4" />
-                                            <span>{packageDetails.total_sessions} sessions included</span>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                                            </svg>
-                                            <span>Money-back guarantee</span>
-                                        </div>
+
+                    {/* Horizontal Card Container */}
+                    <div className={`flex flex-col lg:flex-row bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden h-full ${loading ? 'blur-sm pointer-events-none' : ''} transition-all duration-300`}>
+
+                        {/* Left Side - Teal Color */}
+                        <div className="lg:w-2/5 bg-gradient-to-br from-[#009689] to-[#00b09b] p-8 text-white flex flex-col">
+                            {/* Header Content */}
+                            <div className="mb-6">
+                                <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1 inline-block mb-4">
+                                    <span className="font-bold">Save {calculateSavingsPercentage()}%</span>
+                                </div>
+
+                                <h2 className="text-3xl font-bold mb-4">{packageDetails.name}</h2>
+
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                        <TrendingUp className="w-5 h-5" />
+                                        <span className="text-white/90">{packageDetails.total_sessions} sessions included</span>
                                     </div>
                                 </div>
-                                <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1">
-                                    <span className="font-bold">Save {calculateSavingsPercentage()}%</span>
+                            </div>
+
+                            {/* Price Section on Left */}
+                            <div className="mt-auto">
+                                <div className="mb-4">
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-4xl font-bold">₹{packageDetails.discountedPrice}</span>
+                                        <span className="text-white/70 line-through">₹{packageDetails.realPrice}</span>
+                                    </div>
+                                    <p className="text-white/80 mt-2">Save ₹{(packageDetails.realPrice - packageDetails.discountedPrice).toFixed(2)}</p>
+                                </div>
+
+                                {/* Features List in Teal Section */}
+                                <div className="mb-6">
+                                    <h3 className="text-lg font-semibold mb-3">Key Features</h3>
+                                    <ul className="space-y-3">
+                                        {packageDetails.points.slice(0,2).map((point: any, index: any) => (
+                                            <li key={index} className="flex items-start gap-3">
+                                                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                    <Check className="w-3 h-3 text-white" />
+                                                </div>
+                                                <span className="text-white/90">{point}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Card Body */}
-                        <div className="p-6">
-                            {/* Price Section */}
-                            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                                <div className="flex flex-col md:flex-row md:items-end justify-between mb-4 gap-4">
+                        {/* Right Side - White Color */}
+                        <div className="lg:w-3/5 p-8">
+                            {/* Session Selector */}
+                            <div className="mb-8">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                                     <div>
-                                        <div className="flex items-baseline gap-2 flex-wrap">
-                                            <span className="text-4xl font-bold text-gray-900">
-                                                ₹{packageDetails.discountedPrice}
-                                            </span>
-                                            <span className="text-gray-500 line-through">
-                                                ₹{packageDetails.realPrice}
-                                            </span>
-                                            <span className="text-sm font-medium text-[#009689] bg-[#009689]/10 px-2 py-1 rounded">
-                                                Save ₹{(packageDetails.realPrice - packageDetails.discountedPrice).toFixed(2)}
-                                            </span>
-                                        </div>
+                                        <h3 className="text-lg font-semibold text-gray-800 mb-2">Select Number of Sessions</h3>
+                                        <p className="text-gray-600">Choose how many sessions you want to purchase</p>
                                     </div>
 
-                                    {/* Session Selector */}
                                     <div className="flex items-center gap-4">
                                         <div className="text-right">
-                                            <p className="text-sm text-gray-600 mb-1">Number of Sessions</p>
                                             <div className="flex items-center gap-3">
                                                 <button
                                                     onClick={handleSessionDecrease}
                                                     disabled={sessions <= minSessions}
-                                                    className={`w-8 h-8 rounded-full flex items-center justify-center ${sessions <= minSessions
-                                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                        : 'bg-[#009689] text-white hover:bg-[#007d71]'
+                                                    className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${sessions <= minSessions
+                                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                            : 'bg-[#009689] text-white hover:bg-[#007d71]'
                                                         }`}
                                                 >
                                                     −
                                                 </button>
-                                                <span className="text-xl font-bold min-w-[40px] text-center">
+                                                <span className="text-2xl font-bold min-w-[50px] text-center">
                                                     {sessions}
                                                 </span>
                                                 <button
                                                     onClick={handleSessionIncrease}
                                                     disabled={sessions >= maxSessions}
-                                                    className={`w-8 h-8 rounded-full flex items-center justify-center ${sessions >= maxSessions
-                                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                                        : 'bg-[#009689] text-white hover:bg-[#007d71]'
+                                                    className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${sessions >= maxSessions
+                                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                                            : 'bg-[#009689] text-white hover:bg-[#007d71]'
                                                         }`}
                                                 >
                                                     +
                                                 </button>
                                             </div>
-                                            <p className="text-xs text-gray-500 mt-1">
+                                            <p className="text-sm text-gray-500 mt-2">
                                                 {sessions === maxSessions
                                                     ? 'Maximum sessions reached'
-                                                    : `Up to ${maxSessions} sessions available`}
+                                                    : `${minSessions} - ${maxSessions} sessions available`}
                                             </p>
                                         </div>
                                     </div>
@@ -358,33 +375,8 @@ export default function BudgetPackage() {
                                 </div>
                             </div>
 
-                            {/* Description */}
-                            <div className="mb-6">
-                                <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                                    What's Included
-                                </h3>
-                                <p className="text-gray-600">{packageDetails.description}</p>
-                            </div>
-
-                            {/* Features List */}
-                            <div className="mb-6">
-                                <h3 className="text-lg font-semibold text-gray-800 mb-3">
-                                    Key Features
-                                </h3>
-                                <ul className="space-y-3">
-                                    {packageDetails.points.map((point: any, index: any) => (
-                                        <li key={index} className="flex items-start gap-3">
-                                            <div className="w-5 h-5 rounded-full bg-[#009689]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                <Check className="w-3 h-3 text-[#009689]" />
-                                            </div>
-                                            <span className="text-gray-700">{point}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-
                             {/* Result Check */}
-                            <div className="mb-6 p-4 bg-[#009689]/5 rounded-lg border border-[#009689]/20">
+                            <div className="mb-8 p-4 bg-[#009689]/5 rounded-lg border border-[#009689]/20">
                                 <div className="flex items-start gap-3">
                                     <Star className="w-5 h-5 text-[#009689] flex-shrink-0 mt-0.5" />
                                     <div>
@@ -394,122 +386,49 @@ export default function BudgetPackage() {
                                 </div>
                             </div>
 
-                            {/* Buy Button Inside Card */}
+                            {/* Price Summary & Buy Button */}
                             <div className="mt-8 pt-6 border-t border-gray-200">
-                                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                                    <div>
-                                        <p className="text-lg font-bold text-gray-900">
+                                <div className="flex flex-col sm:flex-row gap-6 items-center justify-between">
+                                    <div className="text-center sm:text-left">
+                                        <p className="text-2xl font-bold text-gray-900 mb-1">
                                             Total: ₹{packageDetails.discountedPrice}
                                         </p>
-                                        <p className="text-sm text-gray-600">
-                                            {sessions} session{sessions > 1 ? 's' : ''} • {calculateSavingsPercentage()}% savings
-                                        </p>
+                                        <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
+                                            <p className="text-gray-600">
+                                                {sessions} session{sessions > 1 ? 's' : ''}
+                                            </p>
+                                            <span className="text-sm font-medium text-[#009689] bg-[#009689]/10 px-2 py-1 rounded">
+                                                {calculateSavingsPercentage()}% savings
+                                            </span>
+                                        </div>
                                     </div>
-                                    <button onClick={() => handleSubmit(packageDetails)} className="w-full sm:w-auto bg-gradient-to-r from-[#009689] to-[#00b09b] text-white py-3 px-8 rounded-lg font-semibold hover:from-[#007d71] hover:to-[#009689] transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                    <button
+                                        onClick={() => handleSubmit(packageDetails)}
+                                        className="w-full sm:w-auto bg-gradient-to-r from-[#009689] to-[#00b09b] text-white py-4 px-10 rounded-lg font-semibold hover:from-[#007d71] hover:to-[#009689] transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-lg"
+                                    >
                                         Buy Now
                                     </button>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
 
-                <div className="space-y-6">
-                    {/* Who Is This For? */}
-                    <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 shadow-lg border border-gray-200">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 rounded-full bg-[#009689]/10 flex items-center justify-center">
-                                <svg className="w-5 h-5 text-[#009689]" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-gray-800">Perfect For Budget-Conscious People</h3>
-                                <p className="text-sm text-gray-600">Who should choose this plan?</p>
+                            {/* Additional Info */}
+                            <div className="mt-6 text-center sm:text-left">
+                                <p className="text-sm text-gray-500">
+                                    <span className="inline-flex items-center gap-1">
+                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                                        </svg>
+                                        Secure payment • 24/7 support • Free consultation
+                                    </span>
+                                </p>
                             </div>
                         </div>
-
-                        <div className="space-y-3">
-                            <div className="p-3 bg-white rounded-lg border border-gray-100">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-[#009689]/10 flex items-center justify-center flex-shrink-0">
-                                        <span className="text-[#009689] font-bold">👤</span>
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-gray-800">Students & Beginners</p>
-                                        <p className="text-sm text-gray-600">Limited budget, want to test quality first</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="p-3 bg-white rounded-lg border border-gray-100">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-[#009689]/10 flex items-center justify-center flex-shrink-0">
-                                        <span className="text-[#009689] font-bold">💼</span>
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-gray-800">Freelancers & Startups</p>
-                                        <p className="text-sm text-gray-600">Variable income, need flexible payment</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="p-3 bg-white rounded-lg border border-gray-100">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-[#009689]/10 flex items-center justify-center flex-shrink-0">
-                                        <span className="text-[#009689] font-bold">🎯</span>
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-gray-800">Goal-Oriented Individuals</p>
-                                        <p className="text-sm text-gray-600">Want to start small, scale based on results</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="p-3 bg-white rounded-lg border border-gray-100">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-[#009689]/10 flex items-center justify-center flex-shrink-0">
-                                        <span className="text-[#009689] font-bold">💰</span>
-                                    </div>
-                                    <div>
-                                        <p className="font-medium text-gray-800">Value Seekers</p>
-                                        <p className="text-sm text-gray-600">Want premium quality at affordable prices</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Want a Full Package? */}
-                    <div className="bg-gradient-to-r from-[#009689]/10 to-white rounded-2xl p-6 shadow-lg border border-[#009689]/20">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-12 h-12 rounded-full bg-[#009689] flex items-center justify-center">
-                                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-gray-800">Want a Full Package?</h3>
-                                <p className="text-sm text-gray-600">Explore our comprehensive plans</p>
-                            </div>
-                        </div>
-
-                        <p className="text-gray-700 mb-4">
-                            If you need more than 5 sessions or want a complete, all-inclusive package with additional benefits,
-                            we have premium plans that might better suit your needs.
-                        </p>
-                        <button onClick={() => document.getElementById("plans")?.scrollIntoView({
-                            behavior: "smooth",
-                        })} className="w-full bg-white text-[#009689] border-2 border-[#009689] py-3 px-6 rounded-lg font-semibold hover:bg-[#009689]/5 transition-all duration-200">
-                            View All Package Options
-                        </button>
-
-                        <p className="text-center text-sm text-gray-500 mt-3">
-                            Already know what you need? <a href="#" className="text-[#009689] font-medium hover:underline">Contact us for custom plans</a>
-                        </p>
                     </div>
                 </div>
             </div>
+            {
+                popup && <TherapyPopupForm popup={popup} setPopup={setPopup} />
+            }
         </div>
     );
 }

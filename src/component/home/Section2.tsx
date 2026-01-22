@@ -102,7 +102,7 @@ function Section2() {
 
                 <div className="mt-16 text-center">
                     <Link
-                        href="/therapy"
+                        href="/pages/one-on-one"
                         className="inline-flex items-center px-8 py-3 bg-teal-600 text-white font-medium rounded-full hover:bg-teal-700 transition-colors"
                     >
                         Explore All Therapy Options

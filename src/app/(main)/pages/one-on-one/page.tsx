@@ -48,6 +48,8 @@ export default function SessionsPage() {
             {/* Limited Time Offer Banner */}
             <TimeOffer />
 
+            <BudgetPackage />
+
             {/* Benefits Section */}
             <BenefitsSection />
 
@@ -59,7 +61,6 @@ export default function SessionsPage() {
             {/* Success Metrics */}
             <Metrices />
 
-            <BudgetPackage />
 
             <HealingSection />
 
