@@ -17,7 +17,7 @@ function Testimonials() {
     const testimonials: Testimonial[] = [
         {
             id: 1,
-            name: "Priya Sharma",
+            name: "Saanvi Goel",
             age: 28,
             location: "Mumbai",
             plan: "The Reset",
@@ -28,7 +28,7 @@ function Testimonials() {
         },
         {
             id: 2,
-            name: "Rahul Mehta",
+            name: "Vihan Jain",
             age: 35,
             location: "Delhi",
             plan: "The Transformation",
@@ -39,7 +39,7 @@ function Testimonials() {
         },
         {
             id: 3,
-            name: "Ananya Patel",
+            name: "Prisha Narayan",
             age: 42,
             location: "Bangalore",
             plan: "The Elite Journey",
@@ -50,7 +50,7 @@ function Testimonials() {
         },
         {
             id: 4,
-            name: "Sanjay Kumar",
+            name: "Rudvik Agarwal",
             age: 31,
             location: "Chennai",
             plan: "The Reset",

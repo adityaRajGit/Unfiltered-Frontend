@@ -12,6 +12,7 @@ import CTA from '@/component/one-on-one/CTA';
 import { useEffect } from 'react';
 import TherapyPopupForm from '@/component/one-on-one/PopupForm';
 import BudgetPackage from '@/component/one-on-one/BudgetPackage';
+import VideoPlayer from '@/component/one-on-one/VideoSection';
 
 // Note: Since this is a client component, metadata should be added via next/head or parent layout
 // For SEO, consider converting to server component or adding dynamic metadata
@@ -52,6 +53,8 @@ export default function SessionsPage() {
 
             {/* Benefits Section */}
             <BenefitsSection />
+
+            <VideoPlayer />
 
             <Quote />
 
