@@ -122,21 +122,6 @@ export default function VideoPlayer() {
                             <source src="https://res.cloudinary.com/dmwrrrlpb/video/upload/v1769255473/howtobooksession_gorrju.mp4" type="video/mp4" />
                             Your browser does not support the video tag.
                         </video>
-
-                        {/* Overlay instructions */}
-                        {!hasPlayed && isInView && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
-                                <div className="text-white text-center p-4">
-                                    <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-[#009689] bg-opacity-90 flex items-center justify-center">
-                                        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M8 5v14l11-7z" />
-                                        </svg>
-                                    </div>
-                                    <p className="font-semibold">Video will play automatically</p>
-                                    <p className="text-sm opacity-80 mt-1">Click to pause/play</p>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
 
