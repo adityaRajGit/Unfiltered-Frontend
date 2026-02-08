@@ -14,11 +14,12 @@ import { LoadingSpinnerWithOverlay } from '../global/Loading';
 import { getInitials } from '@/utils/GetInitials';
 import { useRef } from 'react';
 import { getTherapistSpecialisationAndTiming, recommendTherapist } from '@/store/therapistSlice';
-import { bookAppointmentFunc, getPastAppointmentsApi, getUpComingAppointments } from '@/store/appoinment';
+import { bookAppointmentFunc, getPastAppointmentsApi, getUpComingAppointments, updateAppointmentStatussApi } from '@/store/appoinment';
 import BookingCalendar from './BookAppointmentPoup';
 import NoActivePackage from './NoActivePackage';
 import { NotesIcon } from './AppointmentList';
 import { NotesModal } from './NotesModal';
+import SessionCompletionPopup from './SessionCompletionPopup';
 
 interface User {
   name: string;
@@ -83,6 +84,12 @@ interface UpcomingAppointment {
   is_notes: boolean;
 }
 
+interface PopupItem {
+  id: string;
+  name: string;
+  scheduled_at: string | Date;
+}
+
 
 const UserProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -99,6 +106,7 @@ const UserProfilePage = () => {
   const [therapists, setTherapists] = useState<FilteredTherapist[]>([]);
   const [selectedTherapist, setSelectedTherapist] = useState("");
   const [selectedAppointment, setSelectedAppointment] = useState<string>("")
+  const [popupData, setPopupData] = useState<PopupItem[]>([]);
 
   const [bookingForm, setBookingForm] = useState<BookingForm>({
     specialization: '',
@@ -444,6 +452,66 @@ const UserProfilePage = () => {
     }
   }
 
+  const handleConfirm = async () => {
+    const id = popupData[0].id;
+    const formData = {
+      id,
+      payload: {
+        role: 'user',
+        completed: true
+      }
+    }
+    setLoading(true)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(updateAppointmentStatussApi(formData as any) as any);
+    if (response?.error) {
+      setLoading(false)
+      toast.error(response.error.message)
+    } else {
+      setLoading(false)
+      setPopupData(prev => prev.slice(1));
+      getPastAppointments(userId)
+    }
+  };
+
+  const handleCancel = async () => {
+    const id = popupData[0].id;
+    const formData = {
+      id,
+      payload: {
+        role: 'user',
+        completed: false
+      }
+    }
+    setLoading(true)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(updateAppointmentStatussApi(formData as any) as any);
+    if (response?.error) {
+      setLoading(false)
+      toast.error(response.error.message)
+    } else {
+      setLoading(false)
+      setPopupData(prev => prev.slice(1));
+      getPastAppointments(userId)
+    }
+  };
+
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function getScheduledAppointments(arr: any) {
+    if (!Array.isArray(arr)) return [];
+
+    return arr
+      .filter(item => item.appointment_status === "scheduled")
+      .map(item => ({
+        id: item._id,
+        name: item.therapist_id?.name || "",
+        scheduled_at: item.scheduled_at
+      }));
+  }
+
+
   async function getPastAppointments(id: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const response = await dispatch(getPastAppointmentsApi(id as any) as any);
@@ -452,7 +520,9 @@ const UserProfilePage = () => {
       toast.error(response.error.message)
     } else {
       setLoading(false)
-      // console.log(response.payload.data.appointments)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result: any = getScheduledAppointments(response.payload.data.appointments);
+      setPopupData(result)
       setPastAppointments(response.payload.data.appointments)
     }
   }
@@ -495,6 +565,7 @@ const UserProfilePage = () => {
     }
   }, [storedToken, router, bookAgainPopup, showResults]);
 
+  const currentPopup = popupData[0];
 
   if (loading) {
     return (
@@ -537,6 +608,12 @@ const UserProfilePage = () => {
             </div>
           )}
         </div>
+
+        {
+          popupData.length === 0
+            ? null
+            : <SessionCompletionPopup name={currentPopup.name} date={currentPopup.scheduled_at} onConfirm={handleConfirm} onCancel={handleCancel} />
+        }
 
         {
           bookAgainPopup && <BookingCalendar userId={userId} id={selectedTherapist} onClose={handlePopupClose} type={bookAgainType} appoinmentId={selectedAppointment} />
@@ -1288,8 +1365,8 @@ const UserProfilePage = () => {
                           </div>
                         </div>
                         <div className="flex items-center mt-4 gap-2 md:gap-3">
-                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                            Completed
+                          <span className="px-2 py-1 rounded-full text-xs font-medium capitalize bg-purple-100 text-purple-800">
+                            {appointment.appointment_status}
                           </span>
                           <button
                             onClick={() => handleOpenNotes(appointment)}

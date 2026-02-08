@@ -11,8 +11,9 @@ import { toast } from 'react-toastify';
 import { FaEdit, FaPlus, FaTimes, FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
 import { getInitials } from '@/utils/GetInitials';
 import { AppointmentList } from './AppointmentList';
-import { getPastAppointmentsApi, getUpComingAppointments } from '@/store/appoinment';
+import { getPastAppointmentsApi, getUpComingAppointments, updateAppointmentStatussApi } from '@/store/appoinment';
 import AvailabilityScheduler from './AvailabilityCalender';
+import SessionCompletionPopup from './SessionCompletionPopup';
 
 interface Therapist {
   name: string;
@@ -73,6 +74,13 @@ export interface Appointment {
   updated_at: string;
 }
 
+interface PopupItem {
+  id: string;
+  name: string;
+  scheduled_at: string | Date;
+}
+
+
 
 export default function TherapistProfile() {
   const [activeTab, setActiveTab] = useState<'future' | 'past'>('future');
@@ -87,6 +95,8 @@ export default function TherapistProfile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [pastAppointments, setPastAppointments] = useState<Appointment[]>([]);
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
+  const [popupData, setPopupData] = useState<PopupItem[]>([]);
+
   const dispatch = useDispatch()
   const router = useRouter()
   const storedToken = typeof window !== 'undefined' ? localStorage.getItem(TOKEN) : null;
@@ -364,6 +374,51 @@ export default function TherapistProfile() {
     });
   };
 
+  const handleConfirm = async () => {
+    const id = popupData[0].id;
+    const formData = {
+      id,
+      payload: {
+        role: 'therapist',
+        completed: true
+      }
+    }
+    setLoading(true)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(updateAppointmentStatussApi(formData as any) as any);
+    if (response?.error) {
+      setLoading(false)
+      toast.error(response.error.message)
+    } else {
+      setLoading(false)
+      setPopupData(prev => prev.slice(1));
+      getPastAppointments(therapistId)
+    }
+  };
+
+  const handleCancel = async () => {
+    const id = popupData[0].id;
+    const formData = {
+      id,
+      payload: {
+        role: 'therapist',
+        completed: false
+      }
+    }
+    setLoading(true)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(updateAppointmentStatussApi(formData as any) as any);
+    if (response?.error) {
+      setLoading(false)
+      toast.error(response.error.message)
+    } else {
+      setLoading(false)
+      setPopupData(prev => prev.slice(1));
+      getPastAppointments(therapistId)
+    }
+  };
+
   async function getUpcomingAppointments(id: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const response = await dispatch(getUpComingAppointments(id as any) as any);
@@ -376,6 +431,19 @@ export default function TherapistProfile() {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function getScheduledAppointments(arr: any) {
+    if (!Array.isArray(arr)) return [];
+
+    return arr
+      .filter(item => item.appointment_status === "scheduled")
+      .map(item => ({
+        id: item._id,
+        name: item.user_id?.name || "",
+        scheduled_at: item.scheduled_at
+      }));
+  }
+
   async function getPastAppointments(id: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const response = await dispatch(getPastAppointmentsApi(id as any) as any);
@@ -384,6 +452,9 @@ export default function TherapistProfile() {
       toast.error(response.error.message)
     } else {
       setLoading(false)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result: any = getScheduledAppointments(response.payload.data.appointments);
+      setPopupData(result)
       setPastAppointments(response.payload.data.appointments)
     }
   }
@@ -414,6 +485,8 @@ export default function TherapistProfile() {
     return () => clearTimeout(timer);
   }, [profileCompletion]);
 
+  const currentPopup = popupData[0];
+
 
   if (loading || !therapist || !tempTherapistData) {
     return (
@@ -426,6 +499,14 @@ export default function TherapistProfile() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-teal-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
+
+        {
+          popupData.length === 0
+            ? null
+            : <SessionCompletionPopup name={currentPopup.name} date={currentPopup.scheduled_at} onConfirm={handleConfirm} onCancel={handleCancel} />
+        }
+
+
         {/* Profile completion status */}
         <div className="w-full mx-auto p-4">
           {/* Status message */}
