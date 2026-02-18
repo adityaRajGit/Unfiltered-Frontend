@@ -435,14 +435,26 @@ export default function TherapistProfile() {
   function getScheduledAppointments(arr: any) {
     if (!Array.isArray(arr)) return [];
 
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0]; // YYYY-MM-DD
+
     return arr
-      .filter(item => item.appointment_status === "scheduled")
+      .filter(item => {
+        if (item.appointment_status !== "scheduled") return false;
+        if (item.therapist_completed) return false;
+
+        const updatedAt = new Date(item.updated_at);
+        const updatedAtStr = updatedAt.toISOString().split("T")[0];
+
+        return updatedAtStr !== todayStr; // not today's date
+      })
       .map(item => ({
         id: item._id,
         name: item.user_id?.name || "",
         scheduled_at: item.scheduled_at
       }));
   }
+
 
   async function getPastAppointments(id: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
