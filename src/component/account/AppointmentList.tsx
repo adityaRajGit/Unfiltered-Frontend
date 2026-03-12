@@ -5,6 +5,9 @@ import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { LoadingSpinnerWithOverlay } from '../global/Loading';
 import { NotesModal } from './NotesModal';
+import { GoalsModal } from './SetGoalsModal';
+import { TargetIcon } from 'lucide-react';
+import { addGoal } from '@/store/goalsSlice';
 
 // Icons for better visual representation
 const CalendarIcon = () => (
@@ -81,6 +84,7 @@ export function AppointmentList({
 
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+  const [isGoalsModalOpen, setIsGoalsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch()
 
@@ -88,6 +92,12 @@ export function AppointmentList({
   const handleOpenNotes = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setIsNotesModalOpen(true);
+  };
+
+
+  const handleOpenGoals = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setIsGoalsModalOpen(true);
   };
 
   // Handle saving note
@@ -109,6 +119,45 @@ export function AppointmentList({
       toast.success("Note saved successfully!");
       functionToCall(therapistId)
       setIsNotesModalOpen(false);
+    }
+  };
+
+  // Handle saving a goal (array of goal statements)
+  const handleSaveGoal = async (
+    therapistId: string,
+    userId: string,
+    goalData: {
+      goals: string[];
+      frequency: 'daily' | 'weekly' | 'monthly';
+      defaultDurationDays: number;
+    }
+  ) => {
+    setLoading(true);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data: any = {
+        userId,
+        therapistId,
+        goals: goalData.goals,
+        frequency: goalData.frequency,
+        defaultDurationDays: goalData.defaultDurationDays
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const response = await dispatch(
+        addGoal(data) as any
+      );
+      if (response?.error) {
+        toast.error(response.error.message);
+      } else {
+        toast.success('Goals saved successfully!');
+        setIsGoalsModalOpen(false);
+        setSelectedAppointment(null);
+      }
+    } catch (error) {
+      toast.error('Failed to save goals.');
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -202,7 +251,7 @@ export function AppointmentList({
                 </div>
 
                 {/* Appointment Details */}
-                <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-4 text-sm text-gray-600">
+                <div className="mt-4 flex flex-col md:flex-row md:items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center">
                     <CalendarIcon />
                     <span className="ml-1.5">
@@ -224,22 +273,6 @@ export function AppointmentList({
                       })}
                     </span>
                   </div>
-
-                  {/* if any previous notes does not exists it will come as condition later */}
-                  {/* <div className="flex items-center bg-[#009689] p-2 px-4 text-white rounded-md cursor-pointer md:hover:scale-105 duration-300 ease-in-out">
-                    <PencilIcon />
-                    <span className="ml-1.5">
-                     Write Notes
-                    </span>
-                  </div> */}
-
-                  {/* if any previous notes exists it will come as condition later */}
-                  {/* <div className="flex items-center bg-[#009689] p-2 px-4 text-white rounded-md cursor-pointer md:hover:scale-105 duration-300 ease-in-out">
-                    <NotesIcon />
-                    <span className="ml-1.5">
-                      View Notes
-                    </span>
-                  </div> */}
 
                   <button
                     onClick={() => handleOpenNotes(appointment)}
@@ -271,6 +304,18 @@ export function AppointmentList({
                     }
                   </button>
 
+                  <button
+                    onClick={() => handleOpenGoals(appointment)}
+                    className="flex items-center p-2 px-4 justify-center rounded-md cursor-pointer 
+             bg-teal-50 text-teal-700 border border-teal-200
+             hover:bg-teal-100
+             md:hover:scale-105 duration-300 ease-in-out"
+                  >
+                    <TargetIcon className="w-5 h-5" />
+                    <span className="ml-1.5">
+                      Set Goals
+                    </span>
+                  </button>
                 </div>
 
                 {/* Action Buttons */}
@@ -310,6 +355,23 @@ export function AppointmentList({
           />
         )
       }
+
+      {isGoalsModalOpen && selectedAppointment && (
+        <GoalsModal
+          onClose={() => {
+            setIsGoalsModalOpen(false);
+            setSelectedAppointment(null);
+          }}
+          therapistId={selectedAppointment.therapist_id}
+          userId={
+            typeof selectedAppointment.user_id === 'object'
+              ? selectedAppointment.user_id._id
+              : selectedAppointment.user_id
+          }
+          clientName={selectedAppointment.user_id.name}
+          onSaveGoal={handleSaveGoal}
+        />
+      )}
     </div>
   );
 }

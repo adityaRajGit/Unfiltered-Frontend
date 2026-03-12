@@ -14,6 +14,9 @@ import paymentReducer from './paymentSlice.js'
 import feedbackReducer from './feedbackSlice.js'
 import individualFormReducer from './individualForm.js'
 import notesReducer from './notesSlice.js'
+import goalsReducer from './goalsSlice.js'
+import userGoalsReducer from './userGoalsSlice.js'
+
 const store = configureStore({
     reducer: {
         user: userReducer,
@@ -30,7 +33,9 @@ const store = configureStore({
         payment: paymentReducer,
         feedback: feedbackReducer,
         individualFormReducer: individualFormReducer,
-        note: notesReducer
+        note: notesReducer,
+        goals: goalsReducer,
+        userGoals: userGoalsReducer
     }
 })
 
