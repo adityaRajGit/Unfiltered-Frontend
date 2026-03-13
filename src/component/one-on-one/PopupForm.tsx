@@ -149,7 +149,7 @@ export default function TherapyPopupForm({ popup, setPopup }: any) {
                 {/* Header */}
                 <div className="bg-[#03978a] rounded-t-2xl p-6 text-white">
                     <div className="flex justify-between items-center">
-                        <h2 className="text-2xl font-bold">
+                        <h2 className="text-lg sm:text-2xl font-bold">
                             {isSubmitted ? 'Thank You!' : 'Book Your Therapy Session'}
                         </h2>
                         <button

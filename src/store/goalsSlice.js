@@ -3,9 +3,9 @@ import axios from "axios"
 
 const backend = process.env.NEXT_PUBLIC_BACKEND_URL
 
-const sendOtp = createAsyncThunk("otp/send-otp", async (data) => {
+const addGoal = createAsyncThunk("goal/add-goal", async (data) => {
     try {
-        const response = await axios.post(`${backend}/user/signup/send-otp`, data)
+        const response = await axios.post(`${backend}/goals/new`, data)
         return response.data
     } catch (error) {
         if (error.response) {
@@ -15,57 +15,56 @@ const sendOtp = createAsyncThunk("otp/send-otp", async (data) => {
     }
 })
 
-const verifyOtp = createAsyncThunk("otp/verify-otp", async (data) => {
+const listGoals = createAsyncThunk("goal/list-goal", async (data) => {
     try {
-        const response = await axios.post(`${backend}/otp/verify-email-otp`, data)
+        const response = await axios.post(`${backend}/goals/list`, data)
         return response.data
     } catch (error) {
         if (error.response) {
-            throw error.response.data.message
+            throw error.response.data.data.message
         }
         throw error.message || "An unexpected error occurred"
     }
 })
 
-
 const initialState = {
-    otp: null,
+    goals: null,
     loading: false,
     error: null
 }
 
-const otpSlice = createSlice({
-    name: "otp",
+const goalsSlice = createSlice({
+    name: "goals",
     initialState,
     reducers: {},
     extraReducers: (builder) => {
         builder
-            .addCase(sendOtp.pending, (state) => {
+            .addCase(addGoal.pending, (state) => {
                 state.loading = true
                 state.error = null
             })
-            .addCase(sendOtp.fulfilled, (state, action) => {
+            .addCase(addGoal.fulfilled, (state, action) => {
                 state.loading = false
-                state.otp = action.payload.data
+                state.goals = action.payload.data.goals
             })
-            .addCase(sendOtp.rejected, (state, action) => {
+            .addCase(addGoal.rejected, (state, action) => {
                 state.loading = false
                 state.error = action.error || "An error occurred";
             })
-            .addCase(verifyOtp.pending, (state) => {
+            .addCase(listGoals.pending, (state) => {
                 state.loading = true
                 state.error = null
             })
-            .addCase(verifyOtp.fulfilled, (state, action) => {
+            .addCase(listGoals.fulfilled, (state, action) => {
                 state.loading = false
-                state.otp = action.payload.data
+                state.goals = action.payload.data.goalsList
             })
-            .addCase(verifyOtp.rejected, (state, action) => {
+            .addCase(listGoals.rejected, (state, action) => {
                 state.loading = false
                 state.error = action.error || "An error occurred";
             })
     }
 })
 
-export { sendOtp, verifyOtp }
-export default otpSlice.reducer
+export { addGoal, listGoals }
+export default goalsSlice.reducer

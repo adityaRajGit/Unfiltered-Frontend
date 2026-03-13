@@ -3,9 +3,9 @@ import axios from "axios"
 
 const backend = process.env.NEXT_PUBLIC_BACKEND_URL
 
-const sendOtp = createAsyncThunk("otp/send-otp", async (data) => {
+const addNote = createAsyncThunk("note/add-note", async (data) => {
     try {
-        const response = await axios.post(`${backend}/user/signup/send-otp`, data)
+        const response = await axios.post(`${backend}/notes/new`, data)
         return response.data
     } catch (error) {
         if (error.response) {
@@ -15,57 +15,56 @@ const sendOtp = createAsyncThunk("otp/send-otp", async (data) => {
     }
 })
 
-const verifyOtp = createAsyncThunk("otp/verify-otp", async (data) => {
+const listNote = createAsyncThunk("note/list-note", async (data) => {
     try {
-        const response = await axios.post(`${backend}/otp/verify-email-otp`, data)
+        const response = await axios.post(`${backend}/notes/list`, data)
         return response.data
     } catch (error) {
         if (error.response) {
-            throw error.response.data.message
+            throw error.response.data.data.message
         }
         throw error.message || "An unexpected error occurred"
     }
 })
 
-
 const initialState = {
-    otp: null,
+    notes: null,
     loading: false,
     error: null
 }
 
-const otpSlice = createSlice({
-    name: "otp",
+const noteSlice = createSlice({
+    name: "note",
     initialState,
     reducers: {},
     extraReducers: (builder) => {
         builder
-            .addCase(sendOtp.pending, (state) => {
+            .addCase(addNote.pending, (state) => {
                 state.loading = true
                 state.error = null
             })
-            .addCase(sendOtp.fulfilled, (state, action) => {
+            .addCase(addNote.fulfilled, (state, action) => {
                 state.loading = false
-                state.otp = action.payload.data
+                state.note = action.payload.data.note
             })
-            .addCase(sendOtp.rejected, (state, action) => {
+            .addCase(addNote.rejected, (state, action) => {
                 state.loading = false
                 state.error = action.error || "An error occurred";
             })
-            .addCase(verifyOtp.pending, (state) => {
+            .addCase(listNote.pending, (state) => {
                 state.loading = true
                 state.error = null
             })
-            .addCase(verifyOtp.fulfilled, (state, action) => {
+            .addCase(listNote.fulfilled, (state, action) => {
                 state.loading = false
-                state.otp = action.payload.data
+                state.note = action.payload.data.note
             })
-            .addCase(verifyOtp.rejected, (state, action) => {
+            .addCase(listNote.rejected, (state, action) => {
                 state.loading = false
                 state.error = action.error || "An error occurred";
             })
     }
 })
 
-export { sendOtp, verifyOtp }
-export default otpSlice.reducer
+export { addNote, listNote }
+export default noteSlice.reducer

@@ -14,9 +14,14 @@ import { LoadingSpinnerWithOverlay } from '../global/Loading';
 import { getInitials } from '@/utils/GetInitials';
 import { useRef } from 'react';
 import { getTherapistSpecialisationAndTiming, recommendTherapist } from '@/store/therapistSlice';
-import { bookAppointmentFunc, getPastAppointmentsApi, getUpComingAppointments } from '@/store/appoinment';
+import { bookAppointmentFunc, getPastAppointmentsApi, getUpComingAppointments, updateAppointmentStatussApi } from '@/store/appoinment';
 import BookingCalendar from './BookAppointmentPoup';
 import NoActivePackage from './NoActivePackage';
+import { NotesIcon } from './AppointmentList';
+import { NotesModal } from './NotesModal';
+import SessionCompletionPopup from './SessionCompletionPopup';
+import { TargetIcon } from 'lucide-react';
+import { UserGoalsModal } from './UserGoalsPopup';
 
 interface User {
   name: string;
@@ -77,7 +82,14 @@ interface UpcomingAppointment {
   scheduled_at: string;
   appointment_status: 'scheduled' | 'completed';
   meet_link: string;
-  is_deleted: boolean
+  is_deleted: boolean;
+  is_notes: boolean;
+}
+
+interface PopupItem {
+  id: string;
+  name: string;
+  scheduled_at: string | Date;
 }
 
 
@@ -96,6 +108,8 @@ const UserProfilePage = () => {
   const [therapists, setTherapists] = useState<FilteredTherapist[]>([]);
   const [selectedTherapist, setSelectedTherapist] = useState("");
   const [selectedAppointment, setSelectedAppointment] = useState<string>("")
+  const [selectedAppointmentForGoals, setSelectedAppointmentForGoals] = useState<UpcomingAppointment | null>(null)
+  const [popupData, setPopupData] = useState<PopupItem[]>([]);
 
   const [bookingForm, setBookingForm] = useState<BookingForm>({
     specialization: '',
@@ -113,7 +127,9 @@ const UserProfilePage = () => {
   const [timings, setTimings] = useState([]);
   const [bookAgainPopup, setBookAgainPopup] = useState(false);
   const [bookAgainType, setBookAgainType] = useState('');
-
+  const [selectedAppointmentForNotes, setSelectedAppointmentForNotes] = useState<UpcomingAppointment | null>(null);
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+  const [isGoalsModalOpen, setIsGoalsModalOpen] = useState(false);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const generateSlotsFromIntervals = (intervals: any) => {
@@ -140,6 +156,12 @@ const UserProfilePage = () => {
     setBookAgainType(type);
     setSelectedAppointment(appointmentId ?? "")
   }
+
+
+  const handleOpenNotes = (appointment: UpcomingAppointment) => {
+    setSelectedAppointmentForNotes(appointment);
+    setIsNotesModalOpen(true);
+  };
 
   // Handle language selection
   const handleLanguageSelect = (language: string) => {
@@ -247,7 +269,7 @@ const UserProfilePage = () => {
         filtered.push(therapists)
         setFilteredTherapists(filtered);
         setShowResults(true);
-      }else{
+      } else {
         toast.error('No therapist found for this criteria !!')
       }
     }
@@ -416,7 +438,7 @@ const UserProfilePage = () => {
       toast.error(response.error.message)
     } else {
       setLoading(false)
-      console.log(response.payload.data.user)
+      // console.log(response.payload.data.user)
       setUser(response.payload.data.user)
       setTempUserData(response.payload.data.user)
     }
@@ -434,6 +456,70 @@ const UserProfilePage = () => {
     }
   }
 
+  const handleConfirm = async () => {
+    const id = popupData[0].id;
+    const formData = {
+      id,
+      payload: {
+        role: 'user',
+        completed: true
+      }
+    }
+    setLoading(true)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(updateAppointmentStatussApi(formData as any) as any);
+    if (response?.error) {
+      setLoading(false)
+      toast.error(response.error.message)
+    } else {
+      setLoading(false)
+      setPopupData(prev => prev.slice(1));
+      getPastAppointments(userId)
+    }
+  };
+
+  const handleCancel = async () => {
+    const id = popupData[0].id;
+    const formData = {
+      id,
+      payload: {
+        role: 'user',
+        completed: false
+      }
+    }
+    setLoading(true)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(updateAppointmentStatussApi(formData as any) as any);
+    if (response?.error) {
+      setLoading(false)
+      toast.error(response.error.message)
+    } else {
+      setLoading(false)
+      setPopupData(prev => prev.slice(1));
+      getPastAppointments(userId)
+    }
+  };
+
+  const handleOpenGoals = (appointment: UpcomingAppointment) => {
+    setSelectedAppointmentForGoals(appointment);
+    setIsGoalsModalOpen(true);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function getScheduledAppointments(arr: any) {
+    if (!Array.isArray(arr)) return [];
+
+    return arr
+      .filter(item => item.appointment_status === "scheduled")
+      .map(item => ({
+        id: item._id,
+        name: item.therapist_id?.name || "",
+        scheduled_at: item.scheduled_at
+      }));
+  }
+
+
   async function getPastAppointments(id: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const response = await dispatch(getPastAppointmentsApi(id as any) as any);
@@ -442,7 +528,9 @@ const UserProfilePage = () => {
       toast.error(response.error.message)
     } else {
       setLoading(false)
-      // console.log(response.payload.data.appointments)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result: any = getScheduledAppointments(response.payload.data.appointments);
+      setPopupData(result)
       setPastAppointments(response.payload.data.appointments)
     }
   }
@@ -485,6 +573,7 @@ const UserProfilePage = () => {
     }
   }, [storedToken, router, bookAgainPopup, showResults]);
 
+  const currentPopup = popupData[0];
 
   if (loading) {
     return (
@@ -527,6 +616,12 @@ const UserProfilePage = () => {
             </div>
           )}
         </div>
+
+        {
+          popupData.length === 0
+            ? null
+            : <SessionCompletionPopup name={currentPopup.name} date={currentPopup.scheduled_at} onConfirm={handleConfirm} onCancel={handleCancel} />
+        }
 
         {
           bookAgainPopup && <BookingCalendar userId={userId} id={selectedTherapist} onClose={handlePopupClose} type={bookAgainType} appoinmentId={selectedAppointment} />
@@ -1135,13 +1230,15 @@ const UserProfilePage = () => {
                 </span>
               </div>
 
-              <div className="space-y-4 md:space-y-6 overflow-y-auto custom-scrollbar" style={{
-                maxHeight: '600px'
-              }}>
+              <div className="space-y-4 md:space-y-6 overflow-y-auto custom-scrollbar" style={{ maxHeight: '600px' }}>
                 {upcomingAppointments?.length > 0 ? (
-                  upcomingAppointments?.map((appointment: UpcomingAppointment) => (
-                    <div key={appointment._id} className="flex items-center border-b border-gray-100 pb-4 md:pb-6 last:border-0 last:pb-0">
-                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-teal-500 overflow-hidden bg-gray-200 mr-3 md:mr-4 flex-shrink-0">
+                  upcomingAppointments.map((appointment: UpcomingAppointment) => (
+                    <div
+                      key={appointment._id}
+                      className="flex flex-col sm:flex-row items-start sm:items-center border-b border-gray-100 pb-4 md:pb-6 last:border-0 last:pb-0 gap-3"
+                    >
+                      {/* Therapist image */}
+                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-teal-500 overflow-hidden bg-gray-200 flex-shrink-0">
                         <Image
                           src={appointment.therapist_id.profile_image}
                           alt={appointment.therapist_id.name}
@@ -1150,11 +1247,13 @@ const UserProfilePage = () => {
                           className="object-cover w-full h-full"
                         />
                       </div>
-                      <div className="flex-1 min-w-0">
+
+                      {/* Main content */}
+                      <div className="flex-1 min-w-0 w-full">
                         <h3 className="font-bold text-gray-900 text-sm md:text-base truncate">
                           {appointment.therapist_id.name}
                         </h3>
-                        <div className="flex flex-col sm:flex-row sm:items-center text-xs md:text-sm text-gray-500 mt-1 gap-1 sm:gap-3">
+                        <div className="flex flex-wrap items-center text-xs md:text-sm text-gray-500 mt-1 gap-x-3 gap-y-1">
                           <div className="flex items-center">
                             <FaCalendarAlt className="mr-1 text-teal-600 w-3 h-3" />
                             <span className="truncate">
@@ -1177,19 +1276,30 @@ const UserProfilePage = () => {
                             </span>
                           </div>
                         </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center mt-2 gap-1 sm:gap-2">
-                          <span className={`px-2 py-0.5 capitalize rounded-full text-xs font-medium inline-block ${appointment.appointment_status === 'scheduled'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                            }`}>
+
+                        {/* Status and Notes */}
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
+                          <span
+                            className={`px-2 py-0.5 capitalize rounded-full text-xs font-medium inline-block ${appointment.appointment_status === 'scheduled'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                              }`}
+                          >
                             {appointment.appointment_status}
                           </span>
-                          {/* <span className="text-xs md:text-sm text-gray-600">
-                            {appointment.therapist_id.session_details.duration} min
-                          </span> */}
+                          <button
+                            onClick={() => handleOpenNotes(appointment)}
+                            className={`flex items-center px-3 py-2 text-sm text-white justify-center rounded-md cursor-pointer md:hover:scale-105 duration-300 ease-in-out ${appointment.is_notes ? 'bg-[#009689]' : 'bg-teal-500'
+                              }`}
+                          >
+                            <NotesIcon />
+                            <span className="ml-2">View Notes</span>
+                          </button>
                         </div>
                       </div>
-                      <div className="flex flex-col gap-1 md:gap-2 flex-shrink-0">
+
+                      {/* Join & Reschedule actions */}
+                      <div className="flex flex-row sm:flex-col gap-2 self-end sm:self-center ml-auto">
                         <Link
                           href={appointment.meet_link}
                           className="flex items-center px-2 md:px-3 py-1 md:py-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors text-xs md:text-sm"
@@ -1197,7 +1307,10 @@ const UserProfilePage = () => {
                           <FaVideo className="mr-1 w-3 h-3" />
                           Join
                         </Link>
-                        <button onClick={() => handleOpenBookingPopup(appointment.therapist_id._id, 'edit', appointment._id)} className="text-xs text-teal-600 hover:text-teal-800 cursor-pointer">
+                        <button
+                          onClick={() => handleOpenBookingPopup(appointment.therapist_id._id, 'edit', appointment._id)}
+                          className="text-xs text-teal-600 hover:text-teal-800 cursor-pointer whitespace-nowrap"
+                        >
                           Reschedule
                         </button>
                       </div>
@@ -1225,13 +1338,15 @@ const UserProfilePage = () => {
                 </span>
               </div>
 
-              <div className="space-y-4 md:space-y-6 overflow-y-auto custom-scrollbar" style={{
-                maxHeight: '600px'
-              }}>
+              <div className="space-y-4 md:space-y-6 overflow-y-auto custom-scrollbar" style={{ maxHeight: '600px' }}>
                 {pastAppointments?.length > 0 ? (
-                  pastAppointments?.map((appointment: UpcomingAppointment) => (
-                    <div key={appointment._id} className="flex items-center border-b border-gray-100 pb-4 md:pb-6 last:border-0 last:pb-0">
-                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-teal-500 overflow-hidden bg-gray-200 mr-3 md:mr-4 flex-shrink-0">
+                  pastAppointments.map((appointment: UpcomingAppointment) => (
+                    <div
+                      key={appointment._id}
+                      className="flex flex-col sm:flex-row items-start sm:items-center border-b border-gray-100 pb-4 md:pb-6 last:border-0 last:pb-0 gap-3"
+                    >
+                      {/* Therapist image - stays at top on mobile, left on larger screens */}
+                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-teal-500 overflow-hidden bg-gray-200 flex-shrink-0">
                         <Image
                           src={appointment.therapist_id.profile_image}
                           alt={appointment.therapist_id.name}
@@ -1240,11 +1355,13 @@ const UserProfilePage = () => {
                           className="object-cover w-full h-full"
                         />
                       </div>
-                      <div className="flex-1 min-w-0">
+
+                      {/* Main content - takes remaining width */}
+                      <div className="flex-1 min-w-0 w-full">
                         <h3 className="font-bold text-gray-900 text-sm md:text-base truncate">
                           {appointment.therapist_id.name}
                         </h3>
-                        <div className="flex flex-col sm:flex-row sm:items-center text-xs md:text-sm text-gray-500 mt-1 gap-1 sm:gap-3">
+                        <div className="flex flex-wrap items-center text-xs md:text-sm text-gray-500 mt-1 gap-x-3 gap-y-1">
                           <div className="flex items-center">
                             <FaCalendarAlt className="mr-1 text-teal-600 w-3 h-3" />
                             <span className="truncate">
@@ -1267,32 +1384,46 @@ const UserProfilePage = () => {
                             </span>
                           </div>
                         </div>
-                        <div className="flex items-center mt-2 gap-2 md:gap-3">
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                            Completed
+
+                        {/* Action buttons - stack on mobile, row on tablet+ */}
+                        <div className="flex flex-wrap items-center gap-2 mt-3">
+                          <span className="px-2 py-1 rounded-full text-xs font-medium capitalize bg-purple-100 text-purple-800">
+                            {appointment.appointment_status}
                           </span>
-                          {/* <div className="flex items-center">
-                            {[...Array(5)].map((_, i) => (
-                              <FaStar
-                                key={i}
-                                className={`w-3 h-3 ${i < 4 ? "text-yellow-400" : "text-gray-300"}`}
-                              />
-                            ))}
-                          </div>
-                          <span className="text-xs md:text-sm text-gray-600">
-                            {appointment.therapist_id.session_details.currency}{appointment.therapist_id.session_details.cost}
-                          </span> */}
+
+                          <button
+                            onClick={() => handleOpenNotes(appointment)}
+                            className={`flex items-center px-3 py-2 text-sm text-white justify-center rounded-md cursor-pointer md:hover:scale-105 duration-300 ease-in-out ${appointment.is_notes ? 'bg-[#009689]' : 'bg-teal-500'
+                              }`}
+                          >
+                            <NotesIcon />
+                            <span className="ml-2">View Notes</span>
+                          </button>
+
+                          <button
+                            onClick={() => handleOpenGoals(appointment)}
+                            className="flex items-center px-3 py-2 justify-center rounded-md cursor-pointer 
+                         bg-teal-50 text-teal-700 border border-teal-200
+                         hover:bg-teal-100 md:hover:scale-105 duration-300 ease-in-out"
+                          >
+                            <TargetIcon className="w-5 h-5" />
+                            <span className="ml-1.5">View Goals</span>
+                          </button>
                         </div>
                       </div>
-                      <div className="flex flex-col gap-1 md:gap-2 flex-shrink-0">
-                        <button onClick={() => {
-                          if (user?.role === 'user' && user?.sessions_balance === 0) {
-                            toast.error('You have no Active Package')
-                            return
-                          }
-                          handleOpenBookingPopup(appointment.therapist_id._id, 'book')
-                        }}
-                          className="text-xs text-teal-600 hover:text-teal-800">
+
+                      {/* Book Again button - positioned to the right on larger screens, below on mobile */}
+                      <div className="self-end sm:self-center ml-auto">
+                        <button
+                          onClick={() => {
+                            if (user?.role === 'user' && user?.sessions_balance === 0) {
+                              toast.error('You have no Active Package');
+                              return;
+                            }
+                            handleOpenBookingPopup(appointment.therapist_id._id, 'book');
+                          }}
+                          className="text-xs text-teal-600 hover:text-teal-800 whitespace-nowrap"
+                        >
                           Book Again
                         </button>
                       </div>
@@ -1313,6 +1444,30 @@ const UserProfilePage = () => {
           </div>
         </div>
       </div>
+      {
+        isNotesModalOpen && (
+          <NotesModal
+            onClose={() => { setIsNotesModalOpen(false); setSelectedAppointmentForNotes(null) }}
+            // @ts-ignore
+            appointment={selectedAppointmentForNotes}
+            onSaveNote={() => { }}
+            therapistName={""}
+            isPast={false}
+          />
+        )
+      }
+
+
+      {
+        isGoalsModalOpen && selectedAppointmentForGoals && (
+          <UserGoalsModal
+            onClose={() => { setIsGoalsModalOpen(false); setSelectedAppointmentForGoals(null) }}
+            userId={userId}
+            therapistId={selectedAppointmentForGoals?.therapist_id._id}
+            therapistName={selectedAppointmentForGoals?.therapist_id.name}
+          />
+        )
+      }
     </div >
   );
 };
