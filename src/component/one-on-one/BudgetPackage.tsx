@@ -21,6 +21,7 @@ const backend = process.env.NEXT_PUBLIC_BACKEND_URL
 export default function BudgetPackage() {
     const [loading, setLoading] = useState(true);
     const [packageDetails, setPackageDetails] = useState({
+        id: "",
         name: '',
         total_sessions: 0,
         realPrice: 0,
@@ -129,7 +130,7 @@ export default function BudgetPackage() {
                 return
             }
             const amount = convertPrice(plan.discountedPrice)
-            const id = plan._id
+            const id = plan.id
             const code = currency.code
             const option = {
                 amount: amount.toFixed(0),
@@ -156,7 +157,7 @@ export default function BudgetPackage() {
                         signature: response.razorpay_signature,
                         amount: amount.toFixed(0),
                         user_id: decodedToken.userId._id,
-                        package_id: id
+                        package_id: id,
                     }
                     axios.post(`${backend}/package/verify-payment`, option2)
                         .then(async (response) => {
@@ -206,6 +207,7 @@ export default function BudgetPackage() {
             } else if (response.payload?.data) {
                 const packageData = response.payload.data.packageList[0];
                 setPackageDetails({
+                    id: packageData._id,
                     name: packageData.name,
                     total_sessions: packageData.total_sessions,
                     realPrice: packageData.realPrice,
