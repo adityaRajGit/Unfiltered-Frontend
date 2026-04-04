@@ -10,7 +10,7 @@ const bookAppointmentFunc = createAsyncThunk("appointment/book-appointment", asy
         const response = await axios.post(`${backend}/appointment/new`, data)
 
         // Track successful appointment booking in Clarity
-        trackAppointmentEvent('book', response.data?.data?.appointment?._id, data.therapist_id)
+        // trackAppointmentEvent('book', response.data?.data?.appointment?._id, data.therapist_id)
 
         return response.data
     } catch (error) {
