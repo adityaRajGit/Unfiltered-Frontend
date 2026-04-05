@@ -180,6 +180,7 @@ const UserProfilePage = () => {
   })
   const [therapistLoading, setTherapistLoading] = useState(true);
   const [searchTherapist, setSearchTherapist] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [therapistList, setTherapistList] = useState<Therapist[]>([]);
   const [activeTab, setActiveTab] = useState<'all' | 'auto'>('all');
   const [bookTherapistPopup, setBookTherapistPopup] = useState(false);
@@ -601,7 +602,27 @@ const UserProfilePage = () => {
       const params = {
         pageNum: pagination.pageNum,
         pageSize: pagination.pageSize,
+        filters: {}
       };
+
+      if (debouncedSearch.trim() !== "") {
+        params.filters = {
+          $or: [
+            {
+              name: { $regex: debouncedSearch, $options: "i" }, // search by name
+            },
+            {
+              specialization: {
+                $elemMatch: {
+                  $regex: debouncedSearch,
+                  $options: "i",
+                },
+              },
+            },
+          ],
+        };
+      }
+
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const response = await dispatch(getAllTherapistListWithAvailablity(params as any) as any);
@@ -629,8 +650,16 @@ const UserProfilePage = () => {
   };
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTherapist);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchTherapist]);
+
+  useEffect(() => {
     fetchAllTherapists()
-  }, [pagination.pageNum])
+  }, [pagination.pageNum, debouncedSearch])
 
   async function getPastAppointments(id: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1064,7 +1093,7 @@ const UserProfilePage = () => {
                       Cancel
                     </button>
                     <button
-                      onClick={()=> bookAppointment(selectedTherapistForBooking)}
+                      onClick={() => bookAppointment(selectedTherapistForBooking)}
                       disabled={!selectedDate || !selectedTime}
                       className={`px-6 py-2 rounded-lg text-white transition ${!selectedDate || !selectedTime
                         ? 'bg-gray-400 cursor-not-allowed'
