@@ -1,4 +1,13 @@
+import { addNote } from '@/store/notesSlice';
 import Image from 'next/image';
+import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
+import { LoadingSpinnerWithOverlay } from '../global/Loading';
+import { NotesModal } from './NotesModal';
+import { GoalsModal } from './SetGoalsModal';
+import { TargetIcon } from 'lucide-react';
+import { addGoal } from '@/store/goalsSlice';
 
 // Icons for better visual representation
 const CalendarIcon = () => (
@@ -25,18 +34,139 @@ const UserIcon = () => (
   </svg>
 );
 
+export const PencilIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+  </svg>
+);
+
+export const NotesIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+  </svg>
+);
+
+
+interface Client {
+  _id: string;
+  name: string;
+  email: string;
+  profile_image?: string;
+}
+
+interface Appointment {
+  _id: string;
+  user_id: Client;
+  therapist_id: string;
+  scheduled_at: string;
+  appointment_status: string;
+  meet_link: string;
+}
+
+
+
 export function AppointmentList({
   appointments,
   emptyMessage,
   emptyDescription,
-  isPast = false
+  isPast = false,
+  therapistName,
+  functionToCall
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   appointments: any[];
   emptyMessage: string;
   emptyDescription: string;
   isPast?: boolean;
+  therapistName: string
+  functionToCall: (id: string) => Promise<void>;
 }) {
+
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+  const [isGoalsModalOpen, setIsGoalsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch()
+
+  // Handle opening notes modal
+  const handleOpenNotes = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setIsNotesModalOpen(true);
+  };
+
+
+  const handleOpenGoals = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setIsGoalsModalOpen(true);
+  };
+
+  // Handle saving note
+  const handleSaveNote = async (therapistId: string, userId: string, appointmentId: string, noteContent: string) => {
+    const data = {
+      therapist: therapistId,
+      user: userId,
+      appointment: appointmentId,
+      content: noteContent
+    }
+    setLoading(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(addNote(data as any) as any);
+    if (response?.error) {
+      setLoading(false)
+      toast.error(response.error.message)
+    } else {
+      setLoading(false)
+      toast.success("Note saved successfully!");
+      functionToCall(therapistId)
+      setIsNotesModalOpen(false);
+    }
+  };
+
+  // Handle saving a goal (array of goal statements)
+  const handleSaveGoal = async (
+    therapistId: string,
+    userId: string,
+    goalData: {
+      goals: string[];
+      frequency: 'daily' | 'weekly' | 'monthly';
+      defaultDurationDays: number;
+    }
+  ) => {
+    setLoading(true);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data: any = {
+        userId,
+        therapistId,
+        goals: goalData.goals,
+        frequency: goalData.frequency,
+        defaultDurationDays: goalData.defaultDurationDays
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const response = await dispatch(
+        addGoal(data) as any
+      );
+      if (response?.error) {
+        toast.error(response.error.message);
+      } else {
+        toast.success('Goals saved successfully!');
+        setIsGoalsModalOpen(false);
+        setSelectedAppointment(null);
+      }
+    } catch (error) {
+      toast.error('Failed to save goals.');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <LoadingSpinnerWithOverlay />
+    )
+  }
+
   if (appointments.length === 0) {
     return (
       <div className="text-center py-12">
@@ -73,6 +203,7 @@ export function AppointmentList({
 
         const scheduledDate = new Date(appointment.scheduled_at);
         const isToday = new Date().toDateString() === scheduledDate.toDateString();
+        const hasNotes = appointment.is_notes;
 
         return (
           <div key={appointment._id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow">
@@ -120,7 +251,7 @@ export function AppointmentList({
                 </div>
 
                 {/* Appointment Details */}
-                <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-4 text-sm text-gray-600">
+                <div className="mt-4 flex flex-col md:flex-row md:items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center">
                     <CalendarIcon />
                     <span className="ml-1.5">
@@ -142,6 +273,49 @@ export function AppointmentList({
                       })}
                     </span>
                   </div>
+
+                  <button
+                    onClick={() => handleOpenNotes(appointment)}
+                    className={`flex items-center p-2 px-4 text-white justify-center rounded-md cursor-pointer md:hover:scale-105 duration-300 ease-in-out ${hasNotes ? 'bg-[#009689]' : 'bg-teal-500'}`}
+                  >
+                    {!isPast ? (
+                      <>
+                        <NotesIcon />
+                        <span className="ml-1.5">
+                          View Notes
+                        </span>
+                      </>
+                    ) : hasNotes && isPast ? (
+                      <>
+                        <NotesIcon />
+                        <span className="ml-1.5">
+                          View Notes
+                        </span>
+                      </>
+                    )
+                      : (
+                        <>
+                          <PencilIcon />
+                          <span className="ml-1.5">
+                            Write Notes
+                          </span>
+                        </>
+                      )
+                    }
+                  </button>
+
+                  <button
+                    onClick={() => handleOpenGoals(appointment)}
+                    className="flex items-center p-2 px-4 justify-center rounded-md cursor-pointer 
+             bg-teal-50 text-teal-700 border border-teal-200
+             hover:bg-teal-100
+             md:hover:scale-105 duration-300 ease-in-out"
+                  >
+                    <TargetIcon className="w-5 h-5" />
+                    <span className="ml-1.5">
+                      Set Goals
+                    </span>
+                  </button>
                 </div>
 
                 {/* Action Buttons */}
@@ -169,6 +343,35 @@ export function AppointmentList({
           </div>
         );
       })}
+      {
+        isNotesModalOpen && (
+          <NotesModal
+            onClose={() => { setIsNotesModalOpen(false); setSelectedAppointment(null) }}
+            // @ts-ignore
+            appointment={selectedAppointment}
+            onSaveNote={handleSaveNote}
+            therapistName={therapistName}
+            isPast={isPast}
+          />
+        )
+      }
+
+      {isGoalsModalOpen && selectedAppointment && (
+        <GoalsModal
+          onClose={() => {
+            setIsGoalsModalOpen(false);
+            setSelectedAppointment(null);
+          }}
+          therapistId={selectedAppointment.therapist_id}
+          userId={
+            typeof selectedAppointment.user_id === 'object'
+              ? selectedAppointment.user_id._id
+              : selectedAppointment.user_id
+          }
+          clientName={selectedAppointment.user_id.name}
+          onSaveGoal={handleSaveGoal}
+        />
+      )}
     </div>
   );
 }

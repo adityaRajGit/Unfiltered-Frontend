@@ -37,22 +37,28 @@ export default function TherapyPopupForm({ popup, setPopup }: any) {
     const dispatch = useDispatch()
 
     useEffect(() => {
-    const popupClosedAt = localStorage.getItem('popupClosedAt');
-    const now = Date.now();
+        const popupClosedAt = localStorage.getItem("popupClosedAt");
+        const now = Date.now();
 
-    // If popup was closed within last 5 minutes → do nothing
-    if (popupClosedAt && now - Number(popupClosedAt) < 5 * 60 * 1000) {
-        return;
-    }
+        // If popup was closed within last 5 minutes → do nothing
+        if (popupClosedAt && now - Number(popupClosedAt) < 5 * 60 * 1000) {
+            return;
+        }
 
-    // Show popup after 30 seconds
-    const timer = setTimeout(() => {
-        setIsOpen(true);
-        setPopup(popup);
-    }, 30 * 1000); // 30 seconds
+        // If popup prop is true → open instantly
+        if (popup === true) {
+            setIsOpen(true);
+            return;
+        }
 
-    return () => clearTimeout(timer);
-}, []);
+        // If popup prop is false → open after 30 seconds
+        const timer = setTimeout(() => {
+            setIsOpen(true);
+        }, 30 * 1000);
+
+        return () => clearTimeout(timer);
+    }, [popup]);
+
 
 
     const handleClose = () => {
@@ -143,7 +149,7 @@ export default function TherapyPopupForm({ popup, setPopup }: any) {
                 {/* Header */}
                 <div className="bg-[#03978a] rounded-t-2xl p-6 text-white">
                     <div className="flex justify-between items-center">
-                        <h2 className="text-2xl font-bold">
+                        <h2 className="text-lg sm:text-2xl font-bold">
                             {isSubmitted ? 'Thank You!' : 'Book Your Therapy Session'}
                         </h2>
                         <button

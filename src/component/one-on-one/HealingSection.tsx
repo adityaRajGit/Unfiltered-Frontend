@@ -1,7 +1,7 @@
 
 function HealingSection() {
     return (
-        <section className="py-16 bg-gradient-to-br from-teal-50 to-cyan-100">
+        <section className="py-16 bg-white">
             <div className="container mx-auto px-4">
                 <h2 className="text-3xl font-bold text-center text-gray-800 mb-4">How Your Healing Journey Works</h2>
                 <p className="text-center text-gray-600 mb-12">Simple 4-step process to start your transformation today</p>

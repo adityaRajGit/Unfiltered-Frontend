@@ -123,6 +123,19 @@ const getAllUsers = createAsyncThunk('user/get-all-users', async (payload) => {
 }
 );
 
+const userAndTherapistResetPasswordFunc = createAsyncThunk('user-therapist/reset-password', async (payload) => {
+    try {
+        const response = await axios.post(`${backend}/auth/reset-password`, payload);
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            throw error.response.data.data.message
+        }
+        throw error.message || "An unexpected error occurred"
+    }
+}
+);
+
 
 const initialState = {
     user: null,
@@ -241,9 +254,20 @@ const userSlice = createSlice({
                 state.loading = false
                 state.error = action.error || "An error occurred"
             })
+            .addCase(userAndTherapistResetPasswordFunc.pending, (state) => {
+                state.loading = true
+                state.error = null
+            })
+            .addCase(userAndTherapistResetPasswordFunc.fulfilled, (state) => {
+                state.loading = false
+            })
+            .addCase(userAndTherapistResetPasswordFunc.rejected, (state, action) => {
+                state.loading = false
+                state.error = action.error || "An error occurred"
+            })
     }
 })
 
 export const { logoutUser } = userSlice.actions;
-export { signup, login, googleSignup, googleLogin, getUserDetails, updateUserDetails, getUserTherapist, getAllUsers }
+export { signup, login, googleSignup, googleLogin, getUserDetails, updateUserDetails, getUserTherapist, getAllUsers, userAndTherapistResetPasswordFunc }
 export default userSlice.reducer

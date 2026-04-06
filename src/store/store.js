@@ -13,6 +13,9 @@ import employeeReducer from './employeeSlice.js'
 import paymentReducer from './paymentSlice.js'
 import feedbackReducer from './feedbackSlice.js'
 import individualFormReducer from './individualForm.js'
+import notesReducer from './notesSlice.js'
+import goalsReducer from './goalsSlice.js'
+import userGoalsReducer from './userGoalsSlice.js'
 
 const store = configureStore({
     reducer: {
@@ -29,7 +32,10 @@ const store = configureStore({
         employee: employeeReducer,
         payment: paymentReducer,
         feedback: feedbackReducer,
-        individualFormReducer: individualFormReducer
+        individualFormReducer: individualFormReducer,
+        note: notesReducer,
+        goals: goalsReducer,
+        userGoals: userGoalsReducer
     }
 })
 
