@@ -146,7 +146,7 @@ export default function BudgetPackage() {
             const data = response.payload.data.package;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const paymentObject = new (window as any).Razorpay({
-                key: "rzp_live_RKKqo4uLM9Dmie",
+                key: "rzp_test_RTQXhKmDvfL3Z4",
                 order_id: data.id,
                 ...data,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
