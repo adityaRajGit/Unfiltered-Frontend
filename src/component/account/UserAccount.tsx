@@ -185,7 +185,33 @@ const UserProfilePage = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'auto'>('all');
   const [bookTherapistPopup, setBookTherapistPopup] = useState(false);
   const [selectedTherapistForBooking, setSelectedTherapistForBooking] = useState<Therapist | null>(null);
+  const [expandedSlots, setExpandedSlots] = useState({});
 
+
+  const toggleAvailability = (therapistId: string) => {
+    // @ts-ignore
+    setExpandedSlots(prev => ({ ...prev, [therapistId]: !prev[therapistId] }));
+  };
+
+  // Helper to flatten availability slots
+  const getFlattenedSlots = (availability: any) => {
+    if (!availability) return [];
+    const slots = [];
+    for (const [day, daySlots] of Object.entries(availability)) {
+      // @ts-ignore
+      if (!daySlots || daySlots.length === 0) continue;
+      // @ts-ignore
+      for (const slot of daySlots) {
+        slots.push({
+          label: `${day.charAt(0).toUpperCase() + day.slice(1)} ${slot.from}–${slot.to}`,
+          day,
+          from: slot.from,
+          to: slot.to
+        });
+      }
+    }
+    return slots;
+  };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const generateSlotsFromIntervals = (intervals: any) => {
@@ -1414,86 +1440,99 @@ const UserProfilePage = () => {
                             {therapistList.length > 0 ? (
                               <>
                                 <div className="space-y-4 bg-white">
-                                  {therapistList.map((therapist) => (
-                                    <div
-                                      key={therapist._id}
-                                      className="border border-gray-200 rounded-xl p-6 hover:border-teal-300 hover:shadow-md transition-all"
-                                    >
-                                      <div className="flex flex-col md:flex-row gap-6">
-                                        {/* Image */}
-                                        <div className="flex-shrink-0 mx-auto md:mx-0">
-                                          <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200">
-                                            <Image
-                                              src={therapist.profile_image || '/default-avatar.png'}
-                                              alt={therapist.name || 'Therapist'}
-                                              width={80}
-                                              height={80}
-                                              className="object-cover w-full h-full"
-                                            />
+                                  {therapistList.map((therapist) => {
+                                    const allSlots = getFlattenedSlots(therapist.availability);
+                                    // @ts-ignore
+                                    const isExpanded = expandedSlots[therapist._id] || false;
+                                    const visibleSlots = isExpanded ? allSlots : allSlots.slice(0, 3);
+                                    const hasHidden = allSlots.length > 3;
+
+                                    return (
+                                      <div
+                                        key={therapist._id}
+                                        className="border border-gray-200 rounded-xl p-6 hover:border-teal-300 hover:shadow-md transition-all"
+                                      >
+                                        <div className="flex flex-col md:flex-row gap-6">
+                                          {/* Image */}
+                                          <div className="flex-shrink-0 mx-auto md:mx-0">
+                                            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200">
+                                              <Image
+                                                src={therapist.profile_image || '/default-avatar.png'}
+                                                alt={therapist.name || 'Therapist'}
+                                                width={80}
+                                                height={80}
+                                                className="object-cover w-full h-full"
+                                              />
+                                            </div>
                                           </div>
-                                        </div>
 
-                                        {/* Details */}
-                                        <div className="flex-1">
-                                          <div className="flex flex-col md:flex-row md:justify-between gap-4">
-                                            <div className="space-y-3">
-                                              {/* Name & Specialization */}
-                                              <div>
-                                                <h4 className="font-bold text-lg text-gray-900">{therapist.name}</h4>
-                                                <p className="text-teal-600 font-medium">
-                                                  {therapist.specialization?.join(', ') || 'General'}
+                                          {/* Details */}
+                                          <div className="flex-1">
+                                            <div className="flex flex-col md:flex-row md:justify-between gap-4">
+                                              <div className="space-y-3">
+                                                {/* Name & Specialization */}
+                                                <div>
+                                                  <h4 className="font-bold text-lg text-gray-900">{therapist.name}</h4>
+                                                  <p className="text-teal-600 font-medium">
+                                                    {therapist.specialization?.join(', ') || 'General'}
+                                                  </p>
+                                                </div>
+
+                                                {/* Location */}
+                                                <p className="text-sm text-gray-600">
+                                                  {therapist.location?.city}, {therapist.location?.country}
                                                 </p>
-                                              </div>
 
-                                              {/* Location */}
-                                              <p className="text-sm text-gray-600">
-                                                {therapist.location?.city}, {therapist.location?.country}
-                                              </p>
-
-                                              {/* ALL availability slots */}
-                                              <div className="space-y-1">
-                                                <p className="text-sm font-medium text-gray-700">Availability:</p>
-                                                {therapist.availability ? (
-                                                  <div className="flex flex-wrap gap-2">
-                                                    {Object.entries(therapist.availability).map(([day, slots]) => {
-                                                      if (!slots || slots.length === 0) return null;
-                                                      return slots.map((slot: any, idx: number) => (
+                                                {/* ALL availability slots */}
+                                                <div className="space-y-1">
+                                                  <p className="text-sm font-medium text-gray-700">Availability:</p>
+                                                  {allSlots.length === 0 ? (
+                                                    <p className="text-sm text-gray-400">No availability information</p>
+                                                  ) : (
+                                                    <div className="flex flex-wrap gap-2 items-center">
+                                                      {visibleSlots.map((slot, idx) => (
                                                         <span
-                                                          key={`${day}-${idx}`}
-                                                          className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs"
+                                                          key={idx}
+                                                          className="px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs whitespace-nowrap"
                                                         >
-                                                          {day.charAt(0).toUpperCase() + day.slice(1)} {slot.from}–{slot.to}
+                                                          {slot.label}
                                                         </span>
-                                                      ));
-                                                    })}
-                                                  </div>
-                                                ) : (
-                                                  <p className="text-sm text-gray-400">No availability information</p>
+                                                      ))}
+                                                      {hasHidden && (
+                                                        <button
+                                                          onClick={() => toggleAvailability(therapist._id)}
+                                                          className="px-2 py-1 bg-teal-50 text-teal-700 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-teal-300"
+                                                        >
+                                                          {isExpanded ? '− Show less' : `+ ${allSlots.length - 3} more`}
+                                                        </button>
+                                                      )}
+                                                    </div>
+                                                  )}
+                                                </div>
+
+                                                {/* Optional: Years of experience */}
+                                                {therapist.academic_background?.years_of_experience && (
+                                                  <p className="text-sm text-gray-500">
+                                                    {therapist.academic_background.years_of_experience}+ years exp.
+                                                  </p>
                                                 )}
                                               </div>
 
-                                              {/* Optional: Years of experience */}
-                                              {therapist.academic_background?.years_of_experience && (
-                                                <p className="text-sm text-gray-500">
-                                                  {therapist.academic_background.years_of_experience}+ years exp.
-                                                </p>
-                                              )}
-                                            </div>
-
-                                            {/* Book Button */}
-                                            <div className="flex flex-col md:items-end justify-between md:min-w-[140px] flex-shrink-0">
-                                              <button
-                                                onClick={() => { setBookTherapistPopup(true); setSelectedTherapistForBooking(therapist) }}
-                                                className="w-full md:w-auto px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
-                                              >
-                                                Book Now
-                                              </button>
+                                              {/* Book Button */}
+                                              <div className="flex flex-col md:items-end justify-between md:min-w-[140px] flex-shrink-0">
+                                                <button
+                                                  onClick={() => { setBookTherapistPopup(true); setSelectedTherapistForBooking(therapist) }}
+                                                  className="w-full md:w-auto px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+                                                >
+                                                  Book Now
+                                                </button>
+                                              </div>
                                             </div>
                                           </div>
                                         </div>
                                       </div>
-                                    </div>
-                                  ))}
+                                    )
+                                  })}
                                 </div>
 
                                 {/* Pagination Controls */}
