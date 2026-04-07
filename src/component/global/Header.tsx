@@ -215,7 +215,7 @@ export const Header = () => {
                     <div className="mt-8 pt-6 border-t border-gray-200">
                         {user ? (
                             <Link
-                                href="/profile"
+                                href="/pages/account"
                                 className="flex items-center py-2 px-3 rounded-lg hover:bg-gray-50 text-gray-700"
                             >
                                 <FaUser className="mr-3" />
