@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { FaEdit, FaCalendarAlt, FaClock, FaVideo, FaCamera, FaUserMd, FaPhone, FaTimes, FaEnvelope, FaStar, FaHistory } from 'react-icons/fa';
+import { FaEdit, FaCalendarAlt, FaClock, FaVideo, FaCamera, FaUserMd, FaPhone, FaTimes, FaEnvelope, FaStar, FaHistory, FaSearch } from 'react-icons/fa';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import Link from 'next/link';
 import { useDispatch } from 'react-redux';
@@ -13,7 +13,7 @@ import { useRouter } from 'next/navigation';
 import { LoadingSpinnerWithOverlay } from '../global/Loading';
 import { getInitials } from '@/utils/GetInitials';
 import { useRef } from 'react';
-import { getTherapistSpecialisationAndTiming, recommendTherapist } from '@/store/therapistSlice';
+import { getAllTherapist, getAllTherapistListWithAvailablity, getTherapistSpecialisationAndTiming, recommendTherapist } from '@/store/therapistSlice';
 import { bookAppointmentFunc, getPastAppointmentsApi, getUpComingAppointments, updateAppointmentStatussApi } from '@/store/appoinment';
 import BookingCalendar from './BookAppointmentPoup';
 import NoActivePackage from './NoActivePackage';
@@ -92,6 +92,48 @@ interface PopupItem {
   scheduled_at: string | Date;
 }
 
+interface Pagination {
+  pageNum: number;
+  pageSize: number;
+  totalPages: number;
+  totalItems: number;
+}
+
+interface TimeSlot {
+  from: string; // format "HH:mm"
+  to: string;   // format "HH:mm"
+}
+
+interface Availability {
+  sunday: TimeSlot[];
+  monday: TimeSlot[];
+  tuesday: TimeSlot[];
+  wednesday: TimeSlot[];
+  thursday: TimeSlot[];
+  friday: TimeSlot[];
+  saturday: TimeSlot[];
+}
+
+interface AcademicBackground {
+  qualification: string[];
+  years_of_experience: number;
+}
+
+interface Location {
+  city: string;
+  country: string;
+}
+
+export interface Therapist {
+  _id: string;
+  name: string;
+  profile_image: string;
+  academic_background: AcademicBackground;
+  specialization: string[];
+  location: Location;
+  availability: Availability;
+}
+
 
 const UserProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -130,6 +172,20 @@ const UserProfilePage = () => {
   const [selectedAppointmentForNotes, setSelectedAppointmentForNotes] = useState<UpcomingAppointment | null>(null);
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [isGoalsModalOpen, setIsGoalsModalOpen] = useState(false);
+  const [pagination, setPagination] = useState<Pagination>({
+    pageNum: 1,
+    pageSize: 10,
+    totalItems: 0,
+    totalPages: 0
+  })
+  const [therapistLoading, setTherapistLoading] = useState(true);
+  const [searchTherapist, setSearchTherapist] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [therapistList, setTherapistList] = useState<Therapist[]>([]);
+  const [activeTab, setActiveTab] = useState<'all' | 'auto'>('all');
+  const [bookTherapistPopup, setBookTherapistPopup] = useState(false);
+  const [selectedTherapistForBooking, setSelectedTherapistForBooking] = useState<Therapist | null>(null);
+
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const generateSlotsFromIntervals = (intervals: any) => {
@@ -319,19 +375,26 @@ const UserProfilePage = () => {
     return currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
   };
 
-  const bookAppointment = async (therapist: FilteredTherapist) => {
+  const bookAppointment = async (therapist: FilteredTherapist | Therapist) => {
     if (!selectedDate || !selectedTime) {
       toast.error('Please select a date and time.');
       return;
     }
     const dateObj = new Date(selectedDate);
-    const cleanDate = dateObj.toDateString(); // Returns "Mon Aug 25 2025"
+
+    const istDate = dateObj.toLocaleDateString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
 
     const data = {
-      therapist_id: therapist.id,
+      therapist_id: "id" in therapist ? therapist.id : therapist._id,
       user_id: userId,
-      scheduled_at: cleanDate + ' ' + selectedTime
-    }
+      scheduled_at: istDate + ' ' + selectedTime
+    };
 
     window.scrollTo(0, 0);
     setLoading(true);
@@ -354,6 +417,8 @@ const UserProfilePage = () => {
       getSpicialisationAndTiming()
       getUpcomingAppointments(userId)
       getPastAppointments(userId)
+      setSelectedTherapistForBooking(null);
+      setBookTherapistPopup(false);
     }
   };
 
@@ -456,6 +521,18 @@ const UserProfilePage = () => {
     }
   }
 
+  const formatTime = (time: string) => {
+    if (time === "24:00") return "12:00 AM";
+
+    const [hour, minute] = time.split(':');
+    let h = parseInt(hour);
+
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+
+    return `${h}:${minute} ${ampm}`;
+  };
+
   const handleConfirm = async () => {
     const id = popupData[0].id;
     const formData = {
@@ -519,6 +596,70 @@ const UserProfilePage = () => {
       }));
   }
 
+  const fetchAllTherapists = async () => {
+    setTherapistLoading(true);
+    try {
+      const params = {
+        pageNum: pagination.pageNum,
+        pageSize: pagination.pageSize,
+        filters: {}
+      };
+
+      if (debouncedSearch.trim() !== "") {
+        params.filters = {
+          $or: [
+            {
+              name: { $regex: debouncedSearch, $options: "i" }, // search by name
+            },
+            {
+              specialization: {
+                $elemMatch: {
+                  $regex: debouncedSearch,
+                  $options: "i",
+                },
+              },
+            },
+          ],
+        };
+      }
+
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const response = await dispatch(getAllTherapistListWithAvailablity(params as any) as any);
+
+      if (response?.error) {
+        toast.error(response.error.message);
+      } else if (response.payload?.data) {
+        console.log(response.payload.data)
+        setTherapistList(response.payload.data.therapists);
+        const therapistCount = response.payload.data.therapistCount;
+        const totalPages = Math.ceil(therapistCount / pagination.pageSize);
+
+        setPagination(prev => ({
+          ...prev,
+          totalPages,
+          totalItems: therapistCount
+        }));
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to fetch therapists");
+    } finally {
+      setTherapistLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTherapist);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchTherapist]);
+
+  useEffect(() => {
+    fetchAllTherapists()
+  }, [pagination.pageNum, debouncedSearch])
 
   async function getPastAppointments(id: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -749,6 +890,223 @@ const UserProfilePage = () => {
             </div>
           </div>
 
+          <div className="relative w-full h-auto flex gap-3 p-1 bg-gray-100 rounded-full">
+            {/* Sliding background pill */}
+            <div
+              className={`absolute top-1 bottom-1 w-[calc(50%-0.375rem)] rounded-full bg-[#00BBA7] transition-all duration-300 ease-in-out ${activeTab === 'all' ? 'left-1' : 'left-[calc(50%+0.125rem)]'
+                }`}
+            />
+
+            {/* All Therapists button */}
+            <button
+              className={`relative z-10 flex-1 py-3 px-6 font-semibold rounded-full cursor-pointer transition-colors duration-200 ${activeTab === 'all'
+                ? 'text-white'
+                : 'text-gray-700 hover:text-[#00BBA7]'
+                }`}
+              onClick={() => setActiveTab('all')}
+            >
+              All therapists
+            </button>
+
+            {/* Auto Matcher button */}
+            <button
+              className={`relative z-10 flex-1 py-3 px-6 font-semibold rounded-full cursor-pointer transition-colors duration-200 ${activeTab === 'auto'
+                ? 'text-white'
+                : 'text-gray-700 hover:text-[#00BBA7]'
+                }`}
+              onClick={() => setActiveTab('auto')}
+            >
+              Auto Matcher
+            </button>
+          </div>
+
+          {
+            bookTherapistPopup && selectedTherapistForBooking && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
+                  {/* Modal Header */}
+                  <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+                        <Image
+                          src={selectedTherapistForBooking.profile_image || '/default-avatar.png'}
+                          alt={selectedTherapistForBooking.name}
+                          width={40}
+                          height={40}
+                          className="object-cover"
+                        />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900">Book session with {selectedTherapistForBooking.name}</h3>
+                        <p className="text-sm text-gray-500">{selectedTherapistForBooking.specialization?.join(', ')}</p>
+                      </div>
+                    </div>
+                    <button onClick={() => { setBookTherapistPopup(false); setSelectedTherapistForBooking(null); }} className="p-2 hover:bg-gray-100 rounded-full transition">
+                      <FaTimes className="w-5 h-5 text-gray-500" />
+                    </button>
+                  </div>
+
+                  {/* Modal Body - Calendar & Time Slots */}
+                  <div className="p-6">
+                    {/* Preferred Date & Time */}
+                    <div>
+                      <label className="block text-gray-700 font-medium mb-2">Preferred Date & Time</label>
+
+                      <div className="w-full h-auto flex flex-col xl:flex-row xl:gap-6">
+                        {/* Calendar */}
+                        <div className="bg-gray-50 w-full xl:w-[50%] rounded-lg p-4 mb-4 xl:mb-0">
+                          <div className="flex items-center justify-between mb-4">
+                            <button
+                              onClick={prevMonth}
+                              className="p-2 rounded-full hover:bg-white text-gray-600 transition-colors"
+                            >
+                              <FaChevronLeft className="w-4 h-4" />
+                            </button>
+                            <h4 className="font-semibold text-gray-900 text-base">{getMonthYearString()}</h4>
+                            <button
+                              onClick={nextMonth}
+                              className="p-2 rounded-full hover:bg-white text-gray-600 transition-colors"
+                            >
+                              <FaChevronRight className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          {/* Weekday Headers */}
+                          <div className="grid grid-cols-7 gap-1 mb-2">
+                            {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+                              <div key={day} className="text-center text-xs font-medium text-gray-600 py-2">
+                                {day}
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Calendar Days */}
+                          <div className="grid grid-cols-7 gap-1">
+                            {getDaysInMonth().map((day, index) => {
+                              if (!day) {
+                                return <div key={`empty-${index}`} className="p-2"></div>;
+                              }
+
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              const isToday = today.toDateString() === day.toDateString();
+                              const isSelected = selectedDate && selectedDate.toDateString() === day.toDateString();
+                              const isPast = day.getTime() < today.getTime();
+
+                              return (
+                                <button
+                                  key={day.getDate()}
+                                  className={`p-2 text-center text-sm rounded-lg transition-colors min-h-[36px] ${isSelected
+                                    ? 'bg-teal-500 text-white font-medium'
+                                    : isPast
+                                      ? 'text-gray-300 cursor-not-allowed'
+                                      : isToday
+                                        ? 'bg-teal-100 text-teal-700 font-medium border-2 border-teal-500'
+                                        : 'text-gray-700 hover:bg-white hover:shadow-sm'
+                                    }`}
+                                  onClick={() => !isPast && setSelectedDate(day)}
+                                  disabled={isPast}
+                                >
+                                  {day.getDate()}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Available Time Slots */}
+                        {selectedDate && (
+                          <div className="w-full xl:w-[45%]">
+                            <p className="text-sm font-medium text-gray-700 mb-3">
+                              Available time slots ({selectedDate.toLocaleDateString('en-US', {
+                                weekday: 'short',
+                                month: 'short',
+                                day: 'numeric',
+                              })})
+                            </p>
+
+                            <div className="bg-white rounded-lg p-4 border border-gray-200">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-2 gap-3">
+                                {(() => {
+                                  const weekday = getWeekday(selectedDate);
+                                  // @ts-ignore
+                                  const availableIntervals = selectedTherapistForBooking?.availability[weekday] || [];
+                                  const availableSlots = generateSlotsFromIntervals(availableIntervals);
+
+                                  return availableSlots.length > 0 ? (
+                                    availableSlots.map(time => {
+                                      const [hours, minutes] = time.split(':');
+                                      const nextHour = (parseInt(hours) + 1).toString().padStart(2, '0');
+                                      const timeRange = `${time} - ${nextHour}:${minutes}`;
+
+                                      const isAlreadyBooked = upcomingAppointments.some(appt => {
+                                        const apptDate = new Date(appt.scheduled_at);
+                                        const apptTime = apptDate.toTimeString().slice(0, 5);
+                                        const apptDateOnly = apptDate.toDateString();
+                                        const selectedDateOnly = new Date(selectedDate).toDateString();
+                                        return (
+                                          apptDateOnly === selectedDateOnly &&
+                                          apptTime === time &&
+                                          appt.appointment_status === 'scheduled' &&
+                                          !appt.is_deleted
+                                        );
+                                      });
+
+                                      return (
+                                        <button
+                                          key={time}
+                                          disabled={isAlreadyBooked}
+                                          className={`py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 border-2 
+                                  ${isAlreadyBooked
+                                              ? 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed'
+                                              : selectedTime === time
+                                                ? 'bg-teal-500 border-teal-500 text-white shadow-md transform scale-105'
+                                                : 'bg-white border-gray-300 text-gray-700 hover:bg-teal-50 hover:border-teal-300 hover:shadow-sm'
+                                            }`}
+                                          onClick={() => !isAlreadyBooked && setSelectedTime(time)}
+                                        >
+                                          {timeRange}
+                                        </button>
+                                      );
+                                    })
+                                  ) : (
+                                    <div className="col-span-2 sm:col-span-3 xl:col-span-2 text-center text-gray-500 text-sm py-8 bg-gray-50 rounded-lg">
+                                      <FaClock className="mx-auto mb-2 text-gray-400 text-lg" />
+                                      <p>No available time slots for this day</p>
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Modal Footer - Confirm Button */}
+                  <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+                    <button
+                      onClick={() => { setBookTherapistPopup(false); setSelectedTherapistForBooking(null); }}
+                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => bookAppointment(selectedTherapistForBooking)}
+                      disabled={!selectedDate || !selectedTime}
+                      className={`px-6 py-2 rounded-lg text-white transition ${!selectedDate || !selectedTime
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-teal-600 hover:bg-teal-700'
+                        }`}
+                    >
+                      Confirm Booking
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )
+          }
 
           {/* Book Appoinment Form */}
           {
@@ -757,279 +1115,432 @@ const UserProfilePage = () => {
                 <div className="space-y-6">
                   {!showResults ? (
                     <>
-                      {/* Auto Matcher Card */}
-                      <div className="bg-white rounded-2xl shadow-md overflow-hidden">
-                        {/* Teal Header */}
-                        <div className="bg-teal-500 px-6 py-4">
-                          <h3 className="text-xl font-bold text-white">Auto Matcher</h3>
-                          <p className="text-white text-sm opacity-90">Find the perfect counsellor based on your preferences</p>
-                        </div>
+                      {
+                        activeTab === 'auto'
+                          ? <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+                            {/* Teal Header */}
+                            <div className="bg-teal-500 px-6 py-4">
+                              <h3 className="text-xl font-bold text-white">Auto Matcher</h3>
+                              <p className="text-white text-sm opacity-90">Find the perfect counsellor based on your preferences</p>
+                            </div>
 
-                        {/* Form Content */}
-                        <div className="p-6 space-y-6">
-                          {/* Specialization */}
-                          <div>
-                            <label className="block text-gray-700 font-medium mb-2">
-                              Specialization
-                            </label>
-                            <div className="relative">
-                              <select
-                                value={bookingForm.specialization}
-                                onChange={(e) => handleBookingFormChange('specialization', e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white text-gray-800 appearance-none"
-                              >
-                                <option value="">Select your concern</option>
-                                {specialization.map((spec, index) => (
-                                  <option key={index} value={spec}>{spec}</option>
-                                ))}
-                              </select>
-                              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
-                                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                                </svg>
+                            {/* Form Content */}
+                            <div className="p-6 space-y-6">
+                              {/* Specialization */}
+                              <div>
+                                <label className="block text-gray-700 font-medium mb-2">
+                                  Specialization
+                                </label>
+                                <div className="relative">
+                                  <select
+                                    value={bookingForm.specialization}
+                                    onChange={(e) => handleBookingFormChange('specialization', e.target.value)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white text-gray-800 appearance-none"
+                                  >
+                                    <option value="">Select your concern</option>
+                                    {specialization.map((spec, index) => (
+                                      <option key={index} value={spec}>{spec}</option>
+                                    ))}
+                                  </select>
+                                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-400">
+                                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                                    </svg>
+                                  </div>
+                                </div>
                               </div>
+
+                              {/* Preferred Language */}
+                              <div>
+                                <label className="block text-gray-700 font-medium mb-2">
+                                  Preferred Language
+                                </label>
+                                <div className="relative">
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg text-left focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white flex justify-between items-center"
+                                  >
+                                    <span className="text-gray-800">
+                                      {bookingForm.languages.length === 0
+                                        ? 'Select language'
+                                        : `${bookingForm.languages.length} language(s) selected`}
+                                    </span>
+                                    <span className={`transform transition-transform ${showLanguageDropdown ? 'rotate-180' : ''} text-gray-400`}>
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                      </svg>
+                                    </span>
+                                  </button>
+
+                                  {showLanguageDropdown && (
+                                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                      {INDIAN_LANGUAGES.map((language, index) => (
+                                        <button
+                                          key={index}
+                                          type="button"
+                                          onClick={() => handleLanguageSelect(language.code)}
+                                          className={`w-full px-4 py-2 text-left transition-colors ${bookingForm.languages.includes(language.code)
+                                            ? 'bg-teal-100 text-teal-700'
+                                            : 'text-gray-700 hover:bg-gray-50'
+                                            }`}
+                                        >
+                                          {language.name}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {bookingForm.languages.length > 0 && (
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    {bookingForm.languages.map((language) => (
+                                      <span
+                                        key={language}
+                                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-teal-100 text-teal-800"
+                                      >
+                                        {INDIAN_LANGUAGES.find((lang) => lang.code === language)?.name}
+                                        <button
+                                          type="button"
+                                          onClick={() => removeLanguage(language)}
+                                          className="ml-2 text-teal-600 hover:text-teal-800"
+                                        >
+                                          <FaTimes className="w-3 h-3" />
+                                        </button>
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Preferred Date & Time */}
+                              <div>
+                                <label className="block text-gray-700 font-medium mb-2">
+                                  Preferred Date & Time
+                                </label>
+
+                                <div className="w-full h-auto flex flex-col xl:flex-row xl:gap-6">
+                                  {/* Calendar */}
+                                  <div className="bg-gray-50 w-full xl:w-[50%] rounded-lg p-4 mb-4 xl:mb-0">
+                                    {/* Calendar Header */}
+                                    <div className="flex items-center justify-between mb-4">
+                                      <button
+                                        onClick={prevMonth}
+                                        className="p-2 rounded-full hover:bg-white text-gray-600 transition-colors"
+                                      >
+                                        <FaChevronLeft className="w-4 h-4" />
+                                      </button>
+                                      <h4 className="font-semibold text-gray-900 text-base">
+                                        {getMonthYearString()}
+                                      </h4>
+                                      <button
+                                        onClick={nextMonth}
+                                        className="p-2 rounded-full hover:bg-white text-gray-600 transition-colors"
+                                      >
+                                        <FaChevronRight className="w-4 h-4" />
+                                      </button>
+                                    </div>
+
+                                    {/* Weekday Headers */}
+                                    <div className="grid grid-cols-7 gap-1 mb-2">
+                                      {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+                                        <div key={day} className="text-center text-xs font-medium text-gray-600 py-2">
+                                          {day}
+                                        </div>
+                                      ))}
+                                    </div>
+
+                                    {/* Calendar Days */}
+                                    <div className="grid grid-cols-7 gap-1">
+                                      {getDaysInMonth().map((day, index) => {
+                                        if (!day) {
+                                          return <div key={`empty-${index}`} className="p-2"></div>;
+                                        }
+
+                                        const today = new Date();
+                                        today.setHours(0, 0, 0, 0);
+                                        const isToday = today.toDateString() === day.toDateString();
+                                        const isSelected = selectedDate && selectedDate.toDateString() === day.toDateString();
+                                        const isPast = day.getTime() < today.getTime();
+
+                                        return (
+                                          <button
+                                            key={day.getDate()}
+                                            className={`p-2 text-center text-sm rounded-lg transition-colors min-h-[36px] ${isSelected
+                                              ? 'bg-teal-500 text-white font-medium'
+                                              : isPast
+                                                ? 'text-gray-300 cursor-not-allowed'
+                                                : isToday
+                                                  ? 'bg-teal-100 text-teal-700 font-medium border-2 border-teal-500'
+                                                  : 'text-gray-700 hover:bg-white hover:shadow-sm'
+                                              }`}
+                                            onClick={() => !isPast && setSelectedDate(day)}
+                                            disabled={isPast}
+                                          >
+                                            {day.getDate()}
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+
+                                  {/* Available Time Slots */}
+                                  {selectedDate && (
+                                    <div className="w-full xl:w-[45%]">
+                                      <p className="text-sm font-medium text-gray-700 mb-3">
+                                        Available time slots ({selectedDate.toLocaleDateString('en-US', {
+                                          weekday: 'short',
+                                          month: 'short',
+                                          day: 'numeric'
+                                        })})
+                                      </p>
+
+                                      <div className="bg-white rounded-lg p-4 border border-gray-200">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-2 gap-3">
+                                          {(() => {
+                                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                            const weekday: any = getWeekday(selectedDate);
+                                            const availableIntervals = timings[weekday] || [];
+                                            const availableSlots = generateSlotsFromIntervals(availableIntervals);
+
+                                            return availableSlots.length > 0 ? (
+                                              availableSlots.map(time => {
+                                                // const [hours, minutes] = time.split(':');
+                                                // const nextHour = (parseInt(hours) + 1).toString().padStart(2, '0');
+                                                // const timeRange = `${time} - ${nextHour}:${minutes}`;
+
+                                                const [hours, minutes] = time.split(':');
+                                                const nextHour = (parseInt(hours) + 1).toString().padStart(2, '0');
+                                                const timeRange = `${time} - ${nextHour}:${minutes}`;
+
+                                                //  Check if this slot conflicts with upcoming appointments
+                                                const isAlreadyBooked = upcomingAppointments.some(appt => {
+                                                  const apptDate = new Date(appt.scheduled_at);
+
+                                                  // Extract the time in HH:mm format
+                                                  const apptTime = apptDate.toTimeString().slice(0, 5); // e.g. "15:00"
+
+                                                  // Extract just the date (without time) to compare
+                                                  const apptDateOnly = apptDate.toDateString();
+                                                  const selectedDateOnly = new Date(selectedDate).toDateString();
+
+                                                  return (
+                                                    apptDateOnly === selectedDateOnly && // same day
+                                                    apptTime === time &&                 // same start time
+                                                    appt.appointment_status === "scheduled" &&
+                                                    !appt.is_deleted
+                                                  );
+                                                });
+                                                return (
+                                                  <button
+                                                    key={time}
+                                                    disabled={isAlreadyBooked}
+                                                    className={`py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 border-2 
+          ${isAlreadyBooked
+                                                        ? 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed'
+                                                        : selectedTime === time
+                                                          ? 'bg-teal-500 border-teal-500 text-white shadow-md transform scale-105'
+                                                          : 'bg-white border-gray-300 text-gray-700 hover:bg-teal-50 hover:border-teal-300 hover:shadow-sm'
+                                                      }`}
+                                                    onClick={() => !isAlreadyBooked && setSelectedTime(time)}
+                                                  >
+                                                    {timeRange}
+                                                  </button>
+                                                );
+
+                                                // return (
+                                                //   <button
+                                                //     key={time}
+                                                //     className={`py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 border-2 ${selectedTime === time
+                                                //       ? 'bg-teal-500 border-teal-500 text-white shadow-md transform scale-105'
+                                                //       : 'bg-white border-gray-300 text-gray-700 hover:bg-teal-50 hover:border-teal-300 hover:shadow-sm'
+                                                //       }`}
+                                                //     onClick={() => setSelectedTime(time)}
+                                                //   >
+                                                //     {timeRange}
+                                                //   </button>
+                                                // );
+                                              })
+                                            ) : (
+                                              <div className="col-span-2 sm:col-span-3 xl:col-span-2 text-center text-gray-500 text-sm py-8 bg-gray-50 rounded-lg">
+                                                <FaClock className="mx-auto mb-2 text-gray-400 text-lg" />
+                                                <p>No available time slots for this day</p>
+                                              </div>
+                                            );
+                                          })()}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+
+                              </div>
+
+                              <p className="text-sm font-medium text-gray-700">
+                                <span className="font-semibold text-[#00bba7]">Note:</span> We protect your privacy like it’s our own.
+                              </p>
+
+                              {/* Find My Match Button */}
+                              <button
+                                onClick={handleFindTherapists}
+                                className="w-full bg-teal-500 hover:bg-teal-600 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                              >
+                                Find My Match
+                              </button>
                             </div>
                           </div>
-
-                          {/* Preferred Language */}
-                          <div>
-                            <label className="block text-gray-700 font-medium mb-2">
-                              Preferred Language
-                            </label>
-                            <div className="relative">
-                              <button
-                                type="button"
-                                onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-left focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white flex justify-between items-center"
-                              >
-                                <span className="text-gray-800">
-                                  {bookingForm.languages.length === 0
-                                    ? 'Select language'
-                                    : `${bookingForm.languages.length} language(s) selected`}
-                                </span>
-                                <span className={`transform transition-transform ${showLanguageDropdown ? 'rotate-180' : ''} text-gray-400`}>
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                  </svg>
-                                </span>
-                              </button>
-
-                              {showLanguageDropdown && (
-                                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                  {INDIAN_LANGUAGES.map((language, index) => (
-                                    <button
-                                      key={index}
-                                      type="button"
-                                      onClick={() => handleLanguageSelect(language.code)}
-                                      className={`w-full px-4 py-2 text-left transition-colors ${bookingForm.languages.includes(language.code)
-                                        ? 'bg-teal-100 text-teal-700'
-                                        : 'text-gray-700 hover:bg-gray-50'
-                                        }`}
-                                    >
-                                      {language.name}
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
+                          : <div className="w-full h-auto flex flex-col gap-6">
+                            {/* Header with search */}
+                            <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+                              <div>
+                                <h3 className="text-xl font-bold text-gray-900">Available Therapists</h3>
+                                <p className="text-sm text-gray-500 mt-1">
+                                  {pagination.totalItems} therapist{pagination.totalItems !== 1 ? 's' : ''} found
+                                </p>
+                              </div>
+                              <div className="relative">
+                                <input
+                                  type="text"
+                                  placeholder="Search by name or specialization..."
+                                  value={searchTherapist}
+                                  onChange={(e) => { setSearchTherapist(e.target.value); }}
+                                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent w-full sm:w-64"
+                                />
+                                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                              </div>
                             </div>
 
-                            {bookingForm.languages.length > 0 && (
-                              <div className="mt-2 flex flex-wrap gap-2">
-                                {bookingForm.languages.map((language) => (
-                                  <span
-                                    key={language}
-                                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-teal-100 text-teal-800"
-                                  >
-                                    {INDIAN_LANGUAGES.find((lang) => lang.code === language)?.name}
-                                    <button
-                                      type="button"
-                                      onClick={() => removeLanguage(language)}
-                                      className="ml-2 text-teal-600 hover:text-teal-800"
+                            {/* Therapist Cards */}
+                            {therapistList.length > 0 ? (
+                              <>
+                                <div className="space-y-4 bg-white">
+                                  {therapistList.map((therapist) => (
+                                    <div
+                                      key={therapist._id}
+                                      className="border border-gray-200 rounded-xl p-6 hover:border-teal-300 hover:shadow-md transition-all"
                                     >
-                                      <FaTimes className="w-3 h-3" />
+                                      <div className="flex flex-col md:flex-row gap-6">
+                                        {/* Image */}
+                                        <div className="flex-shrink-0 mx-auto md:mx-0">
+                                          <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200">
+                                            <Image
+                                              src={therapist.profile_image || '/default-avatar.png'}
+                                              alt={therapist.name || 'Therapist'}
+                                              width={80}
+                                              height={80}
+                                              className="object-cover w-full h-full"
+                                            />
+                                          </div>
+                                        </div>
+
+                                        {/* Details */}
+                                        <div className="flex-1">
+                                          <div className="flex flex-col md:flex-row md:justify-between gap-4">
+                                            <div className="space-y-3">
+                                              {/* Name & Specialization */}
+                                              <div>
+                                                <h4 className="font-bold text-lg text-gray-900">{therapist.name}</h4>
+                                                <p className="text-teal-600 font-medium">
+                                                  {therapist.specialization?.join(', ') || 'General'}
+                                                </p>
+                                              </div>
+
+                                              {/* Location */}
+                                              <p className="text-sm text-gray-600">
+                                                {therapist.location?.city}, {therapist.location?.country}
+                                              </p>
+
+                                              {/* ALL availability slots */}
+                                              <div className="space-y-1">
+                                                <p className="text-sm font-medium text-gray-700">Availability:</p>
+                                                {therapist.availability ? (
+                                                  <div className="flex flex-wrap gap-2">
+                                                    {Object.entries(therapist.availability).map(([day, slots]) => {
+                                                      if (!slots || slots.length === 0) return null;
+                                                      return slots.map((slot: any, idx: number) => (
+                                                        <span
+                                                          key={`${day}-${idx}`}
+                                                          className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs"
+                                                        >
+                                                          {day.charAt(0).toUpperCase() + day.slice(1)} {slot.from}–{slot.to}
+                                                        </span>
+                                                      ));
+                                                    })}
+                                                  </div>
+                                                ) : (
+                                                  <p className="text-sm text-gray-400">No availability information</p>
+                                                )}
+                                              </div>
+
+                                              {/* Optional: Years of experience */}
+                                              {therapist.academic_background?.years_of_experience && (
+                                                <p className="text-sm text-gray-500">
+                                                  {therapist.academic_background.years_of_experience}+ years exp.
+                                                </p>
+                                              )}
+                                            </div>
+
+                                            {/* Book Button */}
+                                            <div className="flex flex-col md:items-end justify-between md:min-w-[140px] flex-shrink-0">
+                                              <button
+                                                onClick={() => { setBookTherapistPopup(true); setSelectedTherapistForBooking(therapist) }}
+                                                className="w-full md:w-auto px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+                                              >
+                                                Book Now
+                                              </button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {/* Pagination Controls */}
+                                {pagination.totalPages > 1 && (
+                                  <div className="flex justify-center items-center gap-4 mt-6">
+                                    <button
+                                      onClick={() => setPagination(prev => ({ ...prev, pageNum: prev.pageNum - 1 }))}
+                                      disabled={pagination.pageNum === 1}
+                                      className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                                    >
+                                      Previous
                                     </button>
-                                  </span>
-                                ))}
+                                    <span className="text-sm text-gray-700">
+                                      Page {pagination.pageNum} of {pagination.totalPages}
+                                    </span>
+                                    <button
+                                      onClick={() => setPagination(prev => ({ ...prev, pageNum: prev.pageNum + 1 }))}
+                                      disabled={pagination.pageNum === pagination.totalPages}
+                                      className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                                    >
+                                      Next
+                                    </button>
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              // Empty state
+                              <div className="text-center py-12">
+                                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                                  <FaUserMd className="text-2xl text-gray-500" />
+                                </div>
+                                <h3 className="text-xl font-medium text-gray-900 mb-2">No therapists available</h3>
+                                <p className="text-gray-600 mb-6">
+                                  {searchTherapist ? 'Try adjusting your search' : 'Check back later for new therapists'}
+                                </p>
+                                {searchTherapist && (
+                                  <button
+                                    onClick={() => setSearchTherapist('')}
+                                    className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+                                  >
+                                    Clear Search
+                                  </button>
+                                )}
                               </div>
                             )}
                           </div>
-
-                          {/* Preferred Date & Time */}
-                          <div>
-                            <label className="block text-gray-700 font-medium mb-2">
-                              Preferred Date & Time
-                            </label>
-
-                            <div className="w-full h-auto flex flex-col xl:flex-row xl:gap-6">
-                              {/* Calendar */}
-                              <div className="bg-gray-50 w-full xl:w-[50%] rounded-lg p-4 mb-4 xl:mb-0">
-                                {/* Calendar Header */}
-                                <div className="flex items-center justify-between mb-4">
-                                  <button
-                                    onClick={prevMonth}
-                                    className="p-2 rounded-full hover:bg-white text-gray-600 transition-colors"
-                                  >
-                                    <FaChevronLeft className="w-4 h-4" />
-                                  </button>
-                                  <h4 className="font-semibold text-gray-900 text-base">
-                                    {getMonthYearString()}
-                                  </h4>
-                                  <button
-                                    onClick={nextMonth}
-                                    className="p-2 rounded-full hover:bg-white text-gray-600 transition-colors"
-                                  >
-                                    <FaChevronRight className="w-4 h-4" />
-                                  </button>
-                                </div>
-
-                                {/* Weekday Headers */}
-                                <div className="grid grid-cols-7 gap-1 mb-2">
-                                  {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
-                                    <div key={day} className="text-center text-xs font-medium text-gray-600 py-2">
-                                      {day}
-                                    </div>
-                                  ))}
-                                </div>
-
-                                {/* Calendar Days */}
-                                <div className="grid grid-cols-7 gap-1">
-                                  {getDaysInMonth().map((day, index) => {
-                                    if (!day) {
-                                      return <div key={`empty-${index}`} className="p-2"></div>;
-                                    }
-
-                                    const today = new Date();
-                                    today.setHours(0, 0, 0, 0);
-                                    const isToday = today.toDateString() === day.toDateString();
-                                    const isSelected = selectedDate && selectedDate.toDateString() === day.toDateString();
-                                    const isPast = day.getTime() < today.getTime();
-
-                                    return (
-                                      <button
-                                        key={day.getDate()}
-                                        className={`p-2 text-center text-sm rounded-lg transition-colors min-h-[36px] ${isSelected
-                                          ? 'bg-teal-500 text-white font-medium'
-                                          : isPast
-                                            ? 'text-gray-300 cursor-not-allowed'
-                                            : isToday
-                                              ? 'bg-teal-100 text-teal-700 font-medium border-2 border-teal-500'
-                                              : 'text-gray-700 hover:bg-white hover:shadow-sm'
-                                          }`}
-                                        onClick={() => !isPast && setSelectedDate(day)}
-                                        disabled={isPast}
-                                      >
-                                        {day.getDate()}
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-
-                              {/* Available Time Slots */}
-                              {selectedDate && (
-                                <div className="w-full xl:w-[45%]">
-                                  <p className="text-sm font-medium text-gray-700 mb-3">
-                                    Available time slots ({selectedDate.toLocaleDateString('en-US', {
-                                      weekday: 'short',
-                                      month: 'short',
-                                      day: 'numeric'
-                                    })})
-                                  </p>
-
-                                  <div className="bg-white rounded-lg p-4 border border-gray-200">
-                                    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-2 gap-3">
-                                      {(() => {
-                                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                                        const weekday: any = getWeekday(selectedDate);
-                                        const availableIntervals = timings[weekday] || [];
-                                        const availableSlots = generateSlotsFromIntervals(availableIntervals);
-
-                                        return availableSlots.length > 0 ? (
-                                          availableSlots.map(time => {
-                                            // const [hours, minutes] = time.split(':');
-                                            // const nextHour = (parseInt(hours) + 1).toString().padStart(2, '0');
-                                            // const timeRange = `${time} - ${nextHour}:${minutes}`;
-
-                                            const [hours, minutes] = time.split(':');
-                                            const nextHour = (parseInt(hours) + 1).toString().padStart(2, '0');
-                                            const timeRange = `${time} - ${nextHour}:${minutes}`;
-
-                                            // ✅ Check if this slot conflicts with upcoming appointments
-                                            const isAlreadyBooked = upcomingAppointments.some(appt => {
-                                              const apptDate = new Date(appt.scheduled_at);
-
-                                              // Extract the time in HH:mm format
-                                              const apptTime = apptDate.toTimeString().slice(0, 5); // e.g. "15:00"
-
-                                              // Extract just the date (without time) to compare
-                                              const apptDateOnly = apptDate.toDateString();
-                                              const selectedDateOnly = new Date(selectedDate).toDateString();
-
-                                              return (
-                                                apptDateOnly === selectedDateOnly && // same day
-                                                apptTime === time &&                 // same start time
-                                                appt.appointment_status === "scheduled" &&
-                                                !appt.is_deleted
-                                              );
-                                            });
-                                            return (
-                                              <button
-                                                key={time}
-                                                disabled={isAlreadyBooked}
-                                                className={`py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 border-2 
-          ${isAlreadyBooked
-                                                    ? 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed'
-                                                    : selectedTime === time
-                                                      ? 'bg-teal-500 border-teal-500 text-white shadow-md transform scale-105'
-                                                      : 'bg-white border-gray-300 text-gray-700 hover:bg-teal-50 hover:border-teal-300 hover:shadow-sm'
-                                                  }`}
-                                                onClick={() => !isAlreadyBooked && setSelectedTime(time)}
-                                              >
-                                                {timeRange}
-                                              </button>
-                                            );
-
-                                            // return (
-                                            //   <button
-                                            //     key={time}
-                                            //     className={`py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 border-2 ${selectedTime === time
-                                            //       ? 'bg-teal-500 border-teal-500 text-white shadow-md transform scale-105'
-                                            //       : 'bg-white border-gray-300 text-gray-700 hover:bg-teal-50 hover:border-teal-300 hover:shadow-sm'
-                                            //       }`}
-                                            //     onClick={() => setSelectedTime(time)}
-                                            //   >
-                                            //     {timeRange}
-                                            //   </button>
-                                            // );
-                                          })
-                                        ) : (
-                                          <div className="col-span-2 sm:col-span-3 xl:col-span-2 text-center text-gray-500 text-sm py-8 bg-gray-50 rounded-lg">
-                                            <FaClock className="mx-auto mb-2 text-gray-400 text-lg" />
-                                            <p>No available time slots for this day</p>
-                                          </div>
-                                        );
-                                      })()}
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-
-                          </div>
-
-                          <p className="text-sm font-medium text-gray-700">
-                            <span className="font-semibold text-[#00bba7]">Note:</span> We protect your privacy like it’s our own.
-                          </p>
-
-                          {/* Find My Match Button */}
-                          <button
-                            onClick={handleFindTherapists}
-                            className="w-full bg-teal-500 hover:bg-teal-600 text-white font-medium py-3 px-4 rounded-lg transition-colors"
-                          >
-                            Find My Match
-                          </button>
-                        </div>
-                      </div>
+                      }
                     </>
                   ) : (
                     <>
@@ -1090,7 +1601,7 @@ const UserProfilePage = () => {
 
                                       {/* Available slot */}
                                       <p className="text-sm text-gray-600">
-                                        Available: {therapist?.available_slot?.from} - {therapist?.available_slot?.to}
+                                        Available: {formatTime(therapist?.available_slot?.from)} - {formatTime(therapist?.available_slot?.to)}
                                       </p>
 
                                       {/* Languages */}

@@ -27,6 +27,18 @@ const listGoals = createAsyncThunk("goal/list-goal", async (data) => {
     }
 })
 
+const listFilteredGoals = createAsyncThunk("goal/list-filtered-goal", async (data) => {
+    try {
+        const response = await axios.post(`${backend}/goals/list-with-status`, data)
+        return response.data
+    } catch (error) {
+        if (error.response) {
+            throw error.response.data.data.message
+        }
+        throw error.message || "An unexpected error occurred"
+    }
+})
+
 const initialState = {
     goals: null,
     loading: false,
@@ -63,8 +75,20 @@ const goalsSlice = createSlice({
                 state.loading = false
                 state.error = action.error || "An error occurred";
             })
+            .addCase(listFilteredGoals.pending, (state) => {
+                state.loading = true
+                state.error = null
+            })
+            .addCase(listFilteredGoals.fulfilled, (state, action) => {
+                state.loading = false
+                state.goals = action.payload.data.goalsList
+            })
+            .addCase(listFilteredGoals.rejected, (state, action) => {
+                state.loading = false
+                state.error = action.error || "An error occurred";
+            })
     }
 })
 
-export { addGoal, listGoals }
+export { addGoal, listGoals, listFilteredGoals }
 export default goalsSlice.reducer
