@@ -14,6 +14,9 @@ import { AppointmentList } from './AppointmentList';
 import { getPastAppointmentsApi, getUpComingAppointments, updateAppointmentStatussApi } from '@/store/appoinment';
 import AvailabilityScheduler from './AvailabilityCalender';
 import SessionCompletionPopup from './SessionCompletionPopup';
+import { sendOtp, verifyOtp } from '@/store/otpSlice';
+
+const BIO_LIMIT = 1000;
 
 interface Therapist {
   name: string;
@@ -102,6 +105,11 @@ export default function TherapistProfile() {
   const storedToken = typeof window !== 'undefined' ? localStorage.getItem(TOKEN) : null;
 
   const [therapist, setTherapist] = useState<Therapist | null>(null);
+
+  const [emailOtpPopup, setEmailOtpPopup] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [pendingNewEmail, setPendingNewEmail] = useState<string | null>(null);
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
 
 
   async function getTherapist(id: string) {
@@ -218,10 +226,24 @@ export default function TherapistProfile() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     if (!tempTherapistData) return;
-    setTempTherapistData({ ...tempTherapistData, [name]: value });
+
+    //  Bio limit check
+    if (name === "bio" && value.length > BIO_LIMIT) {
+      toast.dismiss(); // prevent stacking
+      toast.error(`Bio cannot exceed ${BIO_LIMIT} characters`);
+      return;
+    }
+
+    setTempTherapistData({
+      ...tempTherapistData,
+      [name]: value,
+    });
   };
 
   const handleNestedInputChange = (
@@ -373,6 +395,96 @@ export default function TherapistProfile() {
       }
     });
   };
+
+
+  const handleSaveEmail = async () => {
+    setLoading(true);
+    toast.dismiss(); // Dismiss any existing toasts
+
+    const isSame =
+      !file &&
+      JSON.stringify(tempTherapistData) === JSON.stringify(therapist);
+
+    if (isSame) {
+      toast.info('No changes detected');
+      setLoading(false);
+      setIsEditing(false);
+      return;
+    }
+
+    const newEmail = tempTherapistData?.email?.trim();
+
+    if (!newEmail) {
+      toast.error('Please enter a valid email address.');
+      setLoading(false);
+      return;
+    }
+
+    if (!tempTherapistData?.name?.trim()) {
+      toast.error('Name is required');
+      setLoading(false);
+      return
+    }
+
+    const currentEmail = therapist?.email;
+
+    // No change → do nothing or just exit edit mode
+    if (newEmail === currentEmail) {
+      setIsEditing(false);
+      await updateProfile();
+      return;
+    }
+
+    // Email changed → start OTP verification
+    setPendingNewEmail(newEmail);
+    await sendOtpForNewEmail(newEmail);
+  };
+
+  const sendOtpForNewEmail = async (email: string) => {
+    setIsUpdatingEmail(true);
+    try {
+      const response = await dispatch(sendOtp({ email: email } as any) as any);
+      if (response?.error) {
+        toast.error(response.error.message);
+      } else {
+        toast.success(`Verification code sent to ${email}`);
+        setEmailOtpPopup(true);
+      }
+    } catch (err) {
+      toast.error('Failed to send OTP. Please try again.');
+    } finally {
+      setIsUpdatingEmail(false);
+      setLoading(false);
+    }
+  };
+
+  const verifyEmailOtpAndUpdate = async () => {
+    if (!pendingNewEmail) return;
+
+    setIsUpdatingEmail(true);
+    try {
+      const data = {
+        email: pendingNewEmail,
+        otp
+      }
+      const response = await dispatch(verifyOtp(data as any) as any);
+      if (response?.error) {
+        toast.error(response.error.message);
+        setOtp('');
+        return;
+      }
+      setTempTherapistData(prev => prev ? { ...prev, email: pendingNewEmail } : prev);
+      await updateProfile();
+      setEmailOtpPopup(false);
+      setOtp('');
+      setPendingNewEmail(null);
+    } catch (err) {
+      toast.error('Verification failed. Please try again.');
+    } finally {
+      setIsUpdatingEmail(false);
+    }
+  };
+
 
   const handleConfirm = async () => {
     const id = popupData[0].id;
@@ -553,13 +665,13 @@ export default function TherapistProfile() {
           {isEditing ? (
             <div className="flex space-x-3">
               <button
-                onClick={() => setIsEditing(false)}
+                onClick={() => { setIsEditing(false), setTempTherapistData(therapist) }}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
-                onClick={updateProfile}
+                onClick={handleSaveEmail}
                 className="px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700"
               >
                 Save Changes
@@ -960,6 +1072,52 @@ export default function TherapistProfile() {
                 )}
               </div>
             </div>
+
+            {emailOtpPopup && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+                  <div className="bg-gradient-to-r from-teal-600 to-teal-700 p-6 rounded-t-2xl">
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-2xl font-bold text-white">Verify New Email</h2>
+                      <button onClick={() => setEmailOtpPopup(false)} className="text-white">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    <p className="text-teal-100 mt-1">We sent a code to {pendingNewEmail}</p>
+                  </div>
+                  <div className="p-6">
+                    <input
+                      type="text"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                      onKeyDown={(prev) => {
+                        if (prev.key === 'Enter' && otp.length === 6) {
+                          verifyEmailOtpAndUpdate();
+                        }
+                      }}
+                      placeholder="Enter 6-digit code"
+                      maxLength={6}
+                      className="w-full text-center text-2xl font-mono tracking-widest p-3 border-2 rounded-lg"
+                    />
+                    <button
+                      onClick={verifyEmailOtpAndUpdate}
+                      disabled={otp.length !== 6 || isUpdatingEmail}
+                      className="w-full mt-6 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-300 text-white font-bold py-3 rounded-lg"
+                    >
+                      {isUpdatingEmail ? 'Verifying...' : 'Verify & Update Email'}
+                    </button>
+                    <button
+                      onClick={() => sendOtpForNewEmail(pendingNewEmail!)}
+                      className="w-full mt-3 text-teal-600 hover:text-teal-800"
+                    >
+                      Resend Code
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Qualifications */}
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-teal-100">

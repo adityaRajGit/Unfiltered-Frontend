@@ -10,7 +10,7 @@ import { toast } from 'react-toastify';
 import { INDIAN_LANGUAGES, TOKEN } from '@/utils/enum';
 import { decodeToken } from '@/utils/decodeToken';
 import { useRouter } from 'next/navigation';
-import { LoadingSpinnerWithOverlay } from '../global/Loading';
+import { LoadingSpinnerWithoutOverlay, LoadingSpinnerWithOverlay } from '../global/Loading';
 import { getInitials } from '@/utils/GetInitials';
 import { useRef } from 'react';
 import { getAllTherapist, getAllTherapistListWithAvailablity, getTherapistSpecialisationAndTiming, recommendTherapist } from '@/store/therapistSlice';
@@ -22,6 +22,9 @@ import { NotesModal } from './NotesModal';
 import SessionCompletionPopup from './SessionCompletionPopup';
 import { TargetIcon } from 'lucide-react';
 import { UserGoalsModal } from './UserGoalsPopup';
+import { sendOtp, verifyOtp } from '@/store/otpSlice';
+
+const BIO_LIMIT = 1000;
 
 interface User {
   name: string;
@@ -186,6 +189,11 @@ const UserProfilePage = () => {
   const [bookTherapistPopup, setBookTherapistPopup] = useState(false);
   const [selectedTherapistForBooking, setSelectedTherapistForBooking] = useState<Therapist | null>(null);
   const [expandedSlots, setExpandedSlots] = useState({});
+
+  const [emailOtpPopup, setEmailOtpPopup] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [pendingNewEmail, setPendingNewEmail] = useState<string | null>(null);
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
 
 
   const toggleAvailability = (therapistId: string) => {
@@ -451,6 +459,14 @@ const UserProfilePage = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     if (!tempUserData) return;
+
+    //  Bio limit check
+    if (name === "bio" && value.length > BIO_LIMIT) {
+      toast.dismiss(); // prevent stacking
+      toast.error(`Bio cannot exceed ${BIO_LIMIT} characters`);
+      return;
+    }
+
     setTempUserData({ ...tempUserData, [name]: value });
   };
 
@@ -476,7 +492,7 @@ const UserProfilePage = () => {
 
       if (tempUserData) {
         formData.append('name', tempUserData.name || '');
-        formData.append('email', tempUserData.email || '');
+        formData.append('email', tempUserData.email || pendingNewEmail || '');
         formData.append('phone', tempUserData.phone || '');
         formData.append('bio', tempUserData.bio || '');
       }
@@ -613,14 +629,109 @@ const UserProfilePage = () => {
   function getScheduledAppointments(arr: any) {
     if (!Array.isArray(arr)) return [];
 
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0]; // YYYY-MM-DD
+
     return arr
-      .filter(item => item.appointment_status === "scheduled")
+      .filter(item => {
+        if (item.appointment_status !== "scheduled") return false;
+        if (item.user_completed) return false;
+
+        const updatedAt = new Date(item.updated_at);
+        const updatedAtStr = updatedAt.toISOString().split("T")[0];
+
+        return updatedAtStr !== todayStr; // not today's date
+      })
       .map(item => ({
         id: item._id,
         name: item.therapist_id?.name || "",
         scheduled_at: item.scheduled_at
       }));
   }
+
+  const handleSaveEmail = async () => {
+    setLoading(true);
+    const newEmail = tempUserData?.email?.trim();
+
+    toast.dismiss(); // Dismiss any existing toasts
+
+    if(tempUserData?.email === user?.email && tempUserData?.name === user?.name && tempUserData?.phone === user?.phone && tempUserData?.bio === user?.bio && !file) {
+      toast.info('No changes detected');
+      setLoading(false);
+      setIsEditing(false);
+      return;
+    }
+    
+    if (!newEmail) {
+      toast.error('Please enter a valid email address.');
+      setLoading(false);
+      return;
+    }
+
+    if (!tempUserData?.name?.trim()) {
+      toast.error('Name is required');
+      setLoading(false);
+      return
+    }
+
+    const currentEmail = user?.email;
+
+    // No change → do nothing or just exit edit mode
+    if (newEmail === currentEmail) {
+      setIsEditing(false);
+      await updateProfile();
+      return;
+    }
+
+    // Email changed → start OTP verification
+    setPendingNewEmail(newEmail);
+    await sendOtpForNewEmail(newEmail);
+  };
+
+  const sendOtpForNewEmail = async (email: string) => {
+    setIsUpdatingEmail(true);
+    try {
+      const response = await dispatch(sendOtp({ email: email } as any) as any);
+      if (response?.error) {
+        toast.error(response.error.message);
+      } else {
+        toast.success(`Verification code sent to ${email}`);
+        setEmailOtpPopup(true);
+      }
+    } catch (err) {
+      toast.error('Failed to send OTP. Please try again.');
+    } finally {
+      setIsUpdatingEmail(false);
+      setLoading(false);
+    }
+  };
+
+  const verifyEmailOtpAndUpdate = async () => {
+    if (!pendingNewEmail) return;
+
+    setIsUpdatingEmail(true);
+    try {
+      const data = {
+        email: pendingNewEmail,
+        otp
+      }
+      const response = await dispatch(verifyOtp(data as any) as any);
+      if (response?.error) {
+        toast.error(response.error.message);
+        setOtp('');
+        return;
+      }
+      setTempUserData(prev => prev ? { ...prev, email: pendingNewEmail } : prev);
+      await updateProfile();
+      setEmailOtpPopup(false);
+      setOtp('');
+      setPendingNewEmail(null);
+    } catch (err) {
+      toast.error('Verification failed. Please try again.');
+    } finally {
+      setIsUpdatingEmail(false);
+    }
+  };
 
   const fetchAllTherapists = async () => {
     setTherapistLoading(true);
@@ -759,13 +870,13 @@ const UserProfilePage = () => {
           {isEditing ? (
             <div className="flex space-x-3">
               <button
-                onClick={() => setIsEditing(false)}
+                onClick={() => { setIsEditing(false), setTempUserData(user) }}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
-                onClick={updateProfile}
+                onClick={handleSaveEmail}
                 className="px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700"
               >
                 Save Changes
@@ -849,7 +960,7 @@ const UserProfilePage = () => {
                   value={tempUserData?.name}
                   onChange={handleInputChange}
                   className="text-3xl font-bold text-teal-800 mb-1 bg-teal-50 rounded-xl px-5 py-3 w-full max-w-md mx-auto md:mx-0 border-2 border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 focus:outline-none transition-colors"
-                  placeholder="Your Name"
+                  placeholder="Your Name*"
                   aria-label="Name"
                 />
               ) : (
@@ -885,7 +996,7 @@ const UserProfilePage = () => {
                       value={tempUserData?.email}
                       onChange={handleInputChange}
                       className="bg-teal-50 text-teal-900 rounded-lg px-4 py-2 border-2 border-teal-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 focus:outline-none transition-colors"
-                      placeholder="Email"
+                      placeholder="Email*"
                       aria-label="Email"
                     />
                   ) : (
@@ -1133,6 +1244,53 @@ const UserProfilePage = () => {
               </div>
             )
           }
+
+
+          {emailOtpPopup && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+                <div className="bg-gradient-to-r from-teal-600 to-teal-700 p-6 rounded-t-2xl">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-2xl font-bold text-white">Verify New Email</h2>
+                    <button onClick={() => setEmailOtpPopup(false)} className="text-white">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <p className="text-teal-100 mt-1">We sent a code to {pendingNewEmail}</p>
+                </div>
+                <div className="p-6">
+                  <input
+                    type="text"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                    onKeyDown={(prev) => {
+                      if (prev.key === 'Enter' && otp.length === 6) {
+                        verifyEmailOtpAndUpdate();
+                      }
+                    }}
+                    placeholder="Enter 6-digit code"
+                    maxLength={6}
+                    className="w-full text-center text-2xl font-mono tracking-widest p-3 border-2 rounded-lg"
+                  />
+                  <button
+                    onClick={verifyEmailOtpAndUpdate}
+                    disabled={otp.length !== 6 || isUpdatingEmail}
+                    className="w-full mt-6 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-300 text-white font-bold py-3 rounded-lg"
+                  >
+                    {isUpdatingEmail ? 'Verifying...' : 'Verify & Update Email'}
+                  </button>
+                  <button
+                    onClick={() => sendOtpForNewEmail(pendingNewEmail!)}
+                    className="w-full mt-3 text-teal-600 hover:text-teal-800"
+                  >
+                    Resend Code
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Book Appoinment Form */}
           {
@@ -1437,147 +1595,155 @@ const UserProfilePage = () => {
                             </div>
 
                             {/* Therapist Cards */}
-                            {therapistList.length > 0 ? (
-                              <>
-                                <div className="space-y-4 bg-white">
-                                  {therapistList.map((therapist) => {
-                                    const allSlots = getFlattenedSlots(therapist.availability);
-                                    // @ts-ignore
-                                    const isExpanded = expandedSlots[therapist._id] || false;
-                                    const visibleSlots = isExpanded ? allSlots : allSlots.slice(0, 3);
-                                    const hasHidden = allSlots.length > 3;
+                            {
+                              therapistLoading
+                                ? <div className='w-full h-60 flex flex-col justify-content items-center'>
+                                  <LoadingSpinnerWithoutOverlay />
+                                </div>
+                                : therapistList.length > 0 ? (
+                                  <>
+                                    <div className="space-y-4 bg-white">
+                                      {therapistList.map((therapist) => {
+                                        const allSlots = getFlattenedSlots(therapist.availability);
+                                        // @ts-ignore
+                                        const isExpanded = expandedSlots[therapist._id] || false;
+                                        const visibleSlots = isExpanded ? allSlots : allSlots.slice(0, 3);
+                                        const hasHidden = allSlots.length > 3;
 
-                                    return (
-                                      <div
-                                        key={therapist._id}
-                                        className="border border-gray-200 rounded-xl p-6 hover:border-teal-300 hover:shadow-md transition-all"
-                                      >
-                                        <div className="flex flex-col md:flex-row gap-6">
-                                          {/* Image */}
-                                          <div className="flex-shrink-0 mx-auto md:mx-0">
-                                            <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200">
-                                              <Image
-                                                src={therapist.profile_image || '/default-avatar.png'}
-                                                alt={therapist.name || 'Therapist'}
-                                                width={80}
-                                                height={80}
-                                                className="object-cover w-full h-full"
-                                              />
-                                            </div>
-                                          </div>
-
-                                          {/* Details */}
-                                          <div className="flex-1">
-                                            <div className="flex flex-col md:flex-row md:justify-between gap-4">
-                                              <div className="space-y-3">
-                                                {/* Name & Specialization */}
-                                                <div>
-                                                  <h4 className="font-bold text-lg text-gray-900">{therapist.name}</h4>
-                                                  <p className="text-teal-600 font-medium">
-                                                    {therapist.specialization?.join(', ') || 'General'}
-                                                  </p>
+                                        return (
+                                          <div
+                                            key={therapist._id}
+                                            className="border border-gray-200 rounded-xl p-6 hover:border-teal-300 hover:shadow-md transition-all"
+                                          >
+                                            <div className="flex flex-col md:flex-row gap-6">
+                                              {/* Image */}
+                                              <div className="flex-shrink-0 mx-auto md:mx-0">
+                                                <div className="w-20 h-20 rounded-full overflow-hidden bg-gray-200">
+                                                  <Image
+                                                    src={therapist.profile_image || '/default-avatar.png'}
+                                                    alt={therapist.name || 'Therapist'}
+                                                    width={80}
+                                                    height={80}
+                                                    className="object-cover w-full h-full"
+                                                  />
                                                 </div>
+                                              </div>
 
-                                                {/* Location */}
-                                                <p className="text-sm text-gray-600">
-                                                  {therapist.location?.city}, {therapist.location?.country}
-                                                </p>
+                                              {/* Details */}
+                                              <div className="flex-1">
+                                                <div className="flex flex-col md:flex-row md:justify-between gap-4">
+                                                  <div className="space-y-3">
+                                                    {/* Name & Specialization */}
+                                                    <div>
+                                                      <h4 className="font-bold text-lg text-gray-900">{therapist.name}</h4>
+                                                      <p className="text-teal-600 font-medium">
+                                                        {therapist.specialization?.join(', ') || 'General'}
+                                                      </p>
+                                                    </div>
 
-                                                {/* ALL availability slots */}
-                                                <div className="space-y-1">
-                                                  <p className="text-sm font-medium text-gray-700">Availability:</p>
-                                                  {allSlots.length === 0 ? (
-                                                    <p className="text-sm text-gray-400">No availability information</p>
-                                                  ) : (
-                                                    <div className="flex flex-wrap gap-2 items-center">
-                                                      {visibleSlots.map((slot, idx) => (
-                                                        <span
-                                                          key={idx}
-                                                          className="px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs whitespace-nowrap"
-                                                        >
-                                                          {slot.label}
-                                                        </span>
-                                                      ))}
-                                                      {hasHidden && (
-                                                        <button
-                                                          onClick={() => toggleAvailability(therapist._id)}
-                                                          className="px-2 py-1 bg-teal-50 text-teal-700 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-teal-300"
-                                                        >
-                                                          {isExpanded ? '− Show less' : `+ ${allSlots.length - 3} more`}
-                                                        </button>
+                                                    {/* Location */}
+                                                    <p className="text-sm text-gray-600">
+                                                      {therapist.location?.city}, {therapist.location?.country}
+                                                    </p>
+
+                                                    {/* ALL availability slots */}
+                                                    <div className="space-y-1">
+                                                      <p className="text-sm font-medium text-gray-700">Availability:</p>
+                                                      {allSlots.length === 0 ? (
+                                                        <p className="text-sm text-gray-400">No availability information</p>
+                                                      ) : (
+                                                        <div className="flex flex-wrap gap-2 items-center">
+                                                          {visibleSlots.map((slot, idx) => (
+                                                            <span
+                                                              key={idx}
+                                                              className="px-2 py-1 bg-gray-100 text-gray-700 rounded-md text-xs whitespace-nowrap"
+                                                            >
+                                                              {slot.label}
+                                                            </span>
+                                                          ))}
+                                                          {hasHidden && (
+                                                            <button
+                                                              onClick={() => toggleAvailability(therapist._id)}
+                                                              className="px-2 py-1 bg-teal-50 text-teal-700 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-teal-300"
+                                                            >
+                                                              {isExpanded ? '− Show less' : `+ ${allSlots.length - 3} more`}
+                                                            </button>
+                                                          )}
+                                                        </div>
                                                       )}
                                                     </div>
-                                                  )}
+
+                                                    {/* Optional: Years of experience */}
+                                                    {therapist.academic_background?.years_of_experience && (
+                                                      <p className="text-sm text-gray-500">
+                                                        {therapist.academic_background.years_of_experience}+ years exp.
+                                                      </p>
+                                                    )}
+                                                  </div>
+
+                                                  {/* Book Button */}
+                                                  <div className="flex flex-col md:items-end justify-between md:min-w-[140px] flex-shrink-0">
+                                                    <button
+                                                      onClick={() => { setBookTherapistPopup(true); setSelectedTherapistForBooking(therapist) }}
+                                                      className="w-full md:w-auto px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+                                                    >
+                                                      Book Now
+                                                    </button>
+                                                  </div>
                                                 </div>
-
-                                                {/* Optional: Years of experience */}
-                                                {therapist.academic_background?.years_of_experience && (
-                                                  <p className="text-sm text-gray-500">
-                                                    {therapist.academic_background.years_of_experience}+ years exp.
-                                                  </p>
-                                                )}
-                                              </div>
-
-                                              {/* Book Button */}
-                                              <div className="flex flex-col md:items-end justify-between md:min-w-[140px] flex-shrink-0">
-                                                <button
-                                                  onClick={() => { setBookTherapistPopup(true); setSelectedTherapistForBooking(therapist) }}
-                                                  className="w-full md:w-auto px-6 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
-                                                >
-                                                  Book Now
-                                                </button>
                                               </div>
                                             </div>
                                           </div>
-                                        </div>
-                                      </div>
-                                    )
-                                  })}
-                                </div>
+                                        )
+                                      })}
+                                    </div>
 
-                                {/* Pagination Controls */}
-                                {pagination.totalPages > 1 && (
-                                  <div className="flex justify-center items-center gap-4 mt-6">
-                                    <button
-                                      onClick={() => setPagination(prev => ({ ...prev, pageNum: prev.pageNum - 1 }))}
-                                      disabled={pagination.pageNum === 1}
-                                      className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-                                    >
-                                      Previous
-                                    </button>
-                                    <span className="text-sm text-gray-700">
-                                      Page {pagination.pageNum} of {pagination.totalPages}
-                                    </span>
-                                    <button
-                                      onClick={() => setPagination(prev => ({ ...prev, pageNum: prev.pageNum + 1 }))}
-                                      disabled={pagination.pageNum === pagination.totalPages}
-                                      className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-                                    >
-                                      Next
-                                    </button>
+                                    {/* Pagination Controls */}
+                                    {pagination.totalPages > 1 && (
+                                      <div className="flex justify-center items-center gap-4 mt-6">
+                                        <button
+                                          onClick={() => setPagination(prev => ({ ...prev, pageNum: prev.pageNum - 1 }))}
+                                          disabled={pagination.pageNum === 1}
+                                          className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                                        >
+                                          Previous
+                                        </button>
+                                        <span className="text-sm text-gray-700">
+                                          Page {pagination.pageNum} of {pagination.totalPages}
+                                        </span>
+                                        <button
+                                          onClick={() => setPagination(prev => ({ ...prev, pageNum: prev.pageNum + 1 }))}
+                                          disabled={pagination.pageNum === pagination.totalPages}
+                                          className="px-4 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                                        >
+                                          Next
+                                        </button>
+                                      </div>
+                                    )}
+                                  </>
+                                ) : (
+                                  // Empty state
+                                  <div className="text-center py-12">
+                                    <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                                      <FaUserMd className="text-2xl text-gray-500" />
+                                    </div>
+                                    <h3 className="text-xl font-medium text-gray-900 mb-2">No therapists available</h3>
+                                    <p className="text-gray-600 mb-6">
+                                      {searchTherapist ? 'Try adjusting your search' : 'Check back later for new therapists'}
+                                    </p>
+                                    {searchTherapist && (
+                                      <button
+                                        onClick={() => setSearchTherapist('')}
+                                        className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+                                      >
+                                        Clear Search
+                                      </button>
+                                    )}
                                   </div>
-                                )}
-                              </>
-                            ) : (
-                              // Empty state
-                              <div className="text-center py-12">
-                                <div className="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                                  <FaUserMd className="text-2xl text-gray-500" />
-                                </div>
-                                <h3 className="text-xl font-medium text-gray-900 mb-2">No therapists available</h3>
-                                <p className="text-gray-600 mb-6">
-                                  {searchTherapist ? 'Try adjusting your search' : 'Check back later for new therapists'}
-                                </p>
-                                {searchTherapist && (
-                                  <button
-                                    onClick={() => setSearchTherapist('')}
-                                    className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
-                                  >
-                                    Clear Search
-                                  </button>
-                                )}
-                              </div>
-                            )}
+                                )
+
+                            }
+
                           </div>
                       }
                     </>

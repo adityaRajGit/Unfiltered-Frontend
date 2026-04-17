@@ -178,6 +178,7 @@ const AuthPages = () => {
     if (validateForm()) {
       if (!isLogin) {
         setLoading(true)
+        setOtp('')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const response = await dispatch(sendOtp({ email: formData.email } as any) as any);
         if (response?.error) {
@@ -301,6 +302,9 @@ const AuthPages = () => {
                   type="text"
                   value={otp}
                   onChange={handleOtpChange}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && otp.length === 6) verifyEmailOtp();
+                  }}
                   placeholder="Enter 6-digit code"
                   className="w-full text-center text-2xl font-mono tracking-widest px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                   maxLength={6}
@@ -499,7 +503,7 @@ const AuthPages = () => {
                   id="phone"
                   name="phone"
                   type="tel"
-                  placeholder="(123) 456-7890"
+                  placeholder="+91 XXXXX XXXXX"
                   value={formData.phone}
                   onChange={handleChange}
                   className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
