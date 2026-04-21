@@ -1,7 +1,13 @@
+"use client";
 import Link from "next/link";
-import { FaInstagram, FaLinkedin /*, FaFacebook */ } from "react-icons/fa";
+import { FaInstagram, FaLinkedin } from "react-icons/fa";
+import { useState } from "react";
+import { toast } from "react-toastify";
 
 function Footer() {
+    const [email, setEmail] = useState("");
+    const [isSubscribing, setIsSubscribing] = useState(false);
+
     const data = [
         {
             label: 'Instagram',
@@ -11,7 +17,29 @@ function Footer() {
             label: 'LinkedIn',
             link: 'https://www.linkedin.com/company/stay-unfiltered/'
         }
-    ]
+    ];
+
+    const handleSubscribe = () => {
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email.trim()) {
+            toast.error("Please enter your email address.");
+            return;
+        }
+        if (!emailRegex.test(email)) {
+            toast.error("Please enter a valid email address.");
+            return;
+        }
+
+        // Simulate subscription (no backend)
+        setIsSubscribing(true);
+        setTimeout(() => {
+            toast.success("You have subscribed to Stay Unfiltered newsletter!");
+            setEmail(""); // clear input
+            setIsSubscribing(false);
+        }, 500);
+    };
+
     return (
         <footer className="bg-gray-900 text-white">
             <div className="max-w-7xl mx-auto px-4 py-16">
@@ -54,7 +82,7 @@ function Footer() {
                         </ul>
                     </div>
 
-                    {/* Newsletter Subscription - Moved to right */}
+                    {/* Newsletter Subscription */}
                     <div className="flex flex-col">
                         <h3 className="text-lg font-semibold mb-4">Subscribe to our newsletter</h3>
                         <p className="text-gray-400 mb-4 text-sm">
@@ -64,10 +92,16 @@ function Footer() {
                             <input
                                 type="email"
                                 placeholder="Enter your email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 className="w-full py-3 px-4 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 border border-gray-700 transition-colors duration-200"
                             />
-                            <button className="bg-teal-600 hover:bg-teal-700 text-white py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 font-medium">
-                                Subscribe
+                            <button
+                                onClick={handleSubscribe}
+                                disabled={isSubscribing}
+                                className="bg-teal-600 hover:bg-teal-700 text-white py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 active:scale-95 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isSubscribing ? "Subscribing..." : "Subscribe"}
                             </button>
                         </div>
                     </div>

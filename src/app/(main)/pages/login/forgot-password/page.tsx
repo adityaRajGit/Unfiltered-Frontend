@@ -73,7 +73,8 @@ export default function ForgotPasswordPage() {
         setLoading(true);
 
         const data = {
-            email
+            email,
+            type: "reset_password"
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const response = await dispatch(sendOtp(data as any) as any);
@@ -96,6 +97,7 @@ export default function ForgotPasswordPage() {
 
     const handleOtpSubmit = async (e: FormEvent) => {
         e.preventDefault();
+        toast.dismiss()
         const otpString = otp.join('');
         if (otpString.length !== 6) return;
 
@@ -176,13 +178,14 @@ export default function ForgotPasswordPage() {
     };
 
     const handleOtpChange = (index: number, value: string) => {
-        if (value.length > 1) return;
+        // Allow only digits (0-9) and ignore anything else
+        if (value !== '' && !/^\d$/.test(value)) return;
 
         const newOtp = [...otp];
         newOtp[index] = value;
         setOtp(newOtp);
 
-        // Auto-focus next input
+        // Auto-focus next input if a digit was entered
         if (value && index < 5) {
             const nextInput = document.querySelector(`input[name="otp-${index + 1}"]`) as HTMLInputElement;
             nextInput?.focus();
@@ -430,23 +433,53 @@ export default function ForgotPasswordPage() {
                                             key={index}
                                             name={`otp-${index}`}
                                             type="text"
+                                            inputMode="numeric"
                                             maxLength={1}
                                             value={otp[index]}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Backspace' && !otp[index] && index > 0) {
+                                                    const prevInput = document.querySelector(`input[name="otp-${index - 1}"]`) as HTMLInputElement;
+                                                    prevInput?.focus();
+                                                    handleOtpChange(index - 1, '');
+                                                }
+                                                if (e.key === 'ArrowLeft' && index > 0) {
+                                                    const prevInput = document.querySelector(`input[name="otp-${index - 1}"]`) as HTMLInputElement;
+                                                    prevInput?.focus();
+                                                }
+                                                if (e.key === 'ArrowRight' && index < 5) {
+                                                    const nextInput = document.querySelector(`input[name="otp-${index + 1}"]`) as HTMLInputElement;
+                                                    nextInput?.focus();
+                                                }
+                                            }}
                                             onChange={(e) => handleOtpChange(index, e.target.value)}
                                             className="w-14 h-14 text-center text-3xl font-bold text-teal-900 bg-white border-2 border-teal-200 rounded-xl focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all duration-300"
                                         />
                                     ))}
                                 </div>
 
-                                {/* Countdown Timer */}
-                                {countdown > 0 && (
-                                    <div className="text-center">
-                                        <div className="inline-flex items-center space-x-2 text-sm text-teal-600">
-                                            <span className="font-mono font-bold">{formatTime(countdown)}</span>
-                                            <span>remaining</span>
-                                        </div>
+                                {/* Countdown Timer & Resend Button */}
+                                <div className="flex flex-col items-center space-y-2">
+                                    <div className="inline-flex items-center space-x-2 text-sm text-teal-600">
+                                        <span className="font-mono font-bold">{formatTime(countdown)}</span>
+                                        <span>remaining</span>
                                     </div>
-                                )}
+
+                                    <button
+                                        type="button"
+                                        onClick={handleEmailSubmit}
+                                        disabled={loading || !email}
+                                        className="text-teal-600 hover:text-teal-800 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {loading ? (
+                                            <span className="flex items-center space-x-1">
+                                                <div className="w-3 h-3 border-2 border-teal-600 border-t-transparent rounded-full animate-spin"></div>
+                                                <span>Sending...</span>
+                                            </span>
+                                        ) : (
+                                            'Resend Code'
+                                        )}
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Action Buttons */}

@@ -11,6 +11,7 @@ import { getUserDetails, logoutUser } from '@/store/userSlice';
 import { getTherapistDetails, logoutTherapist } from '@/store/therapistSlice';
 import { logoutEmployee } from '@/store/employeeSlice';
 import { getInitials } from '@/utils/GetInitials';
+import { toast } from 'react-toastify';
 
 
 interface UserData {
@@ -56,6 +57,7 @@ export const Header = () => {
             setIsDropdownOpen(false);
             setLoading(false);
             router.push('/');
+            toast.success('Logged out successfully');
         }, 1000)
     };
 
@@ -215,7 +217,7 @@ export const Header = () => {
                     <div className="mt-8 pt-6 border-t border-gray-200">
                         {user ? (
                             <Link
-                                href="/profile"
+                                href="/pages/account"
                                 className="flex items-center py-2 px-3 rounded-lg hover:bg-gray-50 text-gray-700"
                             >
                                 <FaUser className="mr-3" />

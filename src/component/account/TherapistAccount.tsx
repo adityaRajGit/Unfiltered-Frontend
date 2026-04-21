@@ -14,6 +14,9 @@ import { AppointmentList } from './AppointmentList';
 import { getPastAppointmentsApi, getUpComingAppointments, updateAppointmentStatussApi } from '@/store/appoinment';
 import AvailabilityScheduler from './AvailabilityCalender';
 import SessionCompletionPopup from './SessionCompletionPopup';
+import { sendOtp, verifyOtp } from '@/store/otpSlice';
+
+const BIO_LIMIT = 1000;
 
 interface Therapist {
   name: string;
@@ -103,6 +106,11 @@ export default function TherapistProfile() {
 
   const [therapist, setTherapist] = useState<Therapist | null>(null);
 
+  const [emailOtpPopup, setEmailOtpPopup] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [pendingNewEmail, setPendingNewEmail] = useState<string | null>(null);
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
+
 
   async function getTherapist(id: string) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -129,10 +137,84 @@ export default function TherapistProfile() {
     }
   }
 
+
+  const validateTherapistData = (data: Therapist | null): string | null => {
+    if (!data) return "Invalid data";
+
+    const cleanArray = (arr: string[] = []) =>
+      arr.map(item => item.trim()).filter(Boolean);
+
+    const hasDuplicates = (arr: string[]) => {
+      const normalized = arr.map(item => item.toLowerCase());
+      return new Set(normalized).size !== arr.length;
+    };
+
+    // Email Validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) return "Invalid email format";
+
+    const years = Number(data.academic_background?.years_of_experience);
+
+    if (!years || years < 1 || years > 50) {
+      return "Years of experience must be between 1 and 50";
+    }
+
+
+    const city = data.location?.city?.trim();
+    const country = data.location?.country?.trim();
+
+    const nameRegex = /^[a-zA-Z\s]+$/;
+
+    if (!nameRegex.test(city)) {
+      return "City should only contain letters";
+    }
+
+    if (!nameRegex.test(country)) {
+      return "Country should only contain letters";
+    }
+
+    if (!city || city.length < 2 || city.length > 50) {
+      return "City must be between 2 and 50 characters";
+    }
+
+    if (!country || country.length < 2 || country.length > 50) {
+      return "Country must be between 2 and 50 characters";
+    }
+
+    // Academic Background
+    const qualifications = cleanArray(data.academic_background?.qualification || []);
+    if (hasDuplicates(qualifications)) {
+      return "Duplicate qualifications are not allowed";
+    }
+
+    // Specialization
+    const specializations = cleanArray(data.specialization || []);
+    if (hasDuplicates(specializations)) {
+      return "Duplicate specializations are not allowed";
+    }
+
+    // Languages
+    const languages = cleanArray(data.languages || []);
+    if (hasDuplicates(languages)) {
+      return "Duplicate languages are not allowed";
+    }
+
+    return null; //  Everything valid
+  };
+
   async function updateProfile() {
     setLoading(true);
 
     try {
+
+      const error = validateTherapistData(tempTherapistData);
+
+      if (error) {
+        toast.error(error);
+        setLoading(false);
+        return; // STOP API CALL
+      }
+
       // Create FormData object
       const formData = new FormData();
 
@@ -218,10 +300,24 @@ export default function TherapistProfile() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     if (!tempTherapistData) return;
-    setTempTherapistData({ ...tempTherapistData, [name]: value });
+
+    //  Bio limit check
+    if (name === "bio" && value.length > BIO_LIMIT) {
+      toast.dismiss(); // prevent stacking
+      toast.error(`Bio cannot exceed ${BIO_LIMIT} characters`);
+      return;
+    }
+
+    setTempTherapistData({
+      ...tempTherapistData,
+      [name]: value,
+    });
   };
 
   const handleNestedInputChange = (
@@ -373,6 +469,95 @@ export default function TherapistProfile() {
       }
     });
   };
+
+
+  const handleSaveEmail = async () => {
+    setLoading(true);
+    toast.dismiss(); // Dismiss any existing toasts
+
+    const isSame =
+      !file &&
+      JSON.stringify(tempTherapistData) === JSON.stringify(therapist);
+
+    if (isSame) {
+      toast.info('No changes detected');
+      setLoading(false);
+      setIsEditing(false);
+      return;
+    }
+
+    const newEmail = tempTherapistData?.email?.trim();
+
+    if (!newEmail) {
+      toast.error('Please enter a valid email address.');
+      setLoading(false);
+      return;
+    }
+
+    if (!tempTherapistData?.name?.trim()) {
+      toast.error('Name is required');
+      setLoading(false);
+      return
+    }
+
+    const currentEmail = therapist?.email;
+
+    // No change → do nothing or just exit edit mode
+    if (newEmail === currentEmail) {
+      await updateProfile();
+      return;
+    }
+
+    // Email changed → start OTP verification
+    setPendingNewEmail(newEmail);
+    await sendOtpForNewEmail(newEmail);
+  };
+
+  const sendOtpForNewEmail = async (email: string) => {
+    setIsUpdatingEmail(true);
+    try {
+      const response = await dispatch(sendOtp({ email: email } as any) as any);
+      if (response?.error) {
+        toast.error(response.error.message);
+      } else {
+        toast.success(`Verification code sent to ${email}`);
+        setEmailOtpPopup(true);
+      }
+    } catch (err) {
+      toast.error('Failed to send OTP. Please try again.');
+    } finally {
+      setIsUpdatingEmail(false);
+      setLoading(false);
+    }
+  };
+
+  const verifyEmailOtpAndUpdate = async () => {
+    if (!pendingNewEmail) return;
+
+    setIsUpdatingEmail(true);
+    try {
+      const data = {
+        email: pendingNewEmail,
+        otp
+      }
+      const response = await dispatch(verifyOtp(data as any) as any);
+      if (response?.error) {
+        toast.error(response.error.message);
+        setOtp('');
+        return;
+      }
+      setTempTherapistData(prev => prev ? { ...prev, email: pendingNewEmail } : prev);
+      await updateProfile();
+      setEmailOtpPopup(false);
+      setOtp('');
+      setPendingNewEmail(null);
+    } catch (err) {
+      toast.error('Verification failed. Please try again.');
+    } finally {
+      setIsUpdatingEmail(false);
+    }
+  };
+
 
   const handleConfirm = async () => {
     const id = popupData[0].id;
@@ -553,13 +738,13 @@ export default function TherapistProfile() {
           {isEditing ? (
             <div className="flex space-x-3">
               <button
-                onClick={() => setIsEditing(false)}
+                onClick={() => { setIsEditing(false), setTempTherapistData(therapist) }}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
-                onClick={updateProfile}
+                onClick={handleSaveEmail}
                 className="px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700"
               >
                 Save Changes
@@ -636,6 +821,7 @@ export default function TherapistProfile() {
                   <input
                     type="text"
                     name="name"
+                    placeholder='Enter Your Name*'
                     value={tempTherapistData.name}
                     onChange={handleInputChange}
                     className="text-3xl font-bold w-full bg-teal-50 rounded-lg px-3 py-2 mb-2"
@@ -651,32 +837,26 @@ export default function TherapistProfile() {
                     <div className="flex flex-wrap gap-2">
                       {tempTherapistData?.specialization?.map((spec, index) => (
                         <div
-                          key={index}
-                          className="flex items-center bg-gradient-to-r from-teal-50 to-teal-100 rounded-xl pl-3 pr-1 py-1"
-                        >
-                          <select
-                            value={spec}
-                            onChange={(e) =>
-                              handleArrayChange("specialization", index, e.target.value)
-                            }
-                            className="bg-transparent text-teal-800 focus:outline-none w-48 text-sm"
-                          >
-                            <option value="" disabled>
-                              Select specialization
-                            </option>
-                            {SPECIALIZATIONS.map((option, i) => (
-                              <option key={i} value={option}>
-                                {option}
-                              </option>
-                            ))}
-                          </select>
-                          <button
-                            onClick={() => removeArrayItem("specialization", index)}
-                            className="text-teal-500 hover:text-teal-700 ml-1 transition-colors"
-                          >
-                            <FaTimes size={14} />
-                          </button>
-                        </div>
+  key={index}
+  className="flex items-center bg-gradient-to-r from-teal-50 to-teal-100 rounded-xl pl-3 pr-1 py-1 gap-1"
+>
+  <select
+    value={spec}
+    onChange={(e) => handleArrayChange("specialization", index, e.target.value)}
+    className="bg-transparent text-teal-800 focus:outline-none text-sm w-auto min-w-[120px]"
+  >
+    <option value="" disabled>Select specialization</option>
+    {SPECIALIZATIONS.map((option, i) => (
+      <option key={i} value={option}>{option}</option>
+    ))}
+  </select>
+  <button
+    onClick={() => removeArrayItem("specialization", index)}
+    className="text-teal-500 hover:text-teal-700 transition-colors flex-shrink-0"
+  >
+    <FaTimes size={14} />
+  </button>
+</div>
                       ))}
                     </div>
                     <button
@@ -960,6 +1140,52 @@ export default function TherapistProfile() {
                 )}
               </div>
             </div>
+
+            {emailOtpPopup && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+                  <div className="bg-gradient-to-r from-teal-600 to-teal-700 p-6 rounded-t-2xl">
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-2xl font-bold text-white">Verify New Email</h2>
+                      <button onClick={() => setEmailOtpPopup(false)} className="text-white">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    <p className="text-teal-100 mt-1">We sent a code to {pendingNewEmail}</p>
+                  </div>
+                  <div className="p-6">
+                    <input
+                      type="text"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                      onKeyDown={(prev) => {
+                        if (prev.key === 'Enter' && otp.length === 6) {
+                          verifyEmailOtpAndUpdate();
+                        }
+                      }}
+                      placeholder="Enter 6-digit code"
+                      maxLength={6}
+                      className="w-full text-center text-2xl font-mono tracking-widest p-3 border-2 rounded-lg"
+                    />
+                    <button
+                      onClick={verifyEmailOtpAndUpdate}
+                      disabled={otp.length !== 6 || isUpdatingEmail}
+                      className="w-full mt-6 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-300 text-white font-bold py-3 rounded-lg"
+                    >
+                      {isUpdatingEmail ? 'Verifying...' : 'Verify & Update Email'}
+                    </button>
+                    <button
+                      onClick={() => sendOtpForNewEmail(pendingNewEmail!)}
+                      className="w-full mt-3 text-teal-600 hover:text-teal-800"
+                    >
+                      Resend Code
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Qualifications */}
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-teal-100">
