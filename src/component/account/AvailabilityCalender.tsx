@@ -2,7 +2,7 @@ import { getAvailabilityForTherapist, setAvailabilityForTherapist, updateAvailab
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
-import { LoadingSpinnerWithoutOverlay } from '../global/Loading';
+import { LoadingSpinnerWithoutOverlay, LoadingSpinnerWithOverlay } from '../global/Loading';
 
 interface TimeSlot {
     from: string;
@@ -45,12 +45,25 @@ export default function CalendarAvailabilityScheduler({ therapistId }: { therapi
         friday: [],
         saturday: []
     });
+
+    const [originalAvailability, setOriginalAvailability] = useState<DayAvailability>({
+        sunday: [],
+        monday: [],
+        tuesday: [],
+        wednesday: [],
+        thursday: [],
+        friday: [],
+        saturday: []
+    });
+
     const [loading, setLoading] = useState(true);
     const [selectedDay, setSelectedDay] = useState<string>('monday');
     const [newSlot, setNewSlot] = useState<TimeSlot>({ from: '09:00', to: '10:00' });
     const [isAdding, setIsAdding] = useState<boolean>(false);
     const [availabilityId, setAvailabilityId] = useState<string>('');
     const dispatch = useDispatch()
+
+    const hasChanges = JSON.stringify(availability) !== JSON.stringify(originalAvailability);
 
     const addTimeSlot = (day: string) => {
         if (newSlot.from >= newSlot.to) {
@@ -76,6 +89,7 @@ export default function CalendarAvailabilityScheduler({ therapistId }: { therapi
 
     const handleSubmit = async () => {
         setLoading(true)
+        window.scrollTo(0, 0);
         const data: AvailabilityData = {
             therapist: therapistId,
             days: availability
@@ -87,9 +101,8 @@ export default function CalendarAvailabilityScheduler({ therapistId }: { therapi
             toast.error(response.error.message)
         } else {
             setLoading(false)
-            window.scrollTo(0, 0);
             toast.success('Availability set successfully!');
-            getAvailability(therapistId)
+            await getAvailability(therapistId)
         }
     };
 
@@ -111,12 +124,14 @@ export default function CalendarAvailabilityScheduler({ therapistId }: { therapi
                 saturday: []
             }
             setAvailability(data)
+            setOriginalAvailability(JSON.parse(JSON.stringify(data)));
             setAvailabilityId(response.payload.data.availability._id)
         }
     }
 
     async function updateAvailability() {
         setLoading(true)
+        window.scrollTo(0, 0);
         const dataToSend = {
             id: availabilityId,
             data: {
@@ -131,9 +146,8 @@ export default function CalendarAvailabilityScheduler({ therapistId }: { therapi
             toast.error(response.error.message)
         } else {
             setLoading(false)
-            window.scrollTo(0, 0);
             toast.success('Availability updated successfully!');
-            getAvailability(therapistId)
+            await getAvailability(therapistId)
         }
     }
 
@@ -159,16 +173,11 @@ export default function CalendarAvailabilityScheduler({ therapistId }: { therapi
         getAvailability(therapistId)
     }, [])
 
-    if (loading) {
-        return (
-            <div className='w-full'>
-                <LoadingSpinnerWithoutOverlay />
-            </div>
-        )
-    }
-
     return (
         <div className="w-full mt-10 mx-auto p-6 bg-white rounded-2xl shadow-lg">
+            {
+                loading && <LoadingSpinnerWithOverlay />
+            }
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Set Your Weekly Availability</h2>
             <p className="text-gray-600">Select days and time slots when you&apos;re available for sessions</p>
             <p className="text-sm font-medium text-gray-700 mb-6">
@@ -359,7 +368,12 @@ export default function CalendarAvailabilityScheduler({ therapistId }: { therapi
                         <div className="mt-8 pt-6 border-t border-gray-200">
                             <button
                                 onClick={availabilityId ? updateAvailability : handleSubmit}
-                                className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-4 rounded-lg transition-colors shadow-md"
+                                disabled={!hasChanges || loading}
+                                className={`w-full font-medium py-3 px-4 rounded-lg transition-colors shadow-md
+                                ${!hasChanges || loading
+                                        ? 'bg-gray-400 cursor-not-allowed'
+                                        : 'bg-teal-600 hover:bg-teal-700 text-white'
+                                    }`}
                             >
                                 Save Availability
                             </button>

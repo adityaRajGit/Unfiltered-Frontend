@@ -137,10 +137,84 @@ export default function TherapistProfile() {
     }
   }
 
+
+  const validateTherapistData = (data: Therapist | null): string | null => {
+    if (!data) return "Invalid data";
+
+    const cleanArray = (arr: string[] = []) =>
+      arr.map(item => item.trim()).filter(Boolean);
+
+    const hasDuplicates = (arr: string[]) => {
+      const normalized = arr.map(item => item.toLowerCase());
+      return new Set(normalized).size !== arr.length;
+    };
+
+    // Email Validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) return "Invalid email format";
+
+    const years = Number(data.academic_background?.years_of_experience);
+
+    if (!years || years < 1 || years > 50) {
+      return "Years of experience must be between 1 and 50";
+    }
+
+
+    const city = data.location?.city?.trim();
+    const country = data.location?.country?.trim();
+
+    const nameRegex = /^[a-zA-Z\s]+$/;
+
+    if (!nameRegex.test(city)) {
+      return "City should only contain letters";
+    }
+
+    if (!nameRegex.test(country)) {
+      return "Country should only contain letters";
+    }
+
+    if (!city || city.length < 2 || city.length > 50) {
+      return "City must be between 2 and 50 characters";
+    }
+
+    if (!country || country.length < 2 || country.length > 50) {
+      return "Country must be between 2 and 50 characters";
+    }
+
+    // Academic Background
+    const qualifications = cleanArray(data.academic_background?.qualification || []);
+    if (hasDuplicates(qualifications)) {
+      return "Duplicate qualifications are not allowed";
+    }
+
+    // Specialization
+    const specializations = cleanArray(data.specialization || []);
+    if (hasDuplicates(specializations)) {
+      return "Duplicate specializations are not allowed";
+    }
+
+    // Languages
+    const languages = cleanArray(data.languages || []);
+    if (hasDuplicates(languages)) {
+      return "Duplicate languages are not allowed";
+    }
+
+    return null; //  Everything valid
+  };
+
   async function updateProfile() {
     setLoading(true);
 
     try {
+
+      const error = validateTherapistData(tempTherapistData);
+
+      if (error) {
+        toast.error(error);
+        setLoading(false);
+        return; // STOP API CALL
+      }
+
       // Create FormData object
       const formData = new FormData();
 
@@ -430,7 +504,6 @@ export default function TherapistProfile() {
 
     // No change → do nothing or just exit edit mode
     if (newEmail === currentEmail) {
-      setIsEditing(false);
       await updateProfile();
       return;
     }
@@ -748,6 +821,7 @@ export default function TherapistProfile() {
                   <input
                     type="text"
                     name="name"
+                    placeholder='Enter Your Name*'
                     value={tempTherapistData.name}
                     onChange={handleInputChange}
                     className="text-3xl font-bold w-full bg-teal-50 rounded-lg px-3 py-2 mb-2"
@@ -763,32 +837,26 @@ export default function TherapistProfile() {
                     <div className="flex flex-wrap gap-2">
                       {tempTherapistData?.specialization?.map((spec, index) => (
                         <div
-                          key={index}
-                          className="flex items-center bg-gradient-to-r from-teal-50 to-teal-100 rounded-xl pl-3 pr-1 py-1"
-                        >
-                          <select
-                            value={spec}
-                            onChange={(e) =>
-                              handleArrayChange("specialization", index, e.target.value)
-                            }
-                            className="bg-transparent text-teal-800 focus:outline-none w-48 text-sm"
-                          >
-                            <option value="" disabled>
-                              Select specialization
-                            </option>
-                            {SPECIALIZATIONS.map((option, i) => (
-                              <option key={i} value={option}>
-                                {option}
-                              </option>
-                            ))}
-                          </select>
-                          <button
-                            onClick={() => removeArrayItem("specialization", index)}
-                            className="text-teal-500 hover:text-teal-700 ml-1 transition-colors"
-                          >
-                            <FaTimes size={14} />
-                          </button>
-                        </div>
+  key={index}
+  className="flex items-center bg-gradient-to-r from-teal-50 to-teal-100 rounded-xl pl-3 pr-1 py-1 gap-1"
+>
+  <select
+    value={spec}
+    onChange={(e) => handleArrayChange("specialization", index, e.target.value)}
+    className="bg-transparent text-teal-800 focus:outline-none text-sm w-auto min-w-[120px]"
+  >
+    <option value="" disabled>Select specialization</option>
+    {SPECIALIZATIONS.map((option, i) => (
+      <option key={i} value={option}>{option}</option>
+    ))}
+  </select>
+  <button
+    onClick={() => removeArrayItem("specialization", index)}
+    className="text-teal-500 hover:text-teal-700 transition-colors flex-shrink-0"
+  >
+    <FaTimes size={14} />
+  </button>
+</div>
                       ))}
                     </div>
                     <button

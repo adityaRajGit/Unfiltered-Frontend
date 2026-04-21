@@ -17,6 +17,7 @@ import { fbPurchase } from '@/lib/PixelHelpers';
 import TherapyPopupForm from './PopupForm';
 
 const backend = process.env.NEXT_PUBLIC_BACKEND_URL
+const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
 
 export default function BudgetPackage() {
     const [loading, setLoading] = useState(true);
@@ -146,7 +147,7 @@ export default function BudgetPackage() {
             const data = response.payload.data.package;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const paymentObject = new (window as any).Razorpay({
-                key: "rzp_test_RTQXhKmDvfL3Z4",
+                key: razorpayKeyId,
                 order_id: data.id,
                 ...data,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any

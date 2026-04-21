@@ -11,6 +11,7 @@ import { getUserDetails, logoutUser } from '@/store/userSlice';
 import { getTherapistDetails, logoutTherapist } from '@/store/therapistSlice';
 import { logoutEmployee } from '@/store/employeeSlice';
 import { getInitials } from '@/utils/GetInitials';
+import { toast } from 'react-toastify';
 
 
 interface UserData {
@@ -56,6 +57,7 @@ export const Header = () => {
             setIsDropdownOpen(false);
             setLoading(false);
             router.push('/');
+            toast.success('Logged out successfully');
         }, 1000)
     };
 
