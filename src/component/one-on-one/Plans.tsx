@@ -13,6 +13,8 @@ import TherapyPopupForm from './PopupForm';
 import { fbPurchase } from '@/lib/PixelHelpers';
 
 const backend = process.env.NEXT_PUBLIC_BACKEND_URL
+const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
+
 
 interface Package {
     _id: number;
@@ -210,7 +212,7 @@ function Plans() {
             const data = response.payload.data.package;
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const paymentObject = new (window as any).Razorpay({
-                key: "rzp_live_RKKqo4uLM9Dmie",
+                key: razorpayKeyId,
                 order_id: data.id,
                 ...data,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any

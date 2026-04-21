@@ -59,7 +59,15 @@ export default function TherapyPopupForm({ popup, setPopup }: any) {
         return () => clearTimeout(timer);
     }, [popup]);
 
-
+     useEffect(() => {
+        if (isOpen) {
+            const originalOverflow = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+            return () => {
+                document.body.style.overflow = originalOverflow;
+            };
+        }
+    }, [isOpen]);
 
     const handleClose = () => {
         setIsOpen(false);

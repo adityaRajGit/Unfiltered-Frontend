@@ -196,6 +196,18 @@ const UserProfilePage = () => {
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
 
 
+  const today = new Date();
+
+  const [currentDate, setCurrentDate] = useState(
+    new Date(today.getFullYear(), today.getMonth(), 1)
+  );
+
+  // Start boundary (current month)
+  const minDate = new Date(today.getFullYear(), today.getMonth(), 1);
+
+  // End boundary (after 2 months)
+  const maxDate = new Date(today.getFullYear(), today.getMonth() + 2, 1);
+
   const toggleAvailability = (therapistId: string) => {
     // @ts-ignore
     setExpandedSlots(prev => ({ ...prev, [therapistId]: !prev[therapistId] }));
@@ -386,22 +398,32 @@ const UserProfilePage = () => {
     return days;
   };
 
-  // Navigate to previous month
   const prevMonth = () => {
-    setCurrentMonth(prev => {
-      const prevMonthDate = new Date(prev);
-      prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
-      return prevMonthDate;
-    });
+    const newDate = new Date(currentDate);
+    newDate.setMonth(currentDate.getMonth() - 1);
+
+    if (newDate >= minDate) {
+      setCurrentDate(newDate);
+      setCurrentMonth(prev => {
+        const prevMonthDate = new Date(prev);
+        prevMonthDate.setMonth(prevMonthDate.getMonth() - 1);
+        return prevMonthDate;
+      });
+    }
   };
 
-  // Navigate to next month
   const nextMonth = () => {
-    setCurrentMonth(prev => {
-      const nextMonthDate = new Date(prev);
-      nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
-      return nextMonthDate;
-    });
+    const newDate = new Date(currentDate);
+    newDate.setMonth(currentDate.getMonth() + 1);
+
+    if (newDate <= maxDate) {
+      setCurrentDate(newDate);
+      setCurrentMonth(prev => {
+        const nextMonthDate = new Date(prev);
+        nextMonthDate.setMonth(nextMonthDate.getMonth() + 1);
+        return nextMonthDate;
+      });
+    }
   };
 
   // Get month and year string
@@ -655,13 +677,13 @@ const UserProfilePage = () => {
 
     toast.dismiss(); // Dismiss any existing toasts
 
-    if(tempUserData?.email === user?.email && tempUserData?.name === user?.name && tempUserData?.phone === user?.phone && tempUserData?.bio === user?.bio && !file) {
+    if (tempUserData?.email === user?.email && tempUserData?.name === user?.name && tempUserData?.phone === user?.phone && tempUserData?.bio === user?.bio && !file) {
       toast.info('No changes detected');
       setLoading(false);
       setIsEditing(false);
       return;
     }
-    
+
     if (!newEmail) {
       toast.error('Please enter a valid email address.');
       setLoading(false);
@@ -860,6 +882,9 @@ const UserProfilePage = () => {
       </div>
     )
   }
+
+  const isPrevDisabled = currentDate <= minDate;
+  const isNextDisabled = currentDate >= maxDate;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white py-8 px-4">
@@ -1095,14 +1120,18 @@ const UserProfilePage = () => {
                           <div className="flex items-center justify-between mb-4">
                             <button
                               onClick={prevMonth}
-                              className="p-2 rounded-full hover:bg-white text-gray-600 transition-colors"
+                              disabled={isPrevDisabled}
+                              className={`p-2 rounded-full transition-colors 
+    ${isPrevDisabled ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-white text-gray-600'}`}
                             >
                               <FaChevronLeft className="w-4 h-4" />
                             </button>
                             <h4 className="font-semibold text-gray-900 text-base">{getMonthYearString()}</h4>
                             <button
                               onClick={nextMonth}
-                              className="p-2 rounded-full hover:bg-white text-gray-600 transition-colors"
+                              disabled={isNextDisabled}
+                              className={`p-2 rounded-full transition-colors 
+    ${isNextDisabled ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-white text-gray-600'}`}
                             >
                               <FaChevronRight className="w-4 h-4" />
                             </button>
@@ -1410,7 +1439,9 @@ const UserProfilePage = () => {
                                     <div className="flex items-center justify-between mb-4">
                                       <button
                                         onClick={prevMonth}
-                                        className="p-2 rounded-full hover:bg-white text-gray-600 transition-colors"
+                                        disabled={isPrevDisabled}
+                                        className={`p-2 rounded-full transition-colors 
+    ${isPrevDisabled ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-white text-gray-600'}`}
                                       >
                                         <FaChevronLeft className="w-4 h-4" />
                                       </button>
@@ -1419,7 +1450,9 @@ const UserProfilePage = () => {
                                       </h4>
                                       <button
                                         onClick={nextMonth}
-                                        className="p-2 rounded-full hover:bg-white text-gray-600 transition-colors"
+                                        disabled={isNextDisabled}
+                                        className={`p-2 rounded-full transition-colors 
+    ${isNextDisabled ? 'text-gray-300 cursor-not-allowed' : 'hover:bg-white text-gray-600'}`}
                                       >
                                         <FaChevronRight className="w-4 h-4" />
                                       </button>

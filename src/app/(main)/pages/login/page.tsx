@@ -462,7 +462,7 @@ const AuthPages = () => {
                       }`}
                   />
                 </div>
-                <span className="font-semibold text-gray-900">Individual</span>
+                <span className="font-semibold text-gray-900">User</span>
                 <span className="text-sm text-gray-500 mt-1">Seeking support</span>
               </button>
             </div>
