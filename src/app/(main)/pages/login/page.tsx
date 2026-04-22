@@ -32,7 +32,26 @@ const AuthPages = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    let updatedValue = value;
+
+    // Apply validation only for phone field
+    if (name === "phone") {
+      // Remove non-numeric characters
+      updatedValue = value.replace(/\D/g, "");
+
+      // Limit to 10 digits
+      if (updatedValue.length > 10) return;
+    }
+
+    if (name === "name") {
+      updatedValue = value.replace(/[^a-zA-Z\s]/g, ""); // remove non-letters
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: updatedValue
+    }));
   };
 
   const validateForm = () => {
@@ -180,7 +199,7 @@ const AuthPages = () => {
         setLoading(true)
         setOtp('')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const response = await dispatch(sendOtp({ email: formData.email } as any) as any);
+        const response = await dispatch(sendOtp({ email: formData.email, type: role } as any) as any);
         if (response?.error) {
           toast.error(response.error.message);
         } else {
@@ -373,7 +392,7 @@ const AuthPages = () => {
         <form onSubmit={handleSubmit} className="p-8">
           {!isLogin && (
             <div className="mb-6">
-              <label className="block text-gray-700 mb-2 font-medium" htmlFor="name">
+              <label className="inline-block text-gray-700 mb-2 font-medium" htmlFor="name">
                 Full Name
               </label>
               <div className="relative">
@@ -470,7 +489,7 @@ const AuthPages = () => {
           </div>
 
           <div className="mb-6">
-            <label className="block text-gray-700 mb-2 font-medium" htmlFor="email">
+            <label className="inline-block text-gray-700 mb-2 font-medium" htmlFor="email">
               Email Address
             </label>
             <div className="relative">
@@ -492,7 +511,7 @@ const AuthPages = () => {
 
           {!isLogin && (
             <div className="mb-6">
-              <label className="block text-gray-700 mb-2 font-medium" htmlFor="phone">
+              <label className="inline-block text-gray-700 mb-2 font-medium" htmlFor="phone">
                 Phone Number
               </label>
               <div className="relative">
@@ -514,7 +533,7 @@ const AuthPages = () => {
           )}
 
           <div className="mb-8">
-            <label className="block text-gray-700 mb-2 font-medium" htmlFor="password">
+            <label className="inline-block text-gray-700 mb-2 font-medium" htmlFor="password">
               Password
             </label>
             <div className="relative">
@@ -570,7 +589,7 @@ const AuthPages = () => {
           <p className="text-gray-600">
             {isLogin ? "Don't have an account?" : "Already have an account?"}
             <button
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => { setIsLogin(!isLogin), clearForm() }}
               className="ml-1 text-teal-600 font-medium hover:text-teal-800 transition-colors"
             >
               {isLogin ? 'Sign Up' : 'Login'}
