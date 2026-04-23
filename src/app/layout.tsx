@@ -1,3 +1,4 @@
+import ScrollToTop from "@/component/global/ScrollToTop";
 import TrackPageView from "@/component/meta-pixel/TrackPageView";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
@@ -210,6 +211,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             src="https://www.facebook.com/tr?id=2133226870826855&ev=PageView&noscript=1"
           />
         </noscript>
+        <ScrollToTop />
         {children}
         <TrackPageView />
       </body>

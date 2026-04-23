@@ -62,14 +62,13 @@ export const GoogleSignUp = ({ role, redirectFrom }: { role: string, redirectFro
     return (
         <>
             <div className="w-full h-auto flex items-center justify-center mt-7">
-                <div className="w-[80%]">
+                <div className="w-full flex justify-center mt-7">
                     <GoogleOAuthProvider clientId={googleClientId}>
-                        <div className="w-full h-10 bg-gray-300">
-                            <GoogleLogin
-                                onSuccess={handleLoginSuccess}
-                                text="continue_with"
-                            />
-                        </div>
+                        <GoogleLogin
+                            onSuccess={handleLoginSuccess}
+                            text="continue_with"
+                            width="100%"
+                        />
                     </GoogleOAuthProvider>
                 </div>
             </div>
@@ -115,14 +114,13 @@ export const GoogleSignIn = ({ role, redirectFrom }: { role: string, redirectFro
     return (
         <>
             <div className="w-full h-auto flex items-center justify-center mt-7">
-                <div className="w-[80%]">
+                <div className="w-full flex justify-center mt-7">
                     <GoogleOAuthProvider clientId={googleClientId}>
-                        <div className="w-full h-10 bg-gray-300">
                             <GoogleLogin
                                 onSuccess={handleLoginSuccess}
                                 text="signin_with"
+                                width="100%"
                             />
-                        </div>
                     </GoogleOAuthProvider>
                 </div>
             </div>
