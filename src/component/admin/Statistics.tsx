@@ -36,9 +36,9 @@ export default function Statistics() {
     dispatch(fetchLatestAppointments() as any);
     dispatch(fetchTopTherapists() as any);
     dispatch(fetchUpcomingAppointments() as any);
-    dispatch(fetchMonthlyStats({ month, year }) as any);
-    dispatch(fetchMonthlyAppointmentsList({ pageNum: 1, month, year }) as any);
-    dispatch(fetchSubscribedUsers({ pageNum: 1 }) as any);
+    dispatch((fetchMonthlyStats as any)({ month, year }));
+    dispatch((fetchMonthlyAppointmentsList as any)({ pageNum: 1, month, year }));
+    dispatch((fetchSubscribedUsers as any)({ pageNum: 1 }));
     dispatch(fetchActiveSubscriptionCount() as any);
   }, [dispatch]);
 
@@ -73,12 +73,12 @@ export default function Statistics() {
 
   const handleSubscribedPageChange = (page: number) => {
     dispatch(setSubscribedPage(page));
-    dispatch(fetchSubscribedUsers({ pageNum: page }) as any);
+    dispatch((fetchSubscribedUsers as any)({ pageNum: page }));
   };
 
   const handleMonthlyListPageChange = (page: number) => {
     dispatch(setMonthlyListPage(page));
-    dispatch(fetchMonthlyAppointmentsList({ pageNum: page, month, year }) as any);
+    dispatch((fetchMonthlyAppointmentsList as any)({ pageNum: page, month, year }));
   };
 
   return (

@@ -85,7 +85,7 @@ export const fetchActiveSubscriptionCount = createAsyncThunk(
 
 export const fetchMonthlyStats = createAsyncThunk(
   "statistics/fetchMonthlyStats",
-  async ({ month, year }) => {
+  async ({ month, year } = {}) => {
     const res = await axios.post(
       `${backend}/appointment/monthly-stats`,
       { month, year },
