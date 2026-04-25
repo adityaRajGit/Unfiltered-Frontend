@@ -213,6 +213,7 @@ const AuthPages = () => {
   }
 
   async function verifyEmailOtp() {
+    if (loading) return; 
     if (validateForm()) {
       if (!isLogin) {
         setLoading(true)
