@@ -1,4 +1,4 @@
-import { bookAppointmentFunc, rescheduleAppointmentFunc } from '@/store/appoinment';
+import { bookAppointmentFunc, getUpComingAppointments, rescheduleAppointmentFunc } from '@/store/appoinment';
 import { getAvailablityOfSingleTherapist } from '@/store/availability';
 import { useState, useEffect, useRef } from 'react';
 import { FaChevronLeft, FaChevronRight, FaClock, FaTimes } from 'react-icons/fa';
@@ -30,6 +30,11 @@ interface BookingCalendarProps {
   appoinmentId?: string
 }
 
+interface UpcomingAppointment {
+  _id: string;
+  scheduled_at: string;
+}
+
 const BookingCalendar = ({ id, userId, onClose, type, appoinmentId }: BookingCalendarProps) => {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -44,6 +49,7 @@ const BookingCalendar = ({ id, userId, onClose, type, appoinmentId }: BookingCal
     saturday: []
   });
   const [loading, setLoading] = useState(true);
+  const [upcomingAppointments, setUpcomingAppointments] = useState<UpcomingAppointment[]>([]);
   const popupRef = useRef<HTMLDivElement>(null);
   const dispatch = useDispatch()
 
@@ -163,16 +169,62 @@ const BookingCalendar = ({ id, userId, onClose, type, appoinmentId }: BookingCal
     getAvailabilityTherapist(id)
   }, [id]);
 
+  // Fetch the user's upcoming appointments so we can mark already-booked
+  // slots as taken in the picker. We compare in IST so the comparison is
+  // independent of the browser/server timezone.
+  useEffect(() => {
+    if (!userId) return;
+    (async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const response = await dispatch(getUpComingAppointments(userId as any) as any);
+      if (!response?.error && response?.payload?.data?.appointments) {
+        setUpcomingAppointments(response.payload.data.appointments);
+      }
+    })();
+  }, [userId, dispatch]);
+
+  // Build a "YYYY-MM-DD-HH" key in IST so slot times and stored UTC instants
+  // can be compared without timezone drift.
+  const istDateHourKey = (d: Date) => {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', hour12: false,
+    }).formatToParts(d);
+    const get = (t: string) => parts.find(p => p.type === t)?.value ?? '';
+    return `${get('year')}-${get('month')}-${get('day')}-${get('hour')}`;
+  };
+
+  const isSlotBooked = (slot: string) => {
+    if (!selectedDate) return false;
+    const [hh, mm] = slot.split(':').map(Number);
+    const candidate = new Date(selectedDate);
+    candidate.setHours(hh, mm || 0, 0, 0);
+    const key = istDateHourKey(candidate);
+    return upcomingAppointments.some(appt => {
+      // When rescheduling, ignore the appointment being moved so the user
+      // is free to keep its original slot.
+      if (appoinmentId && appt._id === appoinmentId) return false;
+      const apptDate = new Date(appt.scheduled_at);
+      if (isNaN(apptDate.getTime())) return false;
+      return istDateHourKey(apptDate) === key;
+    });
+  };
+
   const handleBookAppointment = async () => {
     setLoading(true);
     if (selectedDate && selectedTime) {
-      const dateObj = new Date(selectedDate);
-      const cleanDate = dateObj.toDateString();
+      // Construct an exact local (IST) instant, then serialise as UTC ISO-8601
+      // so the server (Vercel/UTC) always receives a timezone-unambiguous value.
+      const [hh, mm] = selectedTime.split(':').map(Number);
+      const dt = new Date(selectedDate);
+      dt.setHours(hh, mm || 0, 0, 0);
+      const scheduledIso = dt.toISOString();
 
       const data = {
         therapist_id: id,
         user_id: userId,
-        scheduled_at: cleanDate + ' ' + selectedTime
+        scheduled_at: scheduledIso
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const response = await dispatch(bookAppointmentFunc(data as any) as any);
@@ -192,13 +244,16 @@ const BookingCalendar = ({ id, userId, onClose, type, appoinmentId }: BookingCal
   const handleReschedule = async () => {
     setLoading(true);
     if (selectedDate && selectedTime) {
-      const dateObj = new Date(selectedDate);
-      const cleanDate = dateObj.toDateString();
+      // Same UTC ISO-8601 serialisation as handleBookAppointment.
+      const [hh, mm] = selectedTime.split(':').map(Number);
+      const dt = new Date(selectedDate);
+      dt.setHours(hh, mm || 0, 0, 0);
+      const scheduledIso = dt.toISOString();
 
       const updateObject = {
         id: appoinmentId,
         data: {
-          scheduled_at: cleanDate + ' ' + selectedTime
+          scheduled_at: scheduledIso
         }
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -340,17 +395,24 @@ const BookingCalendar = ({ id, userId, onClose, type, appoinmentId }: BookingCal
                           const [hours, minutes] = time.split(':');
                           const nextHour = (parseInt(hours) + 1).toString().padStart(2, '0');
                           const timeRange = `${time} - ${nextHour}:${minutes}`;
+                          const booked = isSlotBooked(time);
 
                           return (
                             <button
                               key={time}
-                              className={`py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 border-2 ${selectedTime === time
-                                ? 'bg-teal-500 border-teal-500 text-white shadow-md'
-                                : 'bg-white border-gray-300 text-gray-700 hover:bg-teal-50 hover:border-teal-300 hover:shadow-sm'
+                              disabled={booked}
+                              aria-disabled={booked}
+                              title={booked ? 'You already have an appointment in this slot' : undefined}
+                              className={`py-3 px-4 text-sm font-medium rounded-lg transition-all duration-200 border-2 ${
+                                booked
+                                  ? 'bg-gray-100 border-gray-200 text-gray-400 line-through cursor-not-allowed'
+                                  : selectedTime === time
+                                    ? 'bg-teal-500 border-teal-500 text-white shadow-md'
+                                    : 'bg-white border-gray-300 text-gray-700 hover:bg-teal-50 hover:border-teal-300 hover:shadow-sm'
                                 }`}
-                              onClick={() => setSelectedTime(time)}
+                              onClick={() => { if (!booked) setSelectedTime(time); }}
                             >
-                              {timeRange}
+                              {booked ? `${timeRange} • Booked` : timeRange}
                             </button>
                           );
                         })
