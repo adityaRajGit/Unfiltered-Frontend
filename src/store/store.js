@@ -16,6 +16,7 @@ import individualFormReducer from './individualForm.js'
 import notesReducer from './notesSlice.js'
 import goalsReducer from './goalsSlice.js'
 import userGoalsReducer from './userGoalsSlice.js'
+import statisticsReducer from './statisticsSlice.js'
 
 const store = configureStore({
     reducer: {
@@ -35,7 +36,8 @@ const store = configureStore({
         individualFormReducer: individualFormReducer,
         note: notesReducer,
         goals: goalsReducer,
-        userGoals: userGoalsReducer
+        userGoals: userGoalsReducer,
+        statistics: statisticsReducer
     }
 })
 

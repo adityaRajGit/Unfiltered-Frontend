@@ -436,20 +436,18 @@ const UserProfilePage = () => {
       toast.error('Please select a date and time.');
       return;
     }
-    const dateObj = new Date(selectedDate);
-
-    const istDate = dateObj.toLocaleDateString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      weekday: 'short',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
+    // Build the chosen instant in the user's local (IST) wall-clock,
+    // then send it as a timezone-unambiguous UTC ISO-8601 string so the
+    // backend (Vercel/UTC) stores the correct instant.
+    const [hh, mm] = selectedTime.split(':').map(Number);
+    const dt = new Date(selectedDate);
+    dt.setHours(hh, mm || 0, 0, 0);
+    const scheduledIso = dt.toISOString();
 
     const data = {
       therapist_id: "id" in therapist ? therapist.id : therapist._id,
       user_id: userId,
-      scheduled_at: istDate + ' ' + selectedTime
+      scheduled_at: scheduledIso
     };
 
     window.scrollTo(0, 0);
