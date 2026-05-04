@@ -168,6 +168,7 @@ const BookingCalendar = ({ id, userId, onClose, type, appoinmentId }: BookingCal
   useEffect(() => {
     getAvailabilityTherapist(id)
   }, [id]);
+  
 
   // Fetch the user's upcoming appointments so we can mark already-booked
   // slots as taken in the picker. We compare in IST so the comparison is
