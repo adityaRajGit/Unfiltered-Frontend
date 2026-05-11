@@ -118,8 +118,20 @@ export const NotesModal = ({ onClose, appointment, onSaveNote, therapistName, is
         : appointment.user_id;
 
     getNotes(appointment.therapist_id, userId, appointment._id);
-  }, []);
 
+    const body = document.body;
+    const originalOverflow = body.style.overflow;
+    const originalPaddingRight = body.style.paddingRight;
+
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    body.style.overflow = 'hidden';
+    body.style.paddingRight = `${scrollbarWidth}px`;
+
+    return () => {
+      body.style.overflow = originalOverflow;
+      body.style.paddingRight = originalPaddingRight;
+    };
+  }, [appointment]);
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -138,7 +150,7 @@ export const NotesModal = ({ onClose, appointment, onSaveNote, therapistName, is
               <div>
                 <h3 className="text-lg font-semibold text-white">Session Notes</h3>
                 <p className="text-teal-100 text-sm mt-1">
-                    {/* @ts-ignore */}
+                  {/* @ts-ignore */}
                   {client.name} • {scheduledDate.toLocaleDateString()}
                 </p>
               </div>

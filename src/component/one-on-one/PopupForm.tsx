@@ -25,6 +25,7 @@ export default function TherapyPopupForm({ popup, setPopup }: any) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [loading, setLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [touched, setTouched] = useState<{ [key in keyof FormData]?: boolean }>({});
 
     const [formData, setFormData] = useState<FormData>({
         name: '',
@@ -34,7 +35,7 @@ export default function TherapyPopupForm({ popup, setPopup }: any) {
     });
 
     const [errors, setErrors] = useState<FormErrors>({});
-    const dispatch = useDispatch()
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const popupClosedAt = localStorage.getItem("popupClosedAt");
@@ -59,7 +60,7 @@ export default function TherapyPopupForm({ popup, setPopup }: any) {
         return () => clearTimeout(timer);
     }, [popup]);
 
-     useEffect(() => {
+    useEffect(() => {
         if (isOpen) {
             const originalOverflow = document.body.style.overflow;
             document.body.style.overflow = 'hidden';
@@ -72,7 +73,7 @@ export default function TherapyPopupForm({ popup, setPopup }: any) {
     const handleClose = () => {
         setIsOpen(false);
         setIsSubmitted(false); // Reset for next time
-        setPopup(false)
+        setPopup(false);
         // Store close time in localStorage
         localStorage.setItem('popupClosedAt', Date.now().toString());
     };
@@ -84,8 +85,8 @@ export default function TherapyPopupForm({ popup, setPopup }: any) {
             [name]: value
         }));
 
-        // Clear error when user starts typing
-        if (errors[name as keyof FormErrors]) {
+        // Clear error when user starts typing (only if field was touched)
+        if (touched[name as keyof FormData] && errors[name as keyof FormErrors]) {
             setErrors(prev => ({
                 ...prev,
                 [name]: undefined
@@ -93,28 +94,59 @@ export default function TherapyPopupForm({ popup, setPopup }: any) {
         }
     };
 
+    const handleBlur = (field: keyof FormData) => {
+        setTouched(prev => ({ ...prev, [field]: true }));
+        // Validate only this field on blur
+        const fieldError = validateField(field, formData[field]);
+        if (fieldError) {
+            setErrors(prev => ({ ...prev, [field]: fieldError }));
+        } else {
+            setErrors(prev => ({ ...prev, [field]: undefined }));
+        }
+    };
+
+    const validateField = (field: keyof FormData, value: string): string | undefined => {
+        switch (field) {
+            case 'name':
+                if (!value.trim()) return 'Name is required';
+                if (value.trim().length < 2) return 'Name must be at least 2 characters';
+                const nameRegex = /^[A-Za-z\s\.\']+$/;
+                if (!nameRegex.test(value.trim())) return 'Name can only contain letters, spaces, dots, and apostrophes';
+                return undefined;
+            case 'contact':
+                const cleaned = value.replace(/\D/g, '');
+                if (!cleaned) return 'Contact number is required';
+                if (cleaned.length !== 10) return 'Please enter a valid 10-digit mobile number';
+                return undefined;
+            case 'email':
+                if (!value.trim()) return 'Email is required';
+                const emailRegex = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/;
+                if (!emailRegex.test(value.trim())) return 'Please enter a valid email address (e.g., name@example.com)';
+                return undefined;
+            case 'help':
+                if (!value.trim()) return 'Please tell us how we can help you';
+                if (value.trim().length < 20) return 'Please provide more details (minimum 20 characters)';
+                return undefined;
+            default:
+                return undefined;
+        }
+    };
+
     const validateForm = (): boolean => {
+        // Mark all fields as touched
+        const allTouched: { [key in keyof FormData]: boolean } = {
+            name: true,
+            contact: true,
+            email: true,
+            help: true
+        };
+        setTouched(allTouched);
+
         const newErrors: FormErrors = {};
-
-        if (!formData.name.trim()) {
-            newErrors.name = 'Name is required';
-        }
-
-        if (!formData.contact.trim()) {
-            newErrors.contact = 'Contact number is required';
-        } else if (!/^\d{10,}$/.test(formData.contact.replace(/\D/g, ''))) {
-            newErrors.contact = 'Please enter a valid contact number';
-        }
-
-        if (!formData.email.trim()) {
-            newErrors.email = 'Email is required';
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = 'Please enter a valid email address';
-        }
-
-        if (!formData.help.trim()) {
-            newErrors.help = 'Please tell us how we can help you';
-        }
+        (Object.keys(formData) as Array<keyof FormData>).forEach(field => {
+            const error = validateField(field, formData[field]);
+            if (error) newErrors[field] = error;
+        });
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -127,11 +159,19 @@ export default function TherapyPopupForm({ popup, setPopup }: any) {
             return;
         }
 
+        // Trim all fields before submission
+        const trimmedData = {
+            name: formData.name.trim(),
+            contact: formData.contact.trim(),
+            email: formData.email.trim(),
+            help: formData.help.trim()
+        };
+
         setIsSubmitting(true);
         setLoading(true);
-        fbLead(formData)
+        fbLead(trimmedData);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const response = await dispatch(addIndividualForm(formData as any) as any);
+        const response = await dispatch(addIndividualForm(trimmedData as any) as any);
         if (response?.error) {
             toast.error(response.error.message);
             setLoading(false);
@@ -139,6 +179,7 @@ export default function TherapyPopupForm({ popup, setPopup }: any) {
         } else if (response.payload?.data) {
             toast.success('Details submitted successfully');
             setFormData({ name: '', contact: '', email: '', help: '' });
+            setTouched({});
             setLoading(false);
             setIsSubmitted(true);
             setIsSubmitting(false);
@@ -247,18 +288,19 @@ export default function TherapyPopupForm({ popup, setPopup }: any) {
                                     name="name"
                                     value={formData.name}
                                     onChange={handleInputChange}
-                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors ${errors.name ? 'border-red-500' : 'border-gray-300'
+                                    onBlur={() => handleBlur('name')}
+                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors ${errors.name && touched.name ? 'border-red-500' : 'border-gray-300'
                                         }`}
                                     placeholder="Enter your full name"
                                 />
-                                {errors.name && (
+                                {errors.name && touched.name && (
                                     <p className="text-red-500 text-sm mt-1">{errors.name}</p>
                                 )}
                             </div>
 
                             <div>
                                 <label htmlFor="contact" className="block text-sm font-medium text-gray-700 mb-1">
-                                    Contact Number *
+                                    Contact Number * (10-digit mobile)
                                 </label>
                                 <input
                                     type="tel"
@@ -266,11 +308,12 @@ export default function TherapyPopupForm({ popup, setPopup }: any) {
                                     name="contact"
                                     value={formData.contact}
                                     onChange={handleInputChange}
-                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors ${errors.contact ? 'border-red-500' : 'border-gray-300'
+                                    onBlur={() => handleBlur('contact')}
+                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors ${errors.contact && touched.contact ? 'border-red-500' : 'border-gray-300'
                                         }`}
-                                    placeholder="Enter your contact number"
+                                    placeholder="Enter your 10-digit mobile number"
                                 />
-                                {errors.contact && (
+                                {errors.contact && touched.contact && (
                                     <p className="text-red-500 text-sm mt-1">{errors.contact}</p>
                                 )}
                             </div>
@@ -285,30 +328,32 @@ export default function TherapyPopupForm({ popup, setPopup }: any) {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleInputChange}
-                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors ${errors.email ? 'border-red-500' : 'border-gray-300'
+                                    onBlur={() => handleBlur('email')}
+                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors ${errors.email && touched.email ? 'border-red-500' : 'border-gray-300'
                                         }`}
                                     placeholder="Enter your email address"
                                 />
-                                {errors.email && (
+                                {errors.email && touched.email && (
                                     <p className="text-red-500 text-sm mt-1">{errors.email}</p>
                                 )}
                             </div>
 
                             <div>
                                 <label htmlFor="help" className="block text-sm font-medium text-gray-700 mb-1">
-                                    How Can We Help You? *
+                                    How Can We Help You? * (minimum 20 characters)
                                 </label>
                                 <textarea
                                     id="help"
                                     name="help"
                                     value={formData.help}
                                     onChange={handleInputChange}
+                                    onBlur={() => handleBlur('help')}
                                     rows={4}
-                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors resize-none ${errors.help ? 'border-red-500' : 'border-gray-300'
+                                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors resize-none ${errors.help && touched.help ? 'border-red-500' : 'border-gray-300'
                                         }`}
-                                    placeholder="Please describe what you're going through and how we can support you..."
+                                    placeholder="Please describe what you're going through and how we can support you (at least 20 characters)..."
                                 />
-                                {errors.help && (
+                                {errors.help && touched.help && (
                                     <p className="text-red-500 text-sm mt-1">{errors.help}</p>
                                 )}
                             </div>

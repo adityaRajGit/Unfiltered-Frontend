@@ -1085,9 +1085,9 @@ const UserProfilePage = () => {
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                 <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
                   {/* Modal Header */}
-                  <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+                  <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-start gap-4">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">   {/* Added flex-1 + min-w-0 */}
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
                         <Image
                           src={selectedTherapistForBooking.profile_image || '/default-avatar.png'}
                           alt={selectedTherapistForBooking.name}
@@ -1096,12 +1096,28 @@ const UserProfilePage = () => {
                           className="object-cover"
                         />
                       </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900">Book session with {selectedTherapistForBooking.name}</h3>
-                        <p className="text-sm text-gray-500">{selectedTherapistForBooking.specialization?.join(', ')}</p>
+
+                      <div className="min-w-0 flex-1">   {/* Critical for truncation */}
+                        <h3 className="text-xl font-bold text-gray-900 leading-tight">
+                          Book session with {selectedTherapistForBooking.name}
+                        </h3>
+
+                        {selectedTherapistForBooking.specialization && selectedTherapistForBooking.specialization.length > 0 && (
+                          <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                            {selectedTherapistForBooking.specialization.join(', ')}
+                          </p>
+                        )}
                       </div>
                     </div>
-                    <button onClick={() => { setBookTherapistPopup(false); setSelectedTherapistForBooking(null); }} className="p-2 hover:bg-gray-100 rounded-full transition">
+
+                    {/* Close Button */}
+                    <button
+                      onClick={() => {
+                        setBookTherapistPopup(false);
+                        setSelectedTherapistForBooking(null);
+                      }}
+                      className="p-2 hover:bg-gray-100 rounded-full transition flex-shrink-0"
+                    >
                       <FaTimes className="w-5 h-5 text-gray-500" />
                     </button>
                   </div>
@@ -1153,7 +1169,6 @@ const UserProfilePage = () => {
 
                               const today = new Date();
                               today.setHours(0, 0, 0, 0);
-                              const isToday = today.toDateString() === day.toDateString();
                               const isSelected = selectedDate && selectedDate.toDateString() === day.toDateString();
                               const isPast = day.getTime() < today.getTime();
 
@@ -1164,9 +1179,7 @@ const UserProfilePage = () => {
                                     ? 'bg-teal-500 text-white font-medium'
                                     : isPast
                                       ? 'text-gray-300 cursor-not-allowed'
-                                      : isToday
-                                        ? 'bg-teal-100 text-teal-700 font-medium border-2 border-teal-500'
-                                        : 'text-gray-700 hover:bg-white hover:shadow-sm'
+                                      : 'text-gray-700 hover:bg-white hover:shadow-sm'
                                     }`}
                                   onClick={() => !isPast && setSelectedDate(day)}
                                   disabled={isPast}
