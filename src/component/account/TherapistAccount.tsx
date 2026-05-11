@@ -202,6 +202,15 @@ export default function TherapistProfile() {
     return null; //  Everything valid
   };
 
+  const removeEmptyValues = (arr: any[] = []) => {
+    return arr.filter(
+      (item) =>
+        item !== null &&
+        item !== undefined &&
+        !(typeof item === 'string' && item.trim() === '')
+    );
+  };
+
   async function updateProfile() {
     setLoading(true);
 
@@ -222,39 +231,75 @@ export default function TherapistProfile() {
 
       // Append all user data fields
       if (tempTherapistData) {
-        if (tempTherapistData.name) formData.append('name', tempTherapistData.name);
-        if (tempTherapistData.email) formData.append('email', tempTherapistData.email);
-        if (tempTherapistData.phone) formData.append('phone', tempTherapistData.phone);
-        if (tempTherapistData.bio) formData.append('bio', tempTherapistData.bio);
+        if (tempTherapistData.name)
+          formData.append('name', tempTherapistData.name);
+
+        if (tempTherapistData.email)
+          formData.append('email', tempTherapistData.email);
+
+        if (tempTherapistData.phone)
+          formData.append('phone', tempTherapistData.phone);
+
+        if (tempTherapistData.bio)
+          formData.append('bio', tempTherapistData.bio);
 
         // Academic Background
         const academic = tempTherapistData.academic_background;
+
         if (academic && (academic.years_of_experience || academic.qualification?.length)) {
-          formData.append('academic_background', JSON.stringify(academic));
+          const cleanedAcademic = {
+            ...academic,
+            qualification: removeEmptyValues(academic.qualification),
+          };
+
+          formData.append('academic_background', JSON.stringify(cleanedAcademic));
         }
 
         // Specialization
-        formData.append('specialization', JSON.stringify(tempTherapistData.specialization));
+        const cleanedSpecialization = removeEmptyValues(
+          tempTherapistData.specialization
+        );
+
+        formData.append(
+          'specialization',
+          JSON.stringify(cleanedSpecialization)
+        );
 
         // Experience
-        if (tempTherapistData.experience?.length) {
-          formData.append('experience', JSON.stringify(tempTherapistData.experience));
+        const cleanedExperience = removeEmptyValues(
+          tempTherapistData.experience
+        );
+
+        if (cleanedExperience.length) {
+          formData.append(
+            'experience',
+            JSON.stringify(cleanedExperience)
+          );
         }
 
         // Location
         const location = tempTherapistData.location;
+
         if (location?.city || location?.country) {
           formData.append('location', JSON.stringify(location));
         }
 
         // Session Details
         const session = tempTherapistData.session_details;
+
         if (session && (session.duration || session.cost || session.currency)) {
           formData.append('session_details', JSON.stringify(session));
         }
 
         // Languages
-        formData.append('languages', JSON.stringify(tempTherapistData.languages));
+        const cleanedLanguages = removeEmptyValues(
+          tempTherapistData.languages
+        );
+
+        formData.append(
+          'languages',
+          JSON.stringify(cleanedLanguages)
+        );
       }
 
       // Append new profile picture if selected
@@ -837,26 +882,26 @@ export default function TherapistProfile() {
                     <div className="flex flex-wrap gap-2">
                       {tempTherapistData?.specialization?.map((spec, index) => (
                         <div
-  key={index}
-  className="flex items-center bg-gradient-to-r from-teal-50 to-teal-100 rounded-xl pl-3 pr-1 py-1 gap-1"
->
-  <select
-    value={spec}
-    onChange={(e) => handleArrayChange("specialization", index, e.target.value)}
-    className="bg-transparent text-teal-800 focus:outline-none text-sm w-auto min-w-[120px]"
-  >
-    <option value="" disabled>Select specialization</option>
-    {SPECIALIZATIONS.map((option, i) => (
-      <option key={i} value={option}>{option}</option>
-    ))}
-  </select>
-  <button
-    onClick={() => removeArrayItem("specialization", index)}
-    className="text-teal-500 hover:text-teal-700 transition-colors flex-shrink-0"
-  >
-    <FaTimes size={14} />
-  </button>
-</div>
+                          key={index}
+                          className="flex items-center bg-gradient-to-r from-teal-50 to-teal-100 rounded-xl pl-3 pr-1 py-1 gap-1"
+                        >
+                          <select
+                            value={spec}
+                            onChange={(e) => handleArrayChange("specialization", index, e.target.value)}
+                            className="bg-transparent text-teal-800 focus:outline-none text-sm w-auto min-w-[120px]"
+                          >
+                            <option value="" disabled>Select specialization</option>
+                            {SPECIALIZATIONS.map((option, i) => (
+                              <option key={i} value={option}>{option}</option>
+                            ))}
+                          </select>
+                          <button
+                            onClick={() => removeArrayItem("specialization", index)}
+                            className="text-teal-500 hover:text-teal-700 transition-colors flex-shrink-0"
+                          >
+                            <FaTimes size={14} />
+                          </button>
+                        </div>
                       ))}
                     </div>
                     <button
