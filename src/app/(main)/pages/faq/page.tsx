@@ -261,13 +261,13 @@ const FAQPage = () => {
                                 </p>
                                 <div className="flex flex-wrap gap-4">
                                     <Link
-                                        href="/contact"
+                                        href="/pages/corporate#corporate-contact"
                                         className="px-6 py-3 bg-white text-teal-700 font-medium rounded-full hover:bg-gray-100 transition-colors"
                                     >
                                         Request a Demo
                                     </Link>
                                     <Link
-                                        href="/pricing"
+                                        href="/pages/one-on-one"
                                         className="px-6 py-3 border-2 border-white text-white font-medium rounded-full hover:bg-white/10 transition-colors"
                                     >
                                         View Pricing Plans

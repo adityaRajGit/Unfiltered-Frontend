@@ -370,11 +370,12 @@ function ProgramDetails() {
                 </div>
 
                 <div className="text-center">
-                    <button
+                    <Link 
+                    href="/pages/one-on-one"
                         className="bg-gradient-to-r from-teal-600 to-teal-800 hover:from-teal-700 hover:to-teal-900 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
                     >
                         Learn More About Our Programs
-                    </button>
+                    </Link>
                 </div>
             </div>
         </section>

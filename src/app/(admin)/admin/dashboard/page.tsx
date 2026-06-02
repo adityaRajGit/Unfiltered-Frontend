@@ -28,14 +28,13 @@ import CompanySections from '@/component/admin/companyComponents/CompanySection'
 import WebinarSection from '@/component/admin/webinarComponents/WebinarSection';
 import TherapistsSection from '@/component/admin/therapistComponents/TherapistsSection';
 import UsersSection from '@/component/admin/usersComponents/UsersSection';
+import BlogSections from '@/component/admin/blogsComponents/BlogsSection';
 
 interface Admin {
     name: string;
     email: string;
 }
 
-// Placeholder components for other sections
-const BlogsSection = () => <SectionPlaceholder title="Blogs Management" />;
 
 const SectionPlaceholder = ({ title }: { title: string }) => (
     <div className="p-6 bg-white rounded-xl shadow">
@@ -75,7 +74,7 @@ export default function Dashboard() {
             case 'company': return <CompanySections />;
             case 'therapists': return <TherapistsSection />;
             case 'users': return <UsersSection />;
-            case 'blogs': return <BlogsSection />;
+            case 'blogs': return <BlogSections />;
             case 'webinars': return <WebinarSection />;
             case 'packages': return <PackageSections />;
             default: return <Statistics />;
