@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { FaEdit, FaCalendarAlt, FaClock, FaVideo, FaCamera, FaUserMd, FaPhone, FaTimes, FaEnvelope, FaStar, FaHistory, FaSearch } from 'react-icons/fa';
+import { FaEdit, FaCalendarAlt, FaClock, FaVideo, FaCamera, FaUserMd, FaPhone, FaTimes, FaEnvelope, FaStar, FaHistory, FaSearch, FaFileMedical } from 'react-icons/fa';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import Link from 'next/link';
 import { useDispatch } from 'react-redux';
@@ -23,6 +23,7 @@ import SessionCompletionPopup from './SessionCompletionPopup';
 import { TargetIcon } from 'lucide-react';
 import { UserGoalsModal } from './UserGoalsPopup';
 import { sendOtp, verifyOtp } from '@/store/otpSlice';
+import CaseHistoryModal from './CaseHistoryModal';
 
 const BIO_LIMIT = 1000;
 
@@ -194,7 +195,7 @@ const UserProfilePage = () => {
   const [otp, setOtp] = useState('');
   const [pendingNewEmail, setPendingNewEmail] = useState<string | null>(null);
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
-
+  const [caseHistoryModalOpen, setCaseHistoryModalOpen] = useState(false);
 
   const today = new Date();
 
@@ -787,7 +788,6 @@ const UserProfilePage = () => {
       if (response?.error) {
         toast.error(response.error.message);
       } else if (response.payload?.data) {
-        console.log(response.payload.data)
         setTherapistList(response.payload.data.therapists);
         const therapistCount = response.payload.data.therapistCount;
         const totalPages = Math.ceil(therapistCount / pagination.pageSize);
@@ -890,10 +890,11 @@ const UserProfilePage = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4 md:mb-0">My Profile</h1>
+
           {isEditing ? (
             <div className="flex space-x-3">
               <button
-                onClick={() => { setIsEditing(false), setTempUserData(user) }}
+                onClick={() => { setIsEditing(false); setTempUserData(user); }}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50"
               >
                 Cancel
@@ -906,13 +907,20 @@ const UserProfilePage = () => {
               </button>
             </div>
           ) : (
-            <div>
+            <div className="flex gap-3">
               <button
                 onClick={() => setIsEditing(true)}
                 className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700"
               >
                 <FaEdit className="mr-2" />
                 Edit Profile
+              </button>
+              <button
+                onClick={() => setCaseHistoryModalOpen(true)}
+                className="flex items-center px-4 py-2 bg-white border border-teal-600 text-teal-600 rounded-full hover:bg-teal-50"
+              >
+                <FaFileMedical className="mr-2" />
+                Case History
               </button>
             </div>
           )}
@@ -2228,6 +2236,10 @@ const UserProfilePage = () => {
           />
         )
       }
+
+      {caseHistoryModalOpen && (
+        <CaseHistoryModal userId={userId} onClose={() => setCaseHistoryModalOpen(false)} />
+      )}
     </div >
   );
 };
