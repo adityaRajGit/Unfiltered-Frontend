@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
@@ -23,24 +23,31 @@ import TopTherapistsList from "./statisticsComponents/TopTherapistsList";
 import UpcomingAppointmentsTable from "./statisticsComponents/UpcomingAppointmentsTable";
 import SubscribedUsersTable from "./statisticsComponents/SubscribedUsersTable";
 import AppointmentsThisMonthTable from "./statisticsComponents/AppointmentsThisMonthTable";
+import MonthYearSelector from "./statisticsComponents/MonthYearSelector";
 
 export default function Statistics() {
   const dispatch = useDispatch();
   const stats = useSelector((state: any) => state.statistics);
 
   const now = new Date();
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
+  const [selectedMonth, setSelectedMonth] = useState<number>(now.getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState<number>(now.getFullYear());
 
   useEffect(() => {
     dispatch(fetchLatestAppointments() as any);
     dispatch(fetchTopTherapists() as any);
     dispatch(fetchUpcomingAppointments() as any);
-    dispatch((fetchMonthlyStats as any)({ month, year }));
-    dispatch((fetchMonthlyAppointmentsList as any)({ pageNum: 1, month, year }));
+    dispatch((fetchMonthlyStats as any)({ month: selectedMonth, year: selectedYear }));
+    dispatch((fetchMonthlyAppointmentsList as any)({ pageNum: 1, month: selectedMonth, year: selectedYear }));
     dispatch((fetchSubscribedUsers as any)({ pageNum: 1 }));
     dispatch(fetchActiveSubscriptionCount() as any);
   }, [dispatch]);
+
+  useEffect(() => {
+    dispatch((fetchMonthlyStats as any)({ month: selectedMonth, year: selectedYear }));
+    dispatch(setMonthlyListPage(1));
+    dispatch((fetchMonthlyAppointmentsList as any)({ pageNum: 1, month: selectedMonth, year: selectedYear }));
+  }, [selectedMonth, selectedYear, dispatch]);
 
   useEffect(() => {
     const sections = [
@@ -78,11 +85,18 @@ export default function Statistics() {
 
   const handleMonthlyListPageChange = (page: number) => {
     dispatch(setMonthlyListPage(page));
-    dispatch((fetchMonthlyAppointmentsList as any)({ pageNum: page, month, year }));
+    dispatch((fetchMonthlyAppointmentsList as any)({ pageNum: page, month: selectedMonth, year: selectedYear }));
   };
 
   return (
     <div className="flex flex-col gap-6 p-4">
+      <MonthYearSelector
+        month={selectedMonth}
+        year={selectedYear}
+        onMonthChange={setSelectedMonth}
+        onYearChange={setSelectedYear}
+      />
+
       <KpiCards
         monthlyTotal={stats.monthlyStats.data?.total ?? 0}
         upcomingCount={stats.upcomingAppointments.data?.length ?? 0}
