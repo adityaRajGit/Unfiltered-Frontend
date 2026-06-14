@@ -24,6 +24,7 @@ import { TargetIcon } from 'lucide-react';
 import { UserGoalsModal } from './UserGoalsPopup';
 import { sendOtp, verifyOtp } from '@/store/otpSlice';
 import CaseHistoryModal from './CaseHistoryModal';
+import { getUserCaseHistoryPercentage } from '@/store/caseHistory';
 
 const BIO_LIMIT = 1000;
 
@@ -196,6 +197,7 @@ const UserProfilePage = () => {
   const [pendingNewEmail, setPendingNewEmail] = useState<string | null>(null);
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
   const [caseHistoryModalOpen, setCaseHistoryModalOpen] = useState(false);
+  const [animatedProgress, setAnimatedProgress] = useState(0)
 
   const today = new Date();
 
@@ -375,6 +377,18 @@ const UserProfilePage = () => {
       } else {
         toast.error('No therapist found for this criteria !!')
       }
+    }
+  }
+
+  async function caseHistoryStatus(id: string) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(getUserCaseHistoryPercentage(id as any) as any)
+    if (response?.error) {
+      setLoading(false)
+      toast.error(response.error.message)
+    } else {
+      setLoading(false)
+      setAnimatedProgress(response.payload.data.overall_percentage)
     }
   }
 
@@ -871,6 +885,12 @@ const UserProfilePage = () => {
     }
   }, [storedToken, router, bookAgainPopup, showResults]);
 
+  useEffect(() => {
+    if(userId!=""){
+    caseHistoryStatus(userId)
+    }
+  }, [caseHistoryModalOpen, userId])
+
   const currentPopup = popupData[0];
 
   if (loading) {
@@ -924,6 +944,31 @@ const UserProfilePage = () => {
               </button>
             </div>
           )}
+        </div>
+
+        <div className="w-full mx-auto p-4">
+          <div className="text-center mb-2">
+            <p className="text-gray-600 text-sm md:text-base">
+              {animatedProgress < 50
+                ? "Start building the case history. More details help us understand better."
+                : animatedProgress < 100
+                  ? "Good progress! Complete the case history to unlock full insights."
+                  : "Excellent! Case history is fully filled. You can now proceed."}
+            </p>
+          </div>
+
+          <div className="w-full bg-gray-300 rounded-full h-3 md:h-4">
+            <div
+              className="bg-[#009689] h-full rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${animatedProgress}%` }}
+            ></div>
+          </div>
+
+          <div className="flex justify-between mt-1 text-xs text-gray-500">
+            <span>0%</span>
+            <span>{animatedProgress}% of case history filled</span>
+            <span>100%</span>
+          </div>
         </div>
 
         {

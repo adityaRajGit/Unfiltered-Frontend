@@ -15,10 +15,8 @@ interface CaseHistoryModalProps {
     onClose: () => void;
 }
 
-// Default empty state matching Mongoose schema
+// Default empty state matching Mongoose schema – therapist, date, miscellaneous removed
 const defaultHistory = {
-    therapist: '',
-    date: new Date().toISOString().split('T')[0],
     personal_information: {
         name: '',
         date_of_birth: '',
@@ -86,8 +84,8 @@ const defaultHistory = {
         relationship_marital_history: '',
         work_history: '',
         spiritual_history: '',
-        pre_morbid_personality: '',
-        miscellaneous: ''
+        pre_morbid_personality: ''
+        // miscellaneous removed
     }
 };
 
@@ -115,25 +113,22 @@ function transformApiToModalShape(apiData: any): any {
         modalData.personal_information.date_of_birth = up.date_of_birth ? up.date_of_birth.split('T')[0] : '';
         modalData.personal_information.age = up.age ?? null;
         modalData.personal_information.marital_status = up.marital_status || '';
-        modalData.personal_information.gender_pronoun_sexual_orientation = 
+        modalData.personal_information.gender_pronoun_sexual_orientation =
             [up.gender, up.pronouns].filter(Boolean).join(' / ');
         modalData.personal_information.qualifications = up.education_level || '';
         modalData.personal_information.designation = up.occupation || '';
         modalData.personal_information.language_preferred = up.primary_language || '';
         modalData.personal_information.mobile_number = up.phone_number || '';
         modalData.personal_information.email_id = up.email_address || '';
-        modalData.personal_information.alternate_emergency_contact_name_and_number = 
+        modalData.personal_information.alternate_emergency_contact_name_and_number =
             [up.emergency_contact_name, up.emergency_contact_phone_number].filter(Boolean).join(' - ');
         if (up.company_name) modalData.personal_information.company_name = up.company_name;
         if (up.company_location) modalData.personal_information.company_location = up.company_location;
         if (up.residential_address) modalData.personal_information.residential_address = up.residential_address;
     }
 
-    // Intake & Referral
+    // Intake & Referral (intake_date removed, only referral source kept)
     if (apiData.intake_information) {
-        modalData.date = apiData.intake_information.intake_date
-            ? new Date(apiData.intake_information.intake_date).toISOString().split('T')[0]
-            : modalData.date;
         modalData.referral_information.source_of_referral = apiData.intake_information.referral_source || '';
         if (apiData.intake_information.primary_reason_for_seeking_help) {
             modalData.concerns.area_of_concerns = apiData.intake_information.primary_reason_for_seeking_help;
@@ -188,8 +183,8 @@ function transformApiToModalShape(apiData: any): any {
             modalData.history.past_family_psychiatric_history = fh.family_mental_health_history.details;
         }
         if (fh.family_structure) {
-            modalData.history.family_structure = typeof fh.family_structure === 'string' 
-                ? fh.family_structure 
+            modalData.history.family_structure = typeof fh.family_structure === 'string'
+                ? fh.family_structure
                 : JSON.stringify(fh.family_structure);
         }
         if (fh.family_relationships) {
@@ -223,23 +218,17 @@ function transformApiToModalShape(apiData: any): any {
             modalData.history.relationship_marital_history = `Status: ${sh.relationships.relationship_status || ''}. Stressors: ${sh.relationships.relationship_stressors || ''}`;
         }
         if (sh.living_situation?.current_living_arrangement) {
-            modalData.history.miscellaneous += ` Living: ${sh.living_situation.current_living_arrangement}. `;
+            // Previously appended to miscellaneous; now we add to work_history or leave empty. Since we removed miscellaneous, we simply ignore it.
         }
     }
 
-    // Strengths & Resources
+    // Strengths & Resources (removed miscellaneous mapping)
     if (apiData.strengths_resources) {
         const sr = apiData.strengths_resources;
         if (sr.spiritual_resources?.length) {
             modalData.history.spiritual_history = sr.spiritual_resources.join(', ');
         }
-        const miscParts = [];
-        if (sr.personal_strengths?.length) miscParts.push(`Strengths: ${sr.personal_strengths.join(', ')}`);
-        if (sr.coping_skills?.length) miscParts.push(`Coping: ${sr.coping_skills.join(', ')}`);
-        if (sr.hobbies?.length) miscParts.push(`Hobbies: ${sr.hobbies.join(', ')}`);
-        if (miscParts.length) {
-            modalData.history.miscellaneous += (modalData.history.miscellaneous ? '; ' : '') + miscParts.join('; ');
-        }
+        // No mapping to miscellaneous anymore
     }
 
     return modalData;
@@ -263,33 +252,26 @@ export default function CaseHistoryModal({ userId, onClose }: CaseHistoryModalPr
                     toast.error(response.error.message);
                     setHistory(JSON.parse(JSON.stringify(defaultHistory)));
                 } else {
-                    // Try to get userhistory from the response
                     let rawData = response.payload?.data?.userhistory;
                     if (!rawData && response.payload?.data) {
-                        // Maybe the whole payload.data is the userhistory object
                         rawData = response.payload.data;
                     }
 
                     if (rawData && Object.keys(rawData).length > 0) {
-                        // Check if this is already in modal shape (has personal_information)
                         if (rawData.personal_information) {
-                            // Already in correct format – use directly
                             console.log("Using existing modal-shaped data", rawData);
                             setHistory(rawData);
-                        } 
-                        // Check if it's the other API format (has user_profile)
+                        }
                         else if (rawData.user_profile) {
                             const mapped = transformApiToModalShape(rawData);
                             console.log("Transformed from API format", mapped);
                             setHistory(mapped);
-                        } 
+                        }
                         else {
-                            // Unknown format – start empty
                             console.warn("Unknown data format, using default");
                             setHistory(JSON.parse(JSON.stringify(defaultHistory)));
                         }
                     } else {
-                        // No existing data – empty form
                         setHistory(JSON.parse(JSON.stringify(defaultHistory)));
                     }
                 }
@@ -355,7 +337,7 @@ export default function CaseHistoryModal({ userId, onClose }: CaseHistoryModalPr
         }
     };
 
-    // Responsive rating slider (touch‑friendly)
+    // Responsive rating slider (touch‑friendly) – unchanged
     const RatingInput = ({ label, value, path }: { label: string; value: number; path: string }) => {
         const [localValue, setLocalValue] = useState(value || 3);
         const [isDragging, setIsDragging] = useState(false);
@@ -487,9 +469,7 @@ export default function CaseHistoryModal({ userId, onClose }: CaseHistoryModalPr
     if (loading) {
         return (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-2xl p-8">
                     <LoadingSpinnerWithoutOverlay />
-                </div>
             </div>
         );
     }
@@ -548,27 +528,7 @@ export default function CaseHistoryModal({ userId, onClose }: CaseHistoryModalPr
                 <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
                     {currentStep === 0 && (
                         <div className="space-y-5">
-                            <div className="bg-teal-50 rounded-xl p-3 md:p-4 flex flex-col sm:flex-row gap-3">
-                                <div className="flex-1">
-                                    <label className="block text-sm font-medium text-gray-700">Therapist Name</label>
-                                    <input
-                                        type="text"
-                                        value={history?.therapist || ''}
-                                        onChange={(e) => handleChange('therapist', e.target.value)}
-                                        placeholder="e.g., Dr. Sarah Johnson"
-                                        className="mt-1 w-full p-2 border rounded-sm focus:ring-teal-500 focus:border-teal-500 text-sm"
-                                    />
-                                </div>
-                                <div className="flex-1">
-                                    <label className="block text-sm font-medium text-gray-700">Intake Date</label>
-                                    <input
-                                        type="date"
-                                        value={history?.date?.split('T')[0] || ''}
-                                        onChange={(e) => handleChange('date', e.target.value)}
-                                        className="mt-1 w-full p-2 border rounded-sm text-sm"
-                                    />
-                                </div>
-                            </div>
+                            {/* Therapist and Intake Date removed */}
 
                             <Section title="Personal Information" icon={<FaUserMd />}>
                                 <Grid cols={2}>
@@ -666,7 +626,7 @@ export default function CaseHistoryModal({ userId, onClose }: CaseHistoryModalPr
                                 <TextareaInput label="Work History" path="history.work_history" value={history?.history?.work_history} onChange={handleChange} fullWidth placeholder="Job roles, duration, satisfaction, career changes" />
                                 <TextareaInput label="Spiritual History" path="history.spiritual_history" value={history?.history?.spiritual_history} onChange={handleChange} fullWidth placeholder="Religious or spiritual beliefs, practices, community" />
                                 <TextareaInput label="Premorbid Personality" path="history.pre_morbid_personality" value={history?.history?.pre_morbid_personality} onChange={handleChange} fullWidth placeholder="Sleep, appetite, typical behavior before current issues" />
-                                <TextareaInput label="Miscellaneous" path="history.miscellaneous" value={history?.history?.miscellaneous} onChange={handleChange} fullWidth placeholder="Any other relevant information not covered above" />
+                                {/* miscellaneous removed */}
                             </Grid>
                         </Section>
                     )}

@@ -32,9 +32,9 @@ const getUserCaseHistory = createAsyncThunk("caseHistory/get-case-history", asyn
     }
 })
 
-const getUserCaseHistoryPercentage = createAsyncThunk("caseHistory/get-case-history", async () => {
+const getUserCaseHistoryPercentage = createAsyncThunk("caseHistory/get-case-history-percentage", async (id) => {
     try {
-        const response = await axios.get(`${backend}/userhistory/getUserHistoryData`, {
+        const response = await axios.get(`${backend}/userhistory/${id}/completion`, {
             headers: {
                 Authorization: `Bearer ${JSON.parse(localStorage.getItem(TOKEN))}`
             },
@@ -84,8 +84,19 @@ const caseHistorySlice = createSlice({
                 state.loading = false
                 state.error = action.error || "An error occurred";
             })
+             .addCase(getUserCaseHistoryPercentage.pending, (state) => {
+                state.loading = true
+                state.error = null
+            })
+            .addCase(getUserCaseHistoryPercentage.fulfilled, (state, action) => {
+                state.loading = false
+            })
+            .addCase(getUserCaseHistoryPercentage.rejected, (state, action) => {
+                state.loading = false
+                state.error = action.error || "An error occurred";
+            })
     }
 })
 
-export { addAndUpdateUserCaseHistory , getUserCaseHistory}
+export { addAndUpdateUserCaseHistory , getUserCaseHistory, getUserCaseHistoryPercentage}
 export default caseHistorySlice.reducer
