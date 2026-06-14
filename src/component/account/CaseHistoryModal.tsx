@@ -469,7 +469,7 @@ export default function CaseHistoryModal({ userId, onClose }: CaseHistoryModalPr
     if (loading) {
         return (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <LoadingSpinnerWithoutOverlay />
+                <LoadingSpinnerWithoutOverlay />
             </div>
         );
     }
@@ -649,22 +649,22 @@ export default function CaseHistoryModal({ userId, onClose }: CaseHistoryModalPr
                                 <FaChevronLeft size={14} /> Back
                             </button>
                         )}
-                        {currentStep < STEPS.length - 1 ? (
+                        {currentStep < STEPS.length - 1 && (
                             <button
                                 onClick={goToNext}
                                 className="px-4 py-2 bg-teal-600 text-white rounded-sm hover:bg-teal-700 flex items-center justify-center gap-2 text-sm md:text-base"
                             >
                                 Next <FaChevronRight size={14} />
                             </button>
-                        ) : (
-                            <button
-                                onClick={handleSave}
-                                disabled={saving}
-                                className="px-6 py-2 bg-teal-600 text-white rounded-sm hover:bg-teal-700 disabled:opacity-50 flex items-center justify-center gap-2 text-sm md:text-base"
-                            >
-                                <FaSave /> {saving ? 'Saving...' : 'Save & Close'}
-                            </button>
                         )}
+                        {/* Save button now appears on every step */}
+                        <button
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="px-6 py-2 bg-teal-600 text-white rounded-sm hover:bg-teal-700 disabled:opacity-50 flex items-center justify-center gap-2 text-sm md:text-base"
+                        >
+                            <FaSave /> {saving ? 'Saving...' : 'Save & Close'}
+                        </button>
                     </div>
                 </div>
             </div>
