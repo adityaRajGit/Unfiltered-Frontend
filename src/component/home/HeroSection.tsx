@@ -42,9 +42,9 @@ function HeroSection() {
         text: "Start Therapy Today",
         href: "pages/one-on-one"
       },
-      secondaryButton: {
-        text: "Meet Our Therapists"
-      },
+      // secondaryButton: {
+      //   text: "Meet Our Therapists"
+      // },
       image: "/therapy1.jpeg",
       imageAlt: "Individual talking with a therapist in a private session",
       floatingCard: {
@@ -76,7 +76,8 @@ function HeroSection() {
         href: "pages/webinar#webinarForm"
       },
       secondaryButton: {
-        text: "Schedule Demo"
+        text: "Schedule Demo",
+        href: "/pages/corporate#corporate-contact"
       },
       image: "/landing2.jpg",
       imageAlt: "Professional conducting a mental health webinar for corporate employees",
@@ -274,9 +275,10 @@ function HeroSection() {
 
                       {
                         slideData.secondaryButton && (
-                          <button className="px-8 py-4 text-base font-medium text-teal-700 transition-all bg-white rounded-full shadow-md md:text-lg hover:bg-gray-50 hover:shadow-lg transform hover:scale-105">
+                          <Link
+                            href={slideData.secondaryButton.href} className="px-8 py-4 text-base font-medium text-teal-700 transition-all bg-white rounded-full shadow-md md:text-lg hover:bg-gray-50 hover:shadow-lg transform hover:scale-105">
                             {slideData.secondaryButton.text}
-                          </button>
+                          </Link>
                         )
                       }
                     </div>

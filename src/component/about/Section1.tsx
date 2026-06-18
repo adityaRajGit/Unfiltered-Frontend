@@ -20,7 +20,7 @@ function Section1() {
                             personalized mental healthcare that fits their life and needs.
                         </p>
                         <div className="flex flex-wrap gap-4">
-                            <Link href="/services" className="px-8 py-3 bg-white text-teal-700 font-medium rounded-full hover:bg-gray-100 transition-colors">
+                            <Link href="/pages/one-on-one" className="px-8 py-3 bg-white text-teal-700 font-medium rounded-full hover:bg-gray-100 transition-colors">
                                 Explore Our Services
                             </Link>
                         </div>
