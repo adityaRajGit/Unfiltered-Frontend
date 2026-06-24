@@ -60,7 +60,6 @@ function UsersSection() {
             if (response?.error) {
                 toast.error(response.error.message);
             } else if (response.payload?.data) {
-                console.log(response.payload.data)
                 setUsers(response.payload.data.userList);
                 const userCount = response.payload.data.userCount;
                 const totalPages = Math.ceil(userCount / pagination.pageSize);

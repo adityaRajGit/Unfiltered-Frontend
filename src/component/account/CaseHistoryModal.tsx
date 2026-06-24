@@ -244,7 +244,7 @@ export default function CaseHistoryModal({ userId, onClose }: CaseHistoryModalPr
 
     // Fetch existing case history on mount and auto-fill if data exists
     useEffect(() => {
-        const fetchHistory = async () => {
+        const fetchHistory = async () => { 
             setLoading(true);
             try {
                 const response = await dispatch(getUserCaseHistory() as any);
@@ -259,12 +259,10 @@ export default function CaseHistoryModal({ userId, onClose }: CaseHistoryModalPr
 
                     if (rawData && Object.keys(rawData).length > 0) {
                         if (rawData.personal_information) {
-                            console.log("Using existing modal-shaped data", rawData);
                             setHistory(rawData);
                         }
                         else if (rawData.user_profile) {
                             const mapped = transformApiToModalShape(rawData);
-                            console.log("Transformed from API format", mapped);
                             setHistory(mapped);
                         }
                         else {

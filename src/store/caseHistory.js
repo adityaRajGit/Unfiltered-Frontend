@@ -32,6 +32,19 @@ const getUserCaseHistory = createAsyncThunk("caseHistory/get-case-history", asyn
     }
 })
 
+const getUserCaseHistoryByUserId = createAsyncThunk("caseHistory/get-case-history-by-userId", async (id) => {
+    try {
+        const response = await axios.get(`${backend}/userhistory/getUserHistoryDataByUserId/${id}`)
+        return response.data
+    } catch (error) {
+        if (error.response) {
+            throw error.response.data.data.message
+        }
+        throw error.message || "An unexpected error occurred"
+    }
+})
+
+
 const getUserCaseHistoryPercentage = createAsyncThunk("caseHistory/get-case-history-percentage", async (id) => {
     try {
         const response = await axios.get(`${backend}/userhistory/${id}/completion`, {
@@ -84,7 +97,19 @@ const caseHistorySlice = createSlice({
                 state.loading = false
                 state.error = action.error || "An error occurred";
             })
-             .addCase(getUserCaseHistoryPercentage.pending, (state) => {
+            .addCase(getUserCaseHistoryByUserId.pending, (state) => {
+                state.loading = true
+                state.error = null
+            })
+            .addCase(getUserCaseHistoryByUserId.fulfilled, (state, action) => {
+                state.loading = false
+                state.caseHistory = action.payload.data.caseHistory
+            })
+            .addCase(getUserCaseHistoryByUserId.rejected, (state, action) => {
+                state.loading = false
+                state.error = action.error || "An error occurred";
+            })
+            .addCase(getUserCaseHistoryPercentage.pending, (state) => {
                 state.loading = true
                 state.error = null
             })
@@ -98,5 +123,5 @@ const caseHistorySlice = createSlice({
     }
 })
 
-export { addAndUpdateUserCaseHistory , getUserCaseHistory, getUserCaseHistoryPercentage}
+export { addAndUpdateUserCaseHistory, getUserCaseHistory, getUserCaseHistoryPercentage, getUserCaseHistoryByUserId }
 export default caseHistorySlice.reducer
