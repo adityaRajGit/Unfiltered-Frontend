@@ -1405,7 +1405,7 @@ export default function TherapistProfile() {
               </div>
 
               {/* Appointment List */}
-              <div className="p-6">
+              <div className="flex-1 overflow-y-auto p-6 max-h-[500px]">
                 {activeTab === 'future' ? (
                   <AppointmentList
                     appointments={upcomingAppointments}
