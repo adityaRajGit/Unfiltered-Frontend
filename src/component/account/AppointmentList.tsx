@@ -6,8 +6,10 @@ import { toast } from 'react-toastify';
 import { LoadingSpinnerWithOverlay } from '../global/Loading';
 import { NotesModal } from './NotesModal';
 import { GoalsModal } from './SetGoalsModal';
-import { TargetIcon } from 'lucide-react';
+import { HistoryIcon, TargetIcon } from 'lucide-react';
 import { addGoal } from '@/store/goalsSlice';
+import { getUserCaseHistoryByUserId } from '@/store/caseHistory';
+import UserHistoryModal from './UserHistoryModal';
 
 // Icons for better visual representation
 const CalendarIcon = () => (
@@ -85,8 +87,35 @@ export function AppointmentList({
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [isGoalsModalOpen, setIsGoalsModalOpen] = useState(false);
+  const [userHistoryData, setUserHistoryData] = useState({});
+  const [showUserHistory, setShowUserHistory] = useState(false);
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch()
+
+  async function handleCheckHistory(userId: string) {
+    setLoading(true);
+    try {
+      const response = await dispatch(getUserCaseHistoryByUserId(userId as any) as any);
+      if (response?.error) {
+        toast.error(response.error.message);
+        setUserHistoryData({});
+      } else {
+        setUserHistoryData(response.payload.data.userhistory)
+        setShowUserHistory(true);
+      }
+    } catch (err: any) {
+      console.error("Fetch error", err);
+      toast.error(err.message);
+      setUserHistoryData({});
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleClose(){
+    setShowUserHistory(false);
+    setUserHistoryData({});
+  }
 
   // Handle opening notes modal
   const handleOpenNotes = (appointment: Appointment) => {
@@ -250,8 +279,9 @@ export function AppointmentList({
                   </div>
                 </div>
 
-                {/* Appointment Details */}
+                {/* Appointment Details & Actions */}
                 <div className="mt-4 flex flex-col md:flex-row md:items-center gap-4 text-sm text-gray-600">
+                  {/* Date & Time (unchanged) */}
                   <div className="flex items-center">
                     <CalendarIcon />
                     <span className="ml-1.5">
@@ -263,7 +293,6 @@ export function AppointmentList({
                       })}
                     </span>
                   </div>
-
                   <div className="flex items-center">
                     <ClockIcon />
                     <span className="ml-1.5">
@@ -274,48 +303,53 @@ export function AppointmentList({
                     </span>
                   </div>
 
-                  <button
-                    onClick={() => handleOpenNotes(appointment)}
-                    className={`flex items-center p-2 px-4 text-white justify-center rounded-md cursor-pointer md:hover:scale-105 duration-300 ease-in-out ${hasNotes ? 'bg-[#009689]' : 'bg-teal-500'}`}
-                  >
-                    {!isPast ? (
-                      <>
-                        <NotesIcon />
-                        <span className="ml-1.5">
-                          View Notes
-                        </span>
-                      </>
-                    ) : hasNotes && isPast ? (
-                      <>
-                        <NotesIcon />
-                        <span className="ml-1.5">
-                          View Notes
-                        </span>
-                      </>
-                    )
-                      : (
+                  {/* Action Buttons Group */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Notes Button */}
+                    <button
+                      onClick={() => handleOpenNotes(appointment)}
+                      className={`flex items-center p-2 px-4 text-white justify-center rounded-md cursor-pointer md:hover:scale-105 duration-300 ease-in-out ${hasNotes ? 'bg-[#009689]' : 'bg-teal-500'
+                        }`}
+                    >
+                      {!isPast ? (
+                        <>
+                          <NotesIcon />
+                          <span className="ml-1.5">View Notes</span>
+                        </>
+                      ) : hasNotes && isPast ? (
+                        <>
+                          <NotesIcon />
+                          <span className="ml-1.5">View Notes</span>
+                        </>
+                      ) : (
                         <>
                           <PencilIcon />
-                          <span className="ml-1.5">
-                            Write Notes
-                          </span>
+                          <span className="ml-1.5">Write Notes</span>
                         </>
-                      )
-                    }
-                  </button>
+                      )}
+                    </button>
 
-                  <button
-                    onClick={() => handleOpenGoals(appointment)}
-                    className="flex items-center p-2 px-4 justify-center rounded-md cursor-pointer 
-             bg-teal-50 text-teal-700 border border-teal-200
-             hover:bg-teal-100
-             md:hover:scale-105 duration-300 ease-in-out"
-                  >
-                    <TargetIcon className="w-5 h-5" />
-                    <span className="ml-1.5">
-                      Set Goals
-                    </span>
-                  </button>
+                    {/* Set Goals Button */}
+                    <button
+                      onClick={() => handleOpenGoals(appointment)}
+                      className="flex items-center p-2 px-4 justify-center rounded-md cursor-pointer 
+                 bg-teal-50 text-teal-700 border border-teal-200
+                 hover:bg-teal-100 md:hover:scale-105 duration-300 ease-in-out"
+                    >
+                      <TargetIcon className="w-5 h-5" />
+                      <span className="ml-1.5">Set Goals</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleCheckHistory(appointment?.user_id?._id)}
+                      className="flex items-center p-2 px-4 justify-center rounded-md cursor-pointer
+                 bg-purple-50 text-purple-700 border border-purple-200
+                 hover:bg-purple-100 md:hover:scale-105 duration-300 ease-in-out"
+                    >
+                      <HistoryIcon className="w-5 h-5" />
+                      <span className="ml-1.5">Check History</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Action Buttons */}
@@ -355,6 +389,8 @@ export function AppointmentList({
           />
         )
       }
+
+      <UserHistoryModal isOpen={showUserHistory} onClose={handleClose} data={userHistoryData} />
 
       {isGoalsModalOpen && selectedAppointment && (
         <GoalsModal
