@@ -26,6 +26,7 @@ interface UserGoalsModalProps {
     userId: string;
     therapistId: string;
     therapistName: string;
+    onProgressSaved?: () => void;
 }
 
 // GoalSet now supports both plain goals and usercompletedgoals
@@ -70,6 +71,7 @@ export const UserGoalsModal = ({
     userId,
     therapistId,
     therapistName,
+    onProgressSaved,
 }: UserGoalsModalProps) => {
     const [loading, setLoading] = useState(true);
     const [savingSetId, setSavingSetId] = useState<string | null>(null);
@@ -184,8 +186,7 @@ export const UserGoalsModal = ({
                 toast.error(response.error.message);
             } else {
                 toast.success("Progress updated!");
-                // Optionally refresh the list to reflect saved done states? 
-                // If the backend updates the same document, we might not need to.
+                onProgressSaved?.();
             }
         } catch (error) {
             toast.error("Failed to update progress.");

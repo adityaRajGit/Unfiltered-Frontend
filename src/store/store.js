@@ -19,6 +19,7 @@ import userGoalsReducer from './userGoalsSlice.js'
 import statisticsReducer from './statisticsSlice.js'
 import blogReducer from './blogsSlice.js'
 import caseHistoryReducer from './caseHistory.js'
+import badgeReducer from './badgeSlice.js'
 
 const store = configureStore({
     reducer: {
@@ -41,7 +42,8 @@ const store = configureStore({
         userGoals: userGoalsReducer,
         statistics: statisticsReducer,
         blog: blogReducer,
-        casehistory: caseHistoryReducer
+        casehistory: caseHistoryReducer,
+        badge: badgeReducer
     }
 })
 

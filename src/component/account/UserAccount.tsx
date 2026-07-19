@@ -25,6 +25,10 @@ import { UserGoalsModal } from './UserGoalsPopup';
 import { sendOtp, verifyOtp } from '@/store/otpSlice';
 import CaseHistoryModal from './CaseHistoryModal';
 import { getUserCaseHistoryPercentage } from '@/store/caseHistory';
+import BadgeAwardPopup from './BadgeAwardPopup';
+import BadgesSection from './BadgesSection';
+import { getUnseenBadges, markBadgesSeen } from '@/store/badgeSlice';
+import { getBadgeInfo, UserBadge } from '@/utils/badges';
 
 const BIO_LIMIT = 1000;
 
@@ -198,6 +202,8 @@ const UserProfilePage = () => {
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
   const [caseHistoryModalOpen, setCaseHistoryModalOpen] = useState(false);
   const [animatedProgress, setAnimatedProgress] = useState(0)
+  const [badgePopupQueue, setBadgePopupQueue] = useState<UserBadge[]>([]);
+  const [badgeRefreshKey, setBadgeRefreshKey] = useState(0);
 
   const today = new Date();
 
@@ -630,6 +636,7 @@ const UserProfilePage = () => {
       setLoading(false)
       setPopupData(prev => prev.slice(1));
       getPastAppointments(userId)
+      checkForNewBadges()
     }
   };
 
@@ -860,6 +867,33 @@ const UserProfilePage = () => {
     }
   }
 
+  async function checkForNewBadges() {
+    if (!userId) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const response = await dispatch(getUnseenBadges(userId as any) as any);
+    if (response?.error) return;
+
+    const badges: UserBadge[] = response.payload?.data?.badges || [];
+    if (badges.length === 0) return;
+
+    setBadgePopupQueue((prev) => {
+      const existingIds = new Set(prev.map((badge) => badge._id));
+      const newBadges = badges.filter((badge) => !existingIds.has(badge._id));
+      return [...prev, ...newBadges];
+    });
+  }
+
+  async function handleBadgePopupClose() {
+    const currentBadge = badgePopupQueue[0];
+    if (!currentBadge) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await dispatch(markBadgesSeen([currentBadge._id] as any) as any);
+    setBadgePopupQueue((prev) => prev.slice(1));
+    setBadgeRefreshKey((key) => key + 1);
+  }
+
   function handlePopupClose() {
     setBookAgainPopup(false)
     setSelectedTherapist('')
@@ -891,7 +925,15 @@ const UserProfilePage = () => {
     }
   }, [caseHistoryModalOpen, userId])
 
+  useEffect(() => {
+    if (userId) {
+      checkForNewBadges();
+    }
+  }, [userId]);
+
   const currentPopup = popupData[0];
+  const currentBadgePopup = badgePopupQueue[0];
+  const currentBadgeInfo = currentBadgePopup ? getBadgeInfo(currentBadgePopup.badge_key) : null;
 
   if (loading) {
     return (
@@ -903,6 +945,12 @@ const UserProfilePage = () => {
 
   const isPrevDisabled = currentDate <= minDate;
   const isNextDisabled = currentDate >= maxDate;
+
+  // Coerce so null/undefined/"0" don't hide both therapist browser and NoActivePackage
+  const sessionBalance = Number(user?.sessions_balance ?? 0);
+  const canBrowseTherapists =
+    (user?.role === 'user' && sessionBalance > 0) || user?.role === 'employee';
+  const showNoActivePackage = user?.role === 'user' && sessionBalance <= 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white py-8 px-4">
@@ -975,6 +1023,12 @@ const UserProfilePage = () => {
           popupData.length === 0
             ? null
             : <SessionCompletionPopup name={currentPopup.name} date={currentPopup.scheduled_at} onConfirm={handleConfirm} onCancel={handleCancel} />
+        }
+
+        {
+          currentBadgeInfo && (
+            <BadgeAwardPopup badge={currentBadgeInfo} onClose={handleBadgePopupClose} />
+          )
         }
 
         {
@@ -1103,6 +1157,45 @@ const UserProfilePage = () => {
             </div>
           </div>
 
+          {user?.role === 'user' && (
+            <div className="relative overflow-hidden rounded-2xl border border-teal-200 bg-white p-5 shadow-md">
+              <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-teal-100/70" />
+              <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#009689] to-[#00b09b] text-white shadow-md">
+                    <FaCalendarAlt className="text-2xl" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">Your package</p>
+                    <div className="mt-1 flex items-baseline gap-2">
+                      <span className="text-3xl font-bold text-teal-700">{sessionBalance}</span>
+                      <span className="font-medium text-gray-700">
+                        {sessionBalance === 1 ? 'session remaining' : 'sessions remaining'}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {sessionBalance > 0
+                        ? 'Use your available sessions to continue your wellness journey.'
+                        : 'Choose a package to start booking therapy sessions.'}
+                    </p>
+                  </div>
+                </div>
+
+                {sessionBalance <= 0 && (
+                  <Link
+                    href="/pages/one-on-one"
+                    className="relative inline-flex shrink-0 items-center justify-center rounded-xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-teal-700"
+                  >
+                    Explore packages
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+
+          <BadgesSection userId={userId} refreshKey={badgeRefreshKey} />
+
+          {canBrowseTherapists && (
           <div className="relative w-full h-auto flex gap-3 p-1 bg-gray-100 rounded-full">
             {/* Sliding background pill */}
             <div
@@ -1132,6 +1225,7 @@ const UserProfilePage = () => {
               Auto Matcher
             </button>
           </div>
+          )}
 
           {
             bookTherapistPopup && selectedTherapistForBooking && (
@@ -1387,7 +1481,7 @@ const UserProfilePage = () => {
 
           {/* Book Appoinment Form */}
           {
-            ((user?.role === "user" && user.sessions_balance > 0) || user?.role === "employee") && (
+            canBrowseTherapists && (
               <div className='w-full h-auto'>
                 <div className="space-y-6">
                   {!showResults ? (
@@ -1966,7 +2060,7 @@ const UserProfilePage = () => {
           }
 
           {
-            user?.role === "user" && user.sessions_balance === 0 && (
+            showNoActivePackage && (
               <NoActivePackage />
             )
           }
@@ -2229,7 +2323,7 @@ const UserProfilePage = () => {
                       <div className="self-end sm:self-center ml-auto">
                         <button
                           onClick={() => {
-                            if (user?.role === 'user' && user?.sessions_balance === 0) {
+                            if (user?.role === 'user' && Number(user?.sessions_balance ?? 0) <= 0) {
                               toast.error('You have no Active Package');
                               return;
                             }
@@ -2278,6 +2372,7 @@ const UserProfilePage = () => {
             userId={userId}
             therapistId={selectedAppointmentForGoals?.therapist_id._id}
             therapistName={selectedAppointmentForGoals?.therapist_id.name}
+            onProgressSaved={checkForNewBadges}
           />
         )
       }
