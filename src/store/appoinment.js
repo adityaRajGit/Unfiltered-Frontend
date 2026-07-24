@@ -75,6 +75,21 @@ const updateAppointmentStatussApi = createAsyncThunk("appointment/update-status-
 })
 
 
+const getMeetTokenFunc = createAsyncThunk("appointment/meet-token", async ({ id, token }) => {
+    try {
+        const response = await axios.get(`${backend}/appointment/${id}/meet-token`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+        return response.data
+    } catch (error) {
+        if (error.response) {
+            throw error.response.data.data.message
+        }
+        throw error.message || "An unexpected error occurred"
+    }
+})
+
+
 const initialState = {
     loading: false,
     error: null
@@ -144,5 +159,5 @@ const appointmentSlice = createSlice({
     }
 })
 
-export { bookAppointmentFunc, getUpComingAppointments, getPastAppointmentsApi, rescheduleAppointmentFunc, updateAppointmentStatussApi }
+export { bookAppointmentFunc, getUpComingAppointments, getPastAppointmentsApi, rescheduleAppointmentFunc, updateAppointmentStatussApi, getMeetTokenFunc }
 export default appointmentSlice.reducer
