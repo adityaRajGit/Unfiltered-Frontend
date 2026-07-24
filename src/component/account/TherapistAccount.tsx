@@ -8,13 +8,17 @@ import { useDispatch } from 'react-redux';
 import { LoadingSpinnerWithOverlay } from '../global/Loading';
 import { getTherapistDetails, therapistProfileStatus, updateTherapistDetails } from '@/store/therapistSlice';
 import { toast } from 'react-toastify';
-import { FaEdit, FaPlus, FaTimes, FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaEdit, FaPlus, FaTimes, FaEnvelope, FaPhone, FaMapMarkerAlt, FaBars, FaCalendarAlt, FaClock } from 'react-icons/fa';
 import { getInitials } from '@/utils/GetInitials';
 import { AppointmentList } from './AppointmentList';
 import { getPastAppointmentsApi, getUpComingAppointments, updateAppointmentStatussApi } from '@/store/appoinment';
 import AvailabilityScheduler from './AvailabilityCalender';
 import SessionCompletionPopup from './SessionCompletionPopup';
 import { sendOtp, verifyOtp } from '@/store/otpSlice';
+import TherapistDashboardSidebar, {
+  TherapistDashboardTab,
+  THERAPIST_DASHBOARD_TAB_LABELS,
+} from './TherapistDashboardSidebar';
 
 const BIO_LIMIT = 1000;
 
@@ -110,6 +114,8 @@ export default function TherapistProfile() {
   const [otp, setOtp] = useState('');
   const [pendingNewEmail, setPendingNewEmail] = useState<string | null>(null);
   const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
+  const [activeDashboardTab, setActiveDashboardTab] = useState<TherapistDashboardTab>('overview');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
 
   async function getTherapist(id: string) {
@@ -739,75 +745,262 @@ export default function TherapistProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-teal-100 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-teal-100">
+      {
+        popupData.length === 0
+          ? null
+          : <SessionCompletionPopup name={currentPopup.name} date={currentPopup.scheduled_at} onConfirm={handleConfirm} onCancel={handleCancel} />
+      }
 
-        {
-          popupData.length === 0
-            ? null
-            : <SessionCompletionPopup name={currentPopup.name} date={currentPopup.scheduled_at} onConfirm={handleConfirm} onCancel={handleCancel} />
-        }
-
-
-        {/* Profile completion status */}
-        <div className="w-full mx-auto p-4">
-          {/* Status message */}
-          <div className="text-center mb-2">
-            <p className="text-gray-600 text-sm md:text-base">
-              {animatedProgress < 50
-                ? "Keep going! Add more details to boost your profile."
-                : animatedProgress < 100
-                  ? "Great progress! Just a few more details needed. After that, your therapies will be live."
-                  : "Congratulations! Your profile is complete!, Now Your Therapy is Live"}
-            </p>
-          </div>
-
-          {/* Progress bar */}
-          <div className="w-full bg-gray-300 rounded-full h-3 md:h-4">
-            <div
-              className="bg-[#009689] h-full rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${animatedProgress}%` }}
-            ></div>
-          </div>
-
-          {/* Percentage indicator */}
-          <div className="flex justify-between mt-1 text-xs text-gray-500">
-            <span>0%</span>
-            <span>{animatedProgress}% Complete</span>
-            <span>100%</span>
-          </div>
-        </div>
-        {/* Header with Edit Button */}
-        <div className="flex flex-col sm:flex-row sm:justify-between gap-5 sm:items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Therapist Profile</h1>
-          {isEditing ? (
-            <div className="flex space-x-3">
+      {emailOtpPopup && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="bg-gradient-to-r from-teal-600 to-teal-700 p-6 rounded-t-2xl">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-white">Verify New Email</h2>
+                <button onClick={() => setEmailOtpPopup(false)} className="text-white">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <p className="text-teal-100 mt-1">We sent a code to {pendingNewEmail}</p>
+            </div>
+            <div className="p-6">
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                onKeyDown={(prev) => {
+                  if (prev.key === 'Enter' && otp.length === 6) {
+                    verifyEmailOtpAndUpdate();
+                  }
+                }}
+                placeholder="Enter 6-digit code"
+                maxLength={6}
+                className="w-full text-center text-2xl font-mono tracking-widest p-3 border-2 rounded-lg"
+              />
               <button
-                onClick={() => { setIsEditing(false), setTempTherapistData(therapist) }}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50"
+                onClick={verifyEmailOtpAndUpdate}
+                disabled={otp.length !== 6 || isUpdatingEmail}
+                className="w-full mt-6 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-300 text-white font-bold py-3 rounded-lg"
               >
-                Cancel
+                {isUpdatingEmail ? 'Verifying...' : 'Verify & Update Email'}
               </button>
               <button
-                onClick={handleSaveEmail}
-                className="px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700"
+                onClick={() => sendOtpForNewEmail(pendingNewEmail!)}
+                className="w-full mt-3 text-teal-600 hover:text-teal-800"
               >
-                Save Changes
+                Resend Code
               </button>
             </div>
-          ) : (
-            <div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex min-h-screen">
+        <TherapistDashboardSidebar
+          activeTab={activeDashboardTab}
+          onTabChange={setActiveDashboardTab}
+          mobileOpen={mobileSidebarOpen}
+          onCloseMobile={() => setMobileSidebarOpen(false)}
+          therapistName={therapist?.name}
+          profileCompletion={animatedProgress}
+          upcomingCount={upcomingAppointments.length}
+        />
+
+        <div className="flex-1 min-w-0 flex flex-col">
+          <div className="bg-white/90 border-b border-teal-100 px-4 py-3 md:px-6 lg:px-8">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMobileSidebarOpen(true)}
+                  className="lg:hidden rounded-xl border border-teal-200 bg-teal-50 p-2.5 text-teal-700 hover:bg-teal-100"
+                  aria-label="Open menu"
+                >
+                  <FaBars />
+                </button>
+                <div>
+                  <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+                    {THERAPIST_DASHBOARD_TAB_LABELS[activeDashboardTab]}
+                  </h1>
+                  <p className="text-sm text-gray-500 hidden sm:block">
+                    Manage your practice in one place
+                  </p>
+                </div>
+              </div>
+
+              {activeDashboardTab === 'profile' && (
+                isEditing ? (
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => { setIsEditing(false); setTempTherapistData(therapist); }}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveEmail}
+                      className="px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700"
+                  >
+                    <FaEdit className="mr-2" />
+                    Edit Profile
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+
+          <main className="flex-1 p-4 md:p-6 lg:p-8 pb-10">
+            <div className="max-w-7xl mx-auto w-full">
+
+        {activeDashboardTab === 'overview' && (
+          <div className="flex flex-col gap-5">
+            <div className="w-full bg-white rounded-2xl shadow-md border border-teal-100 p-4 md:p-6">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-bold text-gray-900">Profile Completion</h2>
+                <button
+                  type="button"
+                  onClick={() => setActiveDashboardTab('profile')}
+                  className="text-sm font-medium text-teal-600 hover:text-teal-800"
+                >
+                  Complete profile
+                </button>
+              </div>
+              <div className="text-center mb-2">
+                <p className="text-gray-600 text-sm md:text-base">
+                  {animatedProgress < 50
+                    ? "Keep going! Add more details to boost your profile."
+                    : animatedProgress < 100
+                      ? "Great progress! Just a few more details needed. After that, your therapies will be live."
+                      : "Congratulations! Your profile is complete!, Now Your Therapy is Live"}
+                </p>
+              </div>
+              <div className="w-full bg-gray-300 rounded-full h-3 md:h-4">
+                <div
+                  className="bg-[#009689] h-full rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${animatedProgress}%` }}
+                ></div>
+              </div>
+              <div className="flex justify-between mt-1 text-xs text-gray-500">
+                <span>0%</span>
+                <span>{animatedProgress}% Complete</span>
+                <span>100%</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button
-                onClick={() => setIsEditing(true)}
-                className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700"
+                type="button"
+                onClick={() => setActiveDashboardTab('availability')}
+                className="text-left bg-white rounded-2xl border border-teal-100 shadow-md p-5 hover:border-teal-300 transition-colors"
               >
-                <FaEdit className="mr-2" />
-                Edit Profile
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-50 text-teal-700 mb-3">
+                  <FaCalendarAlt className="text-xl" />
+                </div>
+                <h3 className="font-bold text-gray-900">Availability</h3>
+                <p className="text-sm text-gray-500 mt-1">Set your weekly schedule for clients</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveDashboardTab('appointments')}
+                className="text-left bg-white rounded-2xl border border-teal-100 shadow-md p-5 hover:border-teal-300 transition-colors"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-50 text-teal-700 mb-3">
+                  <FaClock className="text-xl" />
+                </div>
+                <h3 className="font-bold text-gray-900">Appointments</h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  {upcomingAppointments.length} upcoming session{upcomingAppointments.length === 1 ? '' : 's'}
+                </p>
               </button>
             </div>
-          )}
-        </div>
 
+            <div className="bg-white rounded-2xl shadow-md p-4 md:p-6 border border-teal-100">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-gray-900">Upcoming Sessions</h2>
+                <button
+                  type="button"
+                  onClick={() => setActiveDashboardTab('appointments')}
+                  className="text-sm font-medium text-teal-600 hover:text-teal-800"
+                >
+                  View all
+                </button>
+              </div>
+              <div className="space-y-4">
+                {upcomingAppointments.length > 0 ? (
+                  upcomingAppointments.slice(0, 3).map((appointment) => {
+                    const client =
+                      typeof appointment.user_id === 'object' && appointment.user_id
+                        ? appointment.user_id
+                        : null;
+                    return (
+                      <div
+                        key={appointment._id}
+                        className="flex flex-col sm:flex-row sm:items-center gap-3 border border-gray-100 rounded-xl p-4"
+                      >
+                        <div className="w-12 h-12 rounded-full border-2 border-teal-500 overflow-hidden bg-gray-200 shrink-0 flex items-center justify-center">
+                          {client?.profile_image ? (
+                            <Image
+                              src={client.profile_image}
+                              alt={client.name || 'Client'}
+                              width={48}
+                              height={48}
+                              className="object-cover w-full h-full"
+                            />
+                          ) : (
+                            <span className="text-teal-700 font-bold text-sm">
+                              {getInitials(client?.name || 'C')}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 truncate">
+                            {client?.name || 'Client'}
+                          </h3>
+                          <div className="flex flex-wrap gap-3 text-sm text-gray-500 mt-1">
+                            <span className="flex items-center gap-1">
+                              <FaCalendarAlt className="text-teal-600" />
+                              {new Date(appointment.scheduled_at).toLocaleDateString('en-US', {
+                                weekday: 'short',
+                                month: 'short',
+                                day: 'numeric',
+                              })}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <FaClock className="text-teal-600" />
+                              {new Date(appointment.scheduled_at).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true,
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No upcoming appointments</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeDashboardTab === 'profile' && (
+          <div className="flex flex-col gap-6">
         {/* Profile Header */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-teal-100">
           <div className="px-6 py-8 sm:flex sm:items-center sm:justify-between">
@@ -1093,13 +1286,9 @@ export default function TherapistProfile() {
           )}
         </div>
 
-        {/* Select Avaialbility */}
-        <AvailabilityScheduler therapistId={therapistId} />
-
-        {/* Main Content */}
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Profile Details */}
-          <div className="lg:col-span-1 space-y-6">
+        {/* Profile details */}
+        <div className="grid grid-cols-1 gap-6">
+          <div className="space-y-6">
             {/* Contact Information */}
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-teal-100">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
@@ -1185,52 +1374,6 @@ export default function TherapistProfile() {
                 )}
               </div>
             </div>
-
-            {emailOtpPopup && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-                  <div className="bg-gradient-to-r from-teal-600 to-teal-700 p-6 rounded-t-2xl">
-                    <div className="flex justify-between items-center">
-                      <h2 className="text-2xl font-bold text-white">Verify New Email</h2>
-                      <button onClick={() => setEmailOtpPopup(false)} className="text-white">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                    <p className="text-teal-100 mt-1">We sent a code to {pendingNewEmail}</p>
-                  </div>
-                  <div className="p-6">
-                    <input
-                      type="text"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                      onKeyDown={(prev) => {
-                        if (prev.key === 'Enter' && otp.length === 6) {
-                          verifyEmailOtpAndUpdate();
-                        }
-                      }}
-                      placeholder="Enter 6-digit code"
-                      maxLength={6}
-                      className="w-full text-center text-2xl font-mono tracking-widest p-3 border-2 rounded-lg"
-                    />
-                    <button
-                      onClick={verifyEmailOtpAndUpdate}
-                      disabled={otp.length !== 6 || isUpdatingEmail}
-                      className="w-full mt-6 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-300 text-white font-bold py-3 rounded-lg"
-                    >
-                      {isUpdatingEmail ? 'Verifying...' : 'Verify & Update Email'}
-                    </button>
-                    <button
-                      onClick={() => sendOtpForNewEmail(pendingNewEmail!)}
-                      className="w-full mt-3 text-teal-600 hover:text-teal-800"
-                    >
-                      Resend Code
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Qualifications */}
             <div className="bg-white rounded-2xl shadow-lg p-6 border border-teal-100">
@@ -1364,10 +1507,16 @@ export default function TherapistProfile() {
               )}
             </div>
           </div>
+        </div>
+          </div>
+        )}
 
-          {/* Right Column - Appointments */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-lg h-full overflow-hidden border border-teal-100">
+        {activeDashboardTab === 'availability' && (
+          <AvailabilityScheduler therapistId={therapistId} />
+        )}
+
+        {activeDashboardTab === 'appointments' && (
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-teal-100">
               {/* Appointment Tabs */}
               <div className="border-b border-gray-200 bg-gradient-to-r from-teal-50 to-teal-100">
                 <nav className="flex flex-col sm:flex-row">
@@ -1426,71 +1575,11 @@ export default function TherapistProfile() {
                   />
                 )}
               </div>
-            </div>
-
-            {/* Stats Card */}
-            {/* <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-2xl shadow-lg p-6 text-white">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm opacity-90">Total Sessions</p>
-                    <p className="text-3xl font-bold mt-1">142</p>
-                  </div>
-                  <div className="bg-white bg-opacity-20 p-3 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center text-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-teal-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                  </svg>
-                  <span className="ml-1">12% from last month</span>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl shadow-lg p-6 text-white">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm opacity-90">Client Satisfaction</p>
-                    <p className="text-3xl font-bold mt-1">98%</p>
-                  </div>
-                  <div className="bg-white bg-opacity-20 p-3 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center text-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-teal-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                  </svg>
-                  <span className="ml-1">3% from last month</span>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-r from-cyan-500 to-teal-500 rounded-2xl shadow-lg p-6 text-white">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm opacity-90">Avg. Response Time</p>
-                    <p className="text-3xl font-bold mt-1">2.1h</p>
-                  </div>
-                  <div className="bg-white bg-opacity-20 p-3 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center text-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                  </svg>
-                  <span className="ml-1">0.3h from last month</span>
-                </div>
-              </div>
-            </div> */}
           </div>
+        )}
+
+            </div>
+          </main>
         </div>
       </div>
     </div>

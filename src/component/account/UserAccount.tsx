@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { FaEdit, FaCalendarAlt, FaClock, FaVideo, FaCamera, FaUserMd, FaPhone, FaTimes, FaEnvelope, FaStar, FaHistory, FaSearch, FaFileMedical } from 'react-icons/fa';
+import { FaEdit, FaCalendarAlt, FaClock, FaVideo, FaCamera, FaUserMd, FaPhone, FaTimes, FaEnvelope, FaStar, FaHistory, FaSearch, FaFileMedical, FaBars } from 'react-icons/fa';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import Link from 'next/link';
 import { useDispatch } from 'react-redux';
@@ -29,6 +29,10 @@ import BadgeAwardPopup from './BadgeAwardPopup';
 import BadgesSection from './BadgesSection';
 import { getUnseenBadges, markBadgesSeen } from '@/store/badgeSlice';
 import { getBadgeInfo, UserBadge } from '@/utils/badges';
+import UserDashboardSidebar, {
+  DashboardTab,
+  DASHBOARD_TAB_LABELS,
+} from './UserDashboardSidebar';
 
 const BIO_LIMIT = 1000;
 
@@ -204,6 +208,8 @@ const UserProfilePage = () => {
   const [animatedProgress, setAnimatedProgress] = useState(0)
   const [badgePopupQueue, setBadgePopupQueue] = useState<UserBadge[]>([]);
   const [badgeRefreshKey, setBadgeRefreshKey] = useState(0);
+  const [activeDashboardTab, setActiveDashboardTab] = useState<DashboardTab>('overview');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const today = new Date();
 
@@ -953,89 +959,313 @@ const UserProfilePage = () => {
   const showNoActivePackage = user?.role === 'user' && sessionBalance <= 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white py-8 px-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4 md:mb-0">My Profile</h1>
+    <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white">
+      {
+        popupData.length === 0
+          ? null
+          : <SessionCompletionPopup name={currentPopup.name} date={currentPopup.scheduled_at} onConfirm={handleConfirm} onCancel={handleCancel} />
+      }
 
-          {isEditing ? (
-            <div className="flex space-x-3">
+      {
+        currentBadgeInfo && (
+          <BadgeAwardPopup badge={currentBadgeInfo} onClose={handleBadgePopupClose} />
+        )
+      }
+
+      {
+        bookAgainPopup && <BookingCalendar userId={userId} id={selectedTherapist} onClose={handlePopupClose} type={bookAgainType} appoinmentId={selectedAppointment} />
+      }
+
+      {emailOtpPopup && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="bg-gradient-to-r from-teal-600 to-teal-700 p-6 rounded-t-2xl">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-white">Verify New Email</h2>
+                <button onClick={() => setEmailOtpPopup(false)} className="text-white">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <p className="text-teal-100 mt-1">We sent a code to {pendingNewEmail}</p>
+            </div>
+            <div className="p-6">
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                onKeyDown={(prev) => {
+                  if (prev.key === 'Enter' && otp.length === 6) {
+                    verifyEmailOtpAndUpdate();
+                  }
+                }}
+                placeholder="Enter 6-digit code"
+                maxLength={6}
+                className="w-full text-center text-2xl font-mono tracking-widest p-3 border-2 rounded-lg"
+              />
               <button
-                onClick={() => { setIsEditing(false); setTempUserData(user); }}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50"
+                onClick={verifyEmailOtpAndUpdate}
+                disabled={otp.length !== 6 || isUpdatingEmail}
+                className="w-full mt-6 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-300 text-white font-bold py-3 rounded-lg"
               >
-                Cancel
+                {isUpdatingEmail ? 'Verifying...' : 'Verify & Update Email'}
               </button>
               <button
-                onClick={handleSaveEmail}
-                className="px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700"
+                onClick={() => sendOtpForNewEmail(pendingNewEmail!)}
+                className="w-full mt-3 text-teal-600 hover:text-teal-800"
               >
-                Save Changes
+                Resend Code
               </button>
             </div>
-          ) : (
-            <div className="flex gap-3">
-              <button
-                onClick={() => setIsEditing(true)}
-                className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700"
-              >
-                <FaEdit className="mr-2" />
-                Edit Profile
-              </button>
-              <button
-                onClick={() => setCaseHistoryModalOpen(true)}
-                className="flex items-center px-4 py-2 bg-white border border-teal-600 text-teal-600 rounded-full hover:bg-teal-50"
-              >
-                <FaFileMedical className="mr-2" />
-                Case History
-              </button>
+          </div>
+        </div>
+      )}
+
+      <div className="flex min-h-screen">
+        <UserDashboardSidebar
+          activeTab={activeDashboardTab}
+          onTabChange={setActiveDashboardTab}
+          mobileOpen={mobileSidebarOpen}
+          onCloseMobile={() => setMobileSidebarOpen(false)}
+          userName={user?.name}
+          sessionBalance={sessionBalance}
+          upcomingCount={upcomingAppointments.length}
+        />
+
+        <div className="flex-1 min-w-0 flex flex-col">
+          {/* Top bar */}
+          <div className="bg-white/90 border-b border-teal-100 px-4 py-3 md:px-6 lg:px-8">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMobileSidebarOpen(true)}
+                  className="lg:hidden rounded-xl border border-teal-200 bg-teal-50 p-2.5 text-teal-700 hover:bg-teal-100"
+                  aria-label="Open menu"
+                >
+                  <FaBars />
+                </button>
+                <div>
+                  <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+                    {DASHBOARD_TAB_LABELS[activeDashboardTab]}
+                  </h1>
+                  <p className="text-sm text-gray-500 hidden sm:block">
+                    Manage your wellness journey in one place
+                  </p>
+                </div>
+              </div>
+
+              {activeDashboardTab === 'profile' && (
+                isEditing ? (
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => { setIsEditing(false); setTempUserData(user); }}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-full hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveEmail}
+                      className="px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-full hover:bg-teal-700"
+                    >
+                      <FaEdit className="mr-2" />
+                      Edit Profile
+                    </button>
+                    <button
+                      onClick={() => setCaseHistoryModalOpen(true)}
+                      className="flex items-center px-4 py-2 bg-white border border-teal-600 text-teal-600 rounded-full hover:bg-teal-50"
+                    >
+                      <FaFileMedical className="mr-2" />
+                      Case History
+                    </button>
+                  </div>
+                )
+              )}
             </div>
-          )}
-        </div>
-
-        <div className="w-full mx-auto p-4">
-          <div className="text-center mb-2">
-            <p className="text-gray-600 text-sm md:text-base">
-              {animatedProgress < 50
-                ? "Start building the case history. More details help us understand better."
-                : animatedProgress < 100
-                  ? "Good progress! Complete the case history to unlock full insights."
-                  : "Excellent! Case history is fully filled. You can now proceed."}
-            </p>
           </div>
 
-          <div className="w-full bg-gray-300 rounded-full h-3 md:h-4">
-            <div
-              className="bg-[#009689] h-full rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${animatedProgress}%` }}
-            ></div>
-          </div>
+          <main className="flex-1 p-4 md:p-6 lg:p-8 pb-10">
+            <div className="max-w-6xl mx-auto w-full flex flex-col gap-5">
 
-          <div className="flex justify-between mt-1 text-xs text-gray-500">
-            <span>0%</span>
-            <span>{animatedProgress}% of case history filled</span>
-            <span>100%</span>
-          </div>
-        </div>
+        {activeDashboardTab === 'overview' && (
+          <>
+            <div className="w-full bg-white rounded-2xl shadow-md border border-teal-100 p-4 md:p-6">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-bold text-gray-900">Case History Progress</h2>
+                <button
+                  type="button"
+                  onClick={() => setCaseHistoryModalOpen(true)}
+                  className="text-sm font-medium text-teal-600 hover:text-teal-800"
+                >
+                  Update
+                </button>
+              </div>
+              <div className="text-center mb-2">
+                <p className="text-gray-600 text-sm md:text-base">
+                  {animatedProgress < 50
+                    ? "Start building the case history. More details help us understand better."
+                    : animatedProgress < 100
+                      ? "Good progress! Complete the case history to unlock full insights."
+                      : "Excellent! Case history is fully filled. You can now proceed."}
+                </p>
+              </div>
 
-        {
-          popupData.length === 0
-            ? null
-            : <SessionCompletionPopup name={currentPopup.name} date={currentPopup.scheduled_at} onConfirm={handleConfirm} onCancel={handleCancel} />
-        }
+              <div className="w-full bg-gray-300 rounded-full h-3 md:h-4">
+                <div
+                  className="bg-[#009689] h-full rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${animatedProgress}%` }}
+                ></div>
+              </div>
 
-        {
-          currentBadgeInfo && (
-            <BadgeAwardPopup badge={currentBadgeInfo} onClose={handleBadgePopupClose} />
-          )
-        }
+              <div className="flex justify-between mt-1 text-xs text-gray-500">
+                <span>0%</span>
+                <span>{animatedProgress}% of case history filled</span>
+                <span>100%</span>
+              </div>
+            </div>
 
-        {
-          bookAgainPopup && <BookingCalendar userId={userId} id={selectedTherapist} onClose={handlePopupClose} type={bookAgainType} appoinmentId={selectedAppointment} />
-        }
+            {user?.role === 'user' && (
+              <div className="relative overflow-hidden rounded-2xl border border-teal-200 bg-white p-5 shadow-md">
+                <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-teal-100/70" />
+                <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#009689] to-[#00b09b] text-white shadow-md">
+                      <FaCalendarAlt className="text-2xl" aria-hidden="true" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Your package</p>
+                      <div className="mt-1 flex items-baseline gap-2">
+                        <span className="text-3xl font-bold text-teal-700">{sessionBalance}</span>
+                        <span className="font-medium text-gray-700">
+                          {sessionBalance === 1 ? 'session remaining' : 'sessions remaining'}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {sessionBalance > 0
+                          ? 'Use your available sessions to continue your wellness journey.'
+                          : 'Choose a package to start booking therapy sessions.'}
+                      </p>
+                    </div>
+                  </div>
 
-        <div className='w-full h-auto flex flex-col gap-5 pb-10'>
+                  {sessionBalance <= 0 ? (
+                    <Link
+                      href="/pages/one-on-one"
+                      className="relative inline-flex shrink-0 items-center justify-center rounded-xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-teal-700"
+                    >
+                      Explore packages
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setActiveDashboardTab('find')}
+                      className="relative inline-flex shrink-0 items-center justify-center rounded-xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-teal-700"
+                    >
+                      Find a therapist
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="bg-white rounded-2xl shadow-md p-4 md:p-6 border border-teal-100">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold text-gray-900">Upcoming Sessions</h2>
+                <button
+                  type="button"
+                  onClick={() => setActiveDashboardTab('sessions')}
+                  className="text-sm font-medium text-teal-600 hover:text-teal-800"
+                >
+                  View all
+                </button>
+              </div>
+              <div className="space-y-4">
+                {upcomingAppointments?.length > 0 ? (
+                  upcomingAppointments.slice(0, 3).map((appointment: UpcomingAppointment) => (
+                    <div
+                      key={appointment._id}
+                      className="flex flex-col sm:flex-row sm:items-center gap-3 border border-gray-100 rounded-xl p-4"
+                    >
+                      <div className="w-12 h-12 rounded-full border-2 border-teal-500 overflow-hidden bg-gray-200 shrink-0">
+                        {appointment.therapist_id?.profile_image ? (
+                          <Image
+                            src={appointment.therapist_id.profile_image}
+                            alt={appointment.therapist_id.name}
+                            width={48}
+                            height={48}
+                            className="object-cover w-full h-full"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-teal-700 font-bold">
+                            {getInitials(appointment.therapist_id?.name || '')}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 truncate">
+                          {appointment.therapist_id?.name}
+                        </h3>
+                        <div className="flex flex-wrap gap-3 text-sm text-gray-500 mt-1">
+                          <span className="flex items-center gap-1">
+                            <FaCalendarAlt className="text-teal-600" />
+                            {new Date(appointment.scheduled_at).toLocaleDateString('en-US', {
+                              weekday: 'short',
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <FaClock className="text-teal-600" />
+                            {new Date(appointment.scheduled_at).toLocaleTimeString('en-US', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: true,
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                      {appointment.meet_link && (
+                        <a
+                          href={appointment.meet_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-sm text-white hover:bg-teal-700"
+                        >
+                          <FaVideo />
+                          Join
+                        </a>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No upcoming appointments</p>
+                    <button
+                      type="button"
+                      onClick={() => setActiveDashboardTab('find')}
+                      className="mt-3 text-sm font-medium text-teal-600 hover:text-teal-800"
+                    >
+                      Book a session
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeDashboardTab === 'profile' && (
+          <>
           {/* Profile Card */}
           <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-2xl shadow-lg overflow-hidden flex flex-col md:flex-row items-center md:items-start gap-8 p-8 border border-teal-200">
             {/* Profile Image */}
@@ -1156,45 +1386,15 @@ const UserProfilePage = () => {
               </div>
             </div>
           </div>
+          </>
+        )}
 
-          {user?.role === 'user' && (
-            <div className="relative overflow-hidden rounded-2xl border border-teal-200 bg-white p-5 shadow-md">
-              <div className="pointer-events-none absolute -right-8 -top-10 h-32 w-32 rounded-full bg-teal-100/70" />
-              <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#009689] to-[#00b09b] text-white shadow-md">
-                    <FaCalendarAlt className="text-2xl" aria-hidden="true" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500">Your package</p>
-                    <div className="mt-1 flex items-baseline gap-2">
-                      <span className="text-3xl font-bold text-teal-700">{sessionBalance}</span>
-                      <span className="font-medium text-gray-700">
-                        {sessionBalance === 1 ? 'session remaining' : 'sessions remaining'}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {sessionBalance > 0
-                        ? 'Use your available sessions to continue your wellness journey.'
-                        : 'Choose a package to start booking therapy sessions.'}
-                    </p>
-                  </div>
-                </div>
-
-                {sessionBalance <= 0 && (
-                  <Link
-                    href="/pages/one-on-one"
-                    className="relative inline-flex shrink-0 items-center justify-center rounded-xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-teal-700"
-                  >
-                    Explore packages
-                  </Link>
-                )}
-              </div>
-            </div>
-          )}
-
+        {activeDashboardTab === 'achievements' && (
           <BadgesSection userId={userId} refreshKey={badgeRefreshKey} />
+        )}
 
+        {activeDashboardTab === 'find' && (
+          <>
           {canBrowseTherapists && (
           <div className="relative w-full h-auto flex gap-3 p-1 bg-gray-100 rounded-full">
             {/* Sliding background pill */}
@@ -1432,52 +1632,6 @@ const UserProfilePage = () => {
             )
           }
 
-
-          {emailOtpPopup && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-                <div className="bg-gradient-to-r from-teal-600 to-teal-700 p-6 rounded-t-2xl">
-                  <div className="flex justify-between items-center">
-                    <h2 className="text-2xl font-bold text-white">Verify New Email</h2>
-                    <button onClick={() => setEmailOtpPopup(false)} className="text-white">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  <p className="text-teal-100 mt-1">We sent a code to {pendingNewEmail}</p>
-                </div>
-                <div className="p-6">
-                  <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    onKeyDown={(prev) => {
-                      if (prev.key === 'Enter' && otp.length === 6) {
-                        verifyEmailOtpAndUpdate();
-                      }
-                    }}
-                    placeholder="Enter 6-digit code"
-                    maxLength={6}
-                    className="w-full text-center text-2xl font-mono tracking-widest p-3 border-2 rounded-lg"
-                  />
-                  <button
-                    onClick={verifyEmailOtpAndUpdate}
-                    disabled={otp.length !== 6 || isUpdatingEmail}
-                    className="w-full mt-6 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-300 text-white font-bold py-3 rounded-lg"
-                  >
-                    {isUpdatingEmail ? 'Verifying...' : 'Verify & Update Email'}
-                  </button>
-                  <button
-                    onClick={() => sendOtpForNewEmail(pendingNewEmail!)}
-                    className="w-full mt-3 text-teal-600 hover:text-teal-800"
-                  >
-                    Resend Code
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Book Appoinment Form */}
           {
@@ -2064,6 +2218,11 @@ const UserProfilePage = () => {
               <NoActivePackage />
             )
           }
+          </>
+        )}
+
+        {activeDashboardTab === 'sessions' && (
+          <>
           {/* My Therapists, Past Appointments and Upcoming Appointments */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
             {/* My Therapists */}
@@ -2349,8 +2508,14 @@ const UserProfilePage = () => {
             </div>
 
           </div>
+          </>
+        )}
+
+            </div>
+          </main>
         </div>
       </div>
+
       {
         isNotesModalOpen && (
           <NotesModal
@@ -2380,7 +2545,7 @@ const UserProfilePage = () => {
       {caseHistoryModalOpen && (
         <CaseHistoryModal userId={userId} onClose={() => setCaseHistoryModalOpen(false)} />
       )}
-    </div >
+    </div>
   );
 };
 
