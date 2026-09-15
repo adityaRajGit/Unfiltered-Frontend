@@ -10,7 +10,7 @@ import { LoadingSpinnerWithoutOverlay } from '../global/Loading';
 import { TOKEN } from '@/utils/enum';
 import { useRouter } from 'next/navigation';
 import { decodeToken } from '@/utils/decodeToken';
-import { countryCurrencyMap, CurrencyInfo } from './Plans';
+import { countryCurrencyMap, CurrencyInfo, currencySymbolFallback } from './Plans';
 import { bookPackage } from '@/store/paymentSlice';
 import axios from 'axios';
 import { fbPurchase } from '@/lib/PixelHelpers';
@@ -68,32 +68,26 @@ export default function BudgetPackage() {
     const fetchLocation = async () => {
         try {
             const fetchedLoc = await axios.get(`https://ipapi.co/json/`);
-            const countryCode = fetchedLoc.data.country_code;
-            // console.log("Country Code:", countryCode);
+            const countryCode = fetchedLoc.data.country_code as string;
+            const mapped = countryCurrencyMap[countryCode];
 
-            // Get currency info for the country
-            const currencyInfo = countryCurrencyMap[countryCode as keyof typeof countryCurrencyMap];
-            // console.log("Currency Info:", currencyInfo);
-
-            if (currencyInfo && currencyInfo.code !== 'INR') {
-                // Fetch conversion rate
-                const conversionRate = await fetchConversionRate(currencyInfo.code);
-
-                setCurrency({
-                    code: currencyInfo.code,
-                    symbol: currencyInfo.symbol,
-                    conversionRate: conversionRate
-                });
-            } else if (countryCode === 'IN') {
-                // Default to INR
+            // India keeps package prices in INR (base currency)
+            if (countryCode === 'IN' || mapped?.code === 'INR') {
                 setCurrency({ code: 'INR', symbol: '₹', conversionRate: 1 });
-            } else {
-                // Default to INR
-                setCurrency({ code: "USD", symbol: "$", conversionRate: 1 });
+                return;
             }
+
+            // Prefer mapped currency; otherwise use ipapi currency for any country
+            const code = mapped?.code || fetchedLoc.data.currency || 'USD';
+            const symbol =
+                mapped?.symbol ||
+                currencySymbolFallback[code] ||
+                code;
+
+            const conversionRate = await fetchConversionRate(code);
+            setCurrency({ code, symbol, conversionRate });
         } catch (error) {
             console.log("Error fetching location:", error);
-            // Default to INR on error
             setCurrency({ code: 'INR', symbol: '₹', conversionRate: 1 });
         }
     };

@@ -35,40 +35,82 @@ export interface CurrencyInfo {
     conversionRate: number;
 }
 
-export const countryCurrencyMap = {
-    AT: { code: "EUR", symbol: "€" }, // Austria
-    BE: { code: "EUR", symbol: "€" }, // Belgium
-    BG: { code: "BGN", symbol: "лв" }, // Bulgaria
-    HR: { code: "EUR", symbol: "€" }, // Croatia
-    CY: { code: "EUR", symbol: "€" }, // Cyprus
-    CZ: { code: "CZK", symbol: "Kč" }, // Czech Republic
-    DK: { code: "DKK", symbol: "kr" }, // Denmark
-    EE: { code: "EUR", symbol: "€" }, // Estonia
-    FI: { code: "EUR", symbol: "€" }, // Finland
-    FR: { code: "EUR", symbol: "€" }, // France
-    DE: { code: "EUR", symbol: "€" }, // Germany
-    GR: { code: "EUR", symbol: "€" }, // Greece
-    HU: { code: "HUF", symbol: "Ft" }, // Hungary
-    IS: { code: "ISK", symbol: "kr" }, // Iceland
-    IE: { code: "EUR", symbol: "€" }, // Ireland
-    IT: { code: "EUR", symbol: "€" }, // Italy
-    LV: { code: "EUR", symbol: "€" }, // Latvia
-    LT: { code: "EUR", symbol: "€" }, // Lithuania
-    LU: { code: "EUR", symbol: "€" }, // Luxembourg
-    MT: { code: "EUR", symbol: "€" }, // Malta
-    NL: { code: "EUR", symbol: "€" }, // Netherlands
-    NO: { code: "NOK", symbol: "kr" }, // Norway
-    PL: { code: "PLN", symbol: "zł" }, // Poland
-    PT: { code: "EUR", symbol: "€" }, // Portugal
-    RO: { code: "RON", symbol: "lei" }, // Romania
-    SK: { code: "EUR", symbol: "€" }, // Slovakia
-    SI: { code: "EUR", symbol: "€" }, // Slovenia
-    ES: { code: "EUR", symbol: "€" }, // Spain
-    SE: { code: "SEK", symbol: "kr" }, // Sweden
-    CH: { code: "CHF", symbol: "CHF" }, // Switzerland
-    GB: { code: "GBP", symbol: "£" }, // United Kingdom
-    US: { code: "USD", symbol: "$" }, // United States
-    IN: { code: "INR", symbol: "₹" }, // India
+export const countryCurrencyMap: Record<string, { code: string; symbol: string }> = {
+    // Europe
+    AT: { code: "EUR", symbol: "€" },
+    BE: { code: "EUR", symbol: "€" },
+    BG: { code: "BGN", symbol: "лв" },
+    HR: { code: "EUR", symbol: "€" },
+    CY: { code: "EUR", symbol: "€" },
+    CZ: { code: "CZK", symbol: "Kč" },
+    DK: { code: "DKK", symbol: "kr" },
+    EE: { code: "EUR", symbol: "€" },
+    FI: { code: "EUR", symbol: "€" },
+    FR: { code: "EUR", symbol: "€" },
+    DE: { code: "EUR", symbol: "€" },
+    GR: { code: "EUR", symbol: "€" },
+    HU: { code: "HUF", symbol: "Ft" },
+    IS: { code: "ISK", symbol: "kr" },
+    IE: { code: "EUR", symbol: "€" },
+    IT: { code: "EUR", symbol: "€" },
+    LV: { code: "EUR", symbol: "€" },
+    LT: { code: "EUR", symbol: "€" },
+    LU: { code: "EUR", symbol: "€" },
+    MT: { code: "EUR", symbol: "€" },
+    NL: { code: "EUR", symbol: "€" },
+    NO: { code: "NOK", symbol: "kr" },
+    PL: { code: "PLN", symbol: "zł" },
+    PT: { code: "EUR", symbol: "€" },
+    RO: { code: "RON", symbol: "lei" },
+    SK: { code: "EUR", symbol: "€" },
+    SI: { code: "EUR", symbol: "€" },
+    ES: { code: "EUR", symbol: "€" },
+    SE: { code: "SEK", symbol: "kr" },
+    CH: { code: "CHF", symbol: "CHF" },
+    GB: { code: "GBP", symbol: "£" },
+    // Americas
+    US: { code: "USD", symbol: "$" },
+    CA: { code: "CAD", symbol: "C$" },
+    MX: { code: "MXN", symbol: "Mex$" },
+    BR: { code: "BRL", symbol: "R$" },
+    // Asia / Oceania / Middle East / Africa
+    IN: { code: "INR", symbol: "₹" },
+    AE: { code: "AED", symbol: "AED" },
+    SA: { code: "SAR", symbol: "SAR" },
+    QA: { code: "QAR", symbol: "QAR" },
+    KW: { code: "KWD", symbol: "KWD" },
+    BH: { code: "BHD", symbol: "BHD" },
+    OM: { code: "OMR", symbol: "OMR" },
+    SG: { code: "SGD", symbol: "S$" },
+    MY: { code: "MYR", symbol: "RM" },
+    TH: { code: "THB", symbol: "฿" },
+    ID: { code: "IDR", symbol: "Rp" },
+    PH: { code: "PHP", symbol: "₱" },
+    JP: { code: "JPY", symbol: "¥" },
+    KR: { code: "KRW", symbol: "₩" },
+    CN: { code: "CNY", symbol: "¥" },
+    HK: { code: "HKD", symbol: "HK$" },
+    TW: { code: "TWD", symbol: "NT$" },
+    AU: { code: "AUD", symbol: "A$" },
+    NZ: { code: "NZD", symbol: "NZ$" },
+    ZA: { code: "ZAR", symbol: "R" },
+    NG: { code: "NGN", symbol: "₦" },
+    KE: { code: "KES", symbol: "KSh" },
+};
+
+export const currencySymbolFallback: Record<string, string> = {
+    USD: "$",
+    CAD: "C$",
+    EUR: "€",
+    GBP: "£",
+    AUD: "A$",
+    NZD: "NZ$",
+    SGD: "S$",
+    AED: "AED",
+    JPY: "¥",
+    CNY: "¥",
+    CHF: "CHF",
+    INR: "₹",
 };
 
 function Plans() {
@@ -83,32 +125,26 @@ function Plans() {
     const fetchLocation = async () => {
         try {
             const fetchedLoc = await axios.get(`https://ipapi.co/json/`);
-            const countryCode = fetchedLoc.data.country_code;
-            // console.log("Country Code:", countryCode);
+            const countryCode = fetchedLoc.data.country_code as string;
+            const mapped = countryCurrencyMap[countryCode];
 
-            // Get currency info for the country
-            const currencyInfo = countryCurrencyMap[countryCode as keyof typeof countryCurrencyMap];
-            // console.log("Currency Info:", currencyInfo);
-
-            if (currencyInfo && currencyInfo.code !== 'INR') {
-                // Fetch conversion rate
-                const conversionRate = await fetchConversionRate(currencyInfo.code);
-
-                setCurrency({
-                    code: currencyInfo.code,
-                    symbol: currencyInfo.symbol,
-                    conversionRate: conversionRate
-                });
-            } else if (countryCode === 'IN') {
-                // Default to INR
+            // India keeps package prices in INR (base currency)
+            if (countryCode === 'IN' || mapped?.code === 'INR') {
                 setCurrency({ code: 'INR', symbol: '₹', conversionRate: 1 });
-            } else {
-                // Default to INR
-                setCurrency({ code: "USD", symbol: "$", conversionRate: 1 });
+                return;
             }
+
+            // Prefer mapped currency; otherwise use ipapi currency for any country
+            const code = mapped?.code || fetchedLoc.data.currency || 'USD';
+            const symbol =
+                mapped?.symbol ||
+                currencySymbolFallback[code] ||
+                code;
+
+            const conversionRate = await fetchConversionRate(code);
+            setCurrency({ code, symbol, conversionRate });
         } catch (error) {
             console.log("Error fetching location:", error);
-            // Default to INR on error
             setCurrency({ code: 'INR', symbol: '₹', conversionRate: 1 });
         }
     };

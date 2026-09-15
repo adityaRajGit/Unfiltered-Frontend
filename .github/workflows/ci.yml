@@ -1,0 +1,90 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [main, QA]
+  pull_request:
+    branches: [main, QA]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: 1
+  # Placeholders so the build can run without real secrets; real values live in Vercel.
+  NEXT_PUBLIC_BACKEND_URL: https://ci.invalid/api/v1
+  NEXT_PUBLIC_GOOGLE_CLIENT_ID: ci-placeholder
+  NEXT_PUBLIC_CLARITY_PROJECT_ID: ci-placeholder
+  NEXT_PUBLIC_RAZORPAY_KEY_ID: ci-placeholder
+
+jobs:
+  checks:
+    name: Type-check and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Unit tests (UTC)
+        run: npm test
+
+      # IST slot conversion must not depend on the browser's timezone.
+      - name: Unit tests (America/Toronto)
+        run: npm test
+        env:
+          TZ: America/Toronto
+
+  build:
+    name: Build (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        # 22.x = Vercel production, 24.x = Vercel QA
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Next.js build
+        run: npm run build
+
+  lint:
+    name: Lint (non-blocking)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Existing code has lint errors; report them without failing the pipeline until they are cleaned up.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint

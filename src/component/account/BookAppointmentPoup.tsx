@@ -5,6 +5,7 @@ import { FaChevronLeft, FaChevronRight, FaClock, FaTimes } from 'react-icons/fa'
 import { useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
 import { LoadingSpinnerWithOverlay } from '../global/Loading';
+import { istDateHourKey, istSlotToUtcIso } from '@/utils/istTime';
 
 interface TimeInterval {
   from: string;
@@ -184,48 +185,26 @@ const BookingCalendar = ({ id, userId, onClose, type, appoinmentId }: BookingCal
     })();
   }, [userId, dispatch]);
 
-  // Build a "YYYY-MM-DD-HH" key in IST so slot times and stored UTC instants
-  // can be compared without timezone drift.
-  const istDateHourKey = (d: Date) => {
-    const parts = new Intl.DateTimeFormat('en-GB', {
-      timeZone: 'Asia/Kolkata',
-      year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', hour12: false,
-    }).formatToParts(d);
-    const get = (t: string) => parts.find(p => p.type === t)?.value ?? '';
-    return `${get('year')}-${get('month')}-${get('day')}-${get('hour')}`;
-  };
-
+  // Slots are IST, so compare slot and stored appointment by their IST date-hour.
   const isSlotBooked = (slot: string) => {
     if (!selectedDate) return false;
-    const [hh, mm] = slot.split(':').map(Number);
-    const candidate = new Date(selectedDate);
-    candidate.setHours(hh, mm || 0, 0, 0);
-    const key = istDateHourKey(candidate);
+    const key = istDateHourKey(new Date(istSlotToUtcIso(selectedDate, slot)));
     return upcomingAppointments.some(appt => {
       // When rescheduling, ignore the appointment being moved so the user
       // is free to keep its original slot.
       if (appoinmentId && appt._id === appoinmentId) return false;
-      const apptDate = new Date(appt.scheduled_at);
-      if (isNaN(apptDate.getTime())) return false;
-      return istDateHourKey(apptDate) === key;
+      return istDateHourKey(new Date(appt.scheduled_at)) === key;
     });
   };
 
   const handleBookAppointment = async () => {
     setLoading(true);
     if (selectedDate && selectedTime) {
-      // Construct an exact local (IST) instant, then serialise as UTC ISO-8601
-      // so the server (Vercel/UTC) always receives a timezone-unambiguous value.
-      const [hh, mm] = selectedTime.split(':').map(Number);
-      const dt = new Date(selectedDate);
-      dt.setHours(hh, mm || 0, 0, 0);
-      const scheduledIso = dt.toISOString();
-
+      // Slots are IST; convert explicitly so a browser in Canada books the same instant as one in India.
       const data = {
         therapist_id: id,
         user_id: userId,
-        scheduled_at: scheduledIso
+        scheduled_at: istSlotToUtcIso(selectedDate, selectedTime)
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const response = await dispatch(bookAppointmentFunc(data as any) as any);
@@ -245,16 +224,11 @@ const BookingCalendar = ({ id, userId, onClose, type, appoinmentId }: BookingCal
   const handleReschedule = async () => {
     setLoading(true);
     if (selectedDate && selectedTime) {
-      // Same UTC ISO-8601 serialisation as handleBookAppointment.
-      const [hh, mm] = selectedTime.split(':').map(Number);
-      const dt = new Date(selectedDate);
-      dt.setHours(hh, mm || 0, 0, 0);
-      const scheduledIso = dt.toISOString();
-
+      // Same IST conversion as handleBookAppointment.
       const updateObject = {
         id: appoinmentId,
         data: {
-          scheduled_at: scheduledIso
+          scheduled_at: istSlotToUtcIso(selectedDate, selectedTime)
         }
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -376,12 +350,15 @@ const BookingCalendar = ({ id, userId, onClose, type, appoinmentId }: BookingCal
 
             {selectedDate ? (
               <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm font-medium text-gray-700 mb-3">
+                <p className="text-sm font-medium text-gray-700 mb-2">
                   Available time slots ({selectedDate.toLocaleDateString('en-US', {
                     weekday: 'short',
                     month: 'short',
                     day: 'numeric'
                   })})
+                </p>
+                <p className="text-xs text-teal-800 bg-teal-50 border border-teal-200 rounded-md px-3 py-2 mb-3">
+                  <span className="font-semibold">Note:</span> The timings are in IST.
                 </p>
 
                 <div className="bg-white rounded-lg p-4 border border-gray-200">

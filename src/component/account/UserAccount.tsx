@@ -15,6 +15,7 @@ import { getInitials } from '@/utils/GetInitials';
 import { useRef } from 'react';
 import { getAllTherapist, getAllTherapistListWithAvailablity, getTherapistSpecialisationAndTiming, recommendTherapist } from '@/store/therapistSlice';
 import { bookAppointmentFunc, getPastAppointmentsApi, getUpComingAppointments, updateAppointmentStatussApi } from '@/store/appoinment';
+import { istDateHourKey, istSlotToIstWallClock, istSlotToUtcIso } from '@/utils/istTime';
 import BookingCalendar from './BookAppointmentPoup';
 import NoActivePackage from './NoActivePackage';
 import { NotesIcon } from './AppointmentList';
@@ -317,34 +318,13 @@ const UserProfilePage = () => {
       toast.error('Please select a date and time.');
       return;
     }
-    const local = new Date(selectedDate.getTime());
-    const [hhStr, mmStr] = selectedTime.split(':');
-    const hh = Number(hhStr);
-    const mm = Number(mmStr ?? '0');
-    if (Number.isNaN(hh) || Number.isNaN(mm)) {
+    // Slots are IST; the recommend API expects the IST wall-clock with no offset.
+    try {
+      return istSlotToIstWallClock(selectedDate, selectedTime);
+    } catch {
       toast.error('Invalid time format. Expected "HH:mm".');
       return;
     }
-    local.setHours(hh, mm, 0, 0);
-    function pad(n: number) {
-      return String(n).padStart(2, '0');
-    }
-
-    function formatAsISTString(d: Date) {
-      const utcMs = d.getTime();
-      const istMs = utcMs + (5 * 60 + 30) * 60 * 1000;
-      const ist = new Date(istMs);
-
-      const Y = ist.getUTCFullYear();
-      const M = pad(ist.getUTCMonth() + 1);
-      const D = pad(ist.getUTCDate());
-      const H = pad(ist.getUTCHours());
-      const Min = pad(ist.getUTCMinutes());
-      const S = pad(ist.getUTCSeconds());
-      return `${Y}-${M}-${D}T${H}:${Min}:${S}`;
-    }
-    const istISOish = formatAsISTString(local);
-    return istISOish
   }
 
   async function handleFindTherapists() {
@@ -463,18 +443,11 @@ const UserProfilePage = () => {
       toast.error('Please select a date and time.');
       return;
     }
-    // Build the chosen instant in the user's local (IST) wall-clock,
-    // then send it as a timezone-unambiguous UTC ISO-8601 string so the
-    // backend (Vercel/UTC) stores the correct instant.
-    const [hh, mm] = selectedTime.split(':').map(Number);
-    const dt = new Date(selectedDate);
-    dt.setHours(hh, mm || 0, 0, 0);
-    const scheduledIso = dt.toISOString();
-
+    // Slots are IST; convert explicitly so a browser in Canada books the same instant as one in India.
     const data = {
       therapist_id: "id" in therapist ? therapist.id : therapist._id,
       user_id: userId,
-      scheduled_at: scheduledIso
+      scheduled_at: istSlotToUtcIso(selectedDate, selectedTime)
     };
 
     window.scrollTo(0, 0);
@@ -1541,12 +1514,15 @@ const UserProfilePage = () => {
                         {/* Available Time Slots */}
                         {selectedDate && (
                           <div className="w-full xl:w-[45%]">
-                            <p className="text-sm font-medium text-gray-700 mb-3">
+                            <p className="text-sm font-medium text-gray-700 mb-2">
                               Available time slots ({selectedDate.toLocaleDateString('en-US', {
                                 weekday: 'short',
                                 month: 'short',
                                 day: 'numeric',
                               })})
+                            </p>
+                            <p className="text-xs text-teal-800 bg-teal-50 border border-teal-200 rounded-md px-3 py-2 mb-3">
+                              <span className="font-semibold">Note:</span> The timings are in IST.
                             </p>
 
                             <div className="bg-white rounded-lg p-4 border border-gray-200">
@@ -1563,18 +1539,13 @@ const UserProfilePage = () => {
                                       const nextHour = (parseInt(hours) + 1).toString().padStart(2, '0');
                                       const timeRange = `${time} - ${nextHour}:${minutes}`;
 
-                                      const isAlreadyBooked = upcomingAppointments.some(appt => {
-                                        const apptDate = new Date(appt.scheduled_at);
-                                        const apptTime = apptDate.toTimeString().slice(0, 5);
-                                        const apptDateOnly = apptDate.toDateString();
-                                        const selectedDateOnly = new Date(selectedDate).toDateString();
-                                        return (
-                                          apptDateOnly === selectedDateOnly &&
-                                          apptTime === time &&
-                                          appt.appointment_status === 'scheduled' &&
-                                          !appt.is_deleted
-                                        );
-                                      });
+                                      // Slots are IST: compare by IST date-hour, not browser-local time
+                                      const slotKey = istDateHourKey(new Date(istSlotToUtcIso(selectedDate, time)));
+                                      const isAlreadyBooked = upcomingAppointments.some(appt =>
+                                        istDateHourKey(new Date(appt.scheduled_at)) === slotKey &&
+                                        appt.appointment_status === 'scheduled' &&
+                                        !appt.is_deleted
+                                      );
 
                                       return (
                                         <button
@@ -1816,12 +1787,15 @@ const UserProfilePage = () => {
                                   {/* Available Time Slots */}
                                   {selectedDate && (
                                     <div className="w-full xl:w-[45%]">
-                                      <p className="text-sm font-medium text-gray-700 mb-3">
+                                      <p className="text-sm font-medium text-gray-700 mb-2">
                                         Available time slots ({selectedDate.toLocaleDateString('en-US', {
                                           weekday: 'short',
                                           month: 'short',
                                           day: 'numeric'
                                         })})
+                                      </p>
+                                      <p className="text-xs text-teal-800 bg-teal-50 border border-teal-200 rounded-md px-3 py-2 mb-3">
+                                        <span className="font-semibold">Note:</span> The timings are in IST.
                                       </p>
 
                                       <div className="bg-white rounded-lg p-4 border border-gray-200">
@@ -1842,24 +1816,13 @@ const UserProfilePage = () => {
                                                 const nextHour = (parseInt(hours) + 1).toString().padStart(2, '0');
                                                 const timeRange = `${time} - ${nextHour}:${minutes}`;
 
-                                                //  Check if this slot conflicts with upcoming appointments
-                                                const isAlreadyBooked = upcomingAppointments.some(appt => {
-                                                  const apptDate = new Date(appt.scheduled_at);
-
-                                                  // Extract the time in HH:mm format
-                                                  const apptTime = apptDate.toTimeString().slice(0, 5); // e.g. "15:00"
-
-                                                  // Extract just the date (without time) to compare
-                                                  const apptDateOnly = apptDate.toDateString();
-                                                  const selectedDateOnly = new Date(selectedDate).toDateString();
-
-                                                  return (
-                                                    apptDateOnly === selectedDateOnly && // same day
-                                                    apptTime === time &&                 // same start time
-                                                    appt.appointment_status === "scheduled" &&
-                                                    !appt.is_deleted
-                                                  );
-                                                });
+                                                // Slots are IST: compare by IST date-hour, not browser-local time
+                                                const slotKey = istDateHourKey(new Date(istSlotToUtcIso(selectedDate, time)));
+                                                const isAlreadyBooked = upcomingAppointments.some(appt =>
+                                                  istDateHourKey(new Date(appt.scheduled_at)) === slotKey &&
+                                                  appt.appointment_status === "scheduled" &&
+                                                  !appt.is_deleted
+                                                );
                                                 return (
                                                   <button
                                                     key={time}
