@@ -52,6 +52,10 @@ test('homepage canonical is the host with a trailing slash', () => {
   assert.deepEqual(auditHtml(page({ canonical: [`${SITE_URL}/`] }), { path: '/', siteUrl: SITE_URL }), []);
 });
 
+test('homepage canonical without a trailing slash is accepted (Next.js renders it that way)', () => {
+  assert.deepEqual(auditHtml(page({ canonical: [SITE_URL] }), { path: '/', siteUrl: SITE_URL }), []);
+});
+
 test('two canonical tags are a violation', () => {
   const v = auditHtml(page({ canonical: [`${SITE_URL}/pages/faq`, `${SITE_URL}/pages/faq`] }), opts);
   assert.ok(has(v, 'canonical'), v.join('\n'));

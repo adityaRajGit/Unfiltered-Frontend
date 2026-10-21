@@ -41,7 +41,11 @@ export function auditHtml(html: string, opts: { path: string; siteUrl: string })
   );
   if (canonicals.length !== 1) {
     violations.push(`canonical: expected 1 tag, found ${canonicals.length}`);
-  } else if (decodeEntities(canonicals[0]) !== expectedCanonical) {
+  } else if (
+    decodeEntities(canonicals[0]) !== expectedCanonical &&
+    // Next.js renders the root canonical as the bare host; Google treats it as the same URL.
+    !(opts.path === '/' && decodeEntities(canonicals[0]) === opts.siteUrl)
+  ) {
     violations.push(`canonical: expected ${expectedCanonical}, found ${canonicals[0]}`);
   }
 

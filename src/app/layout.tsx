@@ -184,7 +184,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
         />
         <meta name="theme-color" content="#0d9488" />
-        <link rel="canonical" href="https://stayunfiltered.com" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {/* Meta Pixel Code */}
