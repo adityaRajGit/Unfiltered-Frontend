@@ -34,6 +34,11 @@ export function blogPath(post: Pick<BlogPost, '_id' | 'title'>): string {
   return slug ? `/pages/blogs/${slug}-${post._id}` : `/pages/blogs/${post._id}`;
 }
 
+// Guards the backend URL: only a bare Mongo id may be interpolated into /blog/<id>.
+export function isBlogId(id: string): boolean {
+  return /^[0-9a-f]{24}$/i.test(id);
+}
+
 export function idFromBlogParam(param: string): string | null {
   return MONGO_ID_AT_END.exec(param)?.[1] ?? null;
 }

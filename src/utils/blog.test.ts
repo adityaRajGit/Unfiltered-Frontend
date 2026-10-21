@@ -4,6 +4,7 @@ import {
   blogExcerpt,
   blogPath,
   idFromBlogParam,
+  isBlogId,
   parseBlog,
   parseBlogList,
   slugify,
@@ -61,6 +62,14 @@ test('idFromBlogParam reads the trailing id from slug or bare forms', () => {
 test('idFromBlogParam rejects params without an id', () => {
   assert.equal(idFromBlogParam('remote-work'), null);
   assert.equal(idFromBlogParam(''), null);
+});
+
+test('isBlogId accepts only a bare 24-character hex id', () => {
+  assert.equal(isBlogId(id), true);
+  assert.equal(isBlogId('../admin'), false);
+  assert.equal(isBlogId(`${id}/remove`), false);
+  assert.equal(isBlogId(`x-${id}`), false);
+  assert.equal(isBlogId(''), false);
 });
 
 test('blogExcerpt strips HTML and decodes entities', () => {

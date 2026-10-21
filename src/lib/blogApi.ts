@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { parseBlog, parseBlogList, type BlogPost } from '@/utils/blog';
+import { isBlogId, parseBlog, parseBlogList, type BlogPost } from '@/utils/blog';
 
 // Server-side blog reads. They never throw: when the backend is unreachable
 // (including CI builds, which point at https://ci.invalid) pages render their
@@ -31,8 +31,9 @@ export async function fetchBlogList(params: {
 
 // cache() lets generateMetadata and the page share one request per render.
 export const fetchBlog = cache(async (id: string): Promise<BlogPost | null> => {
+  if (!isBlogId(id)) return null;
   try {
-    const res = await fetch(`${backend}/blog/${id}`, { next: { revalidate: REVALIDATE_SECONDS } });
+    const res = await fetch(`${backend}/blog/${encodeURIComponent(id)}`, { next: { revalidate: REVALIDATE_SECONDS } });
     if (!res.ok) return null;
     return parseBlog(await res.json());
   } catch {
