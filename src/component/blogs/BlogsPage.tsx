@@ -5,7 +5,7 @@ import { useDispatch } from "react-redux";
 import { listBlogs } from "@/store/blogsSlice";
 import { toast } from "react-toastify";
 
-import { blogPath, type BlogPost } from "@/utils/blog";
+import { blogPath, formatBlogDate, type BlogPost } from "@/utils/blog";
 
 // Types
 interface PaginationMeta {
@@ -221,11 +221,7 @@ export default function BlogsPage({
                                                 {post.category}
                                             </span>
                                             <span className="text-sm text-gray-500">
-                                                {new Date(post.created_at).toLocaleDateString("en-US", {
-                                                    year: "numeric",
-                                                    month: "short",
-                                                    day: "numeric",
-                                                })}
+                                                {formatBlogDate(post.created_at, "short")}
                                             </span>
                                         </div>
                                         <h2 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">

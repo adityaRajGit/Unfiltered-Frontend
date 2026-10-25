@@ -1,7 +1,7 @@
 import { cache } from 'react';
-import { isBlogId, parseBlog, parseBlogList, type BlogPost } from '@/utils/blog';
+import { isBlogId, parseBlogList, readBlogResponse, type BlogPost } from '@/utils/blog';
 
-// Server-side blog reads. They never throw: when the backend is unreachable
+// Server-side blog reads. List reads never throw: when the backend is unreachable
 // (including CI builds, which point at https://ci.invalid) pages render their
 // empty state instead of failing the build.
 
@@ -30,15 +30,12 @@ export async function fetchBlogList(params: {
 }
 
 // cache() lets generateMetadata and the page share one request per render.
+// Unlike the list fetch this one can throw: the post route renders per request,
+// and during an outage an error page is better than a 404 for a live post.
 export const fetchBlog = cache(async (id: string): Promise<BlogPost | null> => {
   if (!isBlogId(id)) return null;
-  try {
-    const res = await fetch(`${backend}/blog/${encodeURIComponent(id)}`, { next: { revalidate: REVALIDATE_SECONDS } });
-    if (!res.ok) return null;
-    return parseBlog(await res.json());
-  } catch {
-    return null;
-  }
+  const res = await fetch(`${backend}/blog/${encodeURIComponent(id)}`, { next: { revalidate: REVALIDATE_SECONDS } });
+  return readBlogResponse(res);
 });
 
 export async function fetchAllBlogs(): Promise<BlogPost[]> {

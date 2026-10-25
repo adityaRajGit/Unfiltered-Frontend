@@ -69,6 +69,8 @@ export default function BudgetPackage({ initialPackage = null }: { initialPackag
 
     const savings = savingsPercent(packageDetails.realPrice, packageDetails.discountedPrice);
     const priceKnown = savings !== null;
+    // No discount → no "Save ₹0.00" / "0% savings" lines.
+    const hasDiscount = priceKnown && savings > 0;
 
     const convertPrice = (priceInINR: number): number => {
         return Math.round(priceInINR * currency.conversionRate);
@@ -281,11 +283,13 @@ export default function BudgetPackage({ initialPackage = null }: { initialPackag
                         <div className="lg:w-2/5 bg-gradient-to-br from-[#009689] to-[#00b09b] p-8 text-white flex flex-col">
                             {/* Header Content */}
                             <div className="mb-6">
-                                <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1 inline-block mb-4">
-                                    {priceKnown
-                                        ? <span className="font-bold">Save {savings}%</span>
-                                        : <PricePlaceholder className="w-20 h-5" />}
-                                </div>
+                                {(!priceKnown || hasDiscount) && (
+                                    <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1 inline-block mb-4">
+                                        {priceKnown
+                                            ? <span className="font-bold">Save {savings}%</span>
+                                            : <PricePlaceholder className="w-20 h-5" />}
+                                    </div>
+                                )}
 
                                 <h2 className="text-3xl font-bold mb-4">{packageDetails.name}</h2>
 
@@ -306,9 +310,11 @@ export default function BudgetPackage({ initialPackage = null }: { initialPackag
                                         <>
                                             <div className="flex items-baseline gap-2">
                                                 <span className="text-4xl font-bold">₹{packageDetails.discountedPrice}</span>
-                                                <span className="text-white/70 line-through">₹{packageDetails.realPrice}</span>
+                                                {hasDiscount && <span className="text-white/70 line-through">₹{packageDetails.realPrice}</span>}
                                             </div>
-                                            <p className="text-white/80 mt-2">Save ₹{(packageDetails.realPrice - packageDetails.discountedPrice).toFixed(2)}</p>
+                                            {hasDiscount && (
+                                                <p className="text-white/80 mt-2">Save ₹{(packageDetails.realPrice - packageDetails.discountedPrice).toFixed(2)}</p>
+                                            )}
                                         </>
                                     ) : (
                                         <>
@@ -420,7 +426,7 @@ export default function BudgetPackage({ initialPackage = null }: { initialPackag
                                             <p className="text-gray-600">
                                                 {sessions} session{sessions > 1 ? 's' : ''}
                                             </p>
-                                            {priceKnown && (
+                                            {hasDiscount && (
                                                 <span className="text-sm font-medium text-[#009689] bg-[#009689]/10 px-2 py-1 rounded">
                                                     {savings}% savings
                                                 </span>

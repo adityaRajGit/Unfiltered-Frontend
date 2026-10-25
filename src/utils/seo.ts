@@ -52,10 +52,18 @@ export function pageMetadata(path: StaticPath): Metadata {
     title,
     description,
     alternates: { canonical: path },
-    // A page's openGraph replaces the layout's whole object, so repeat the shared fields.
+    // A page's openGraph and twitter replace the layout's whole objects, so repeat
+    // the shared fields; otherwise shares of this page show the homepage's text.
     openGraph: { ...SHARED_OPEN_GRAPH, title, description, url: path },
+    twitter: { ...SHARED_TWITTER, title, description },
   };
 }
+
+export const SHARED_TWITTER = {
+  card: 'summary_large_image' as const,
+  images: ['/stay_unfiltered_logo.jpg'],
+  creator: '@stayunfiltered',
+};
 
 export const SHARED_OPEN_GRAPH = {
   siteName: 'Stay Unfiltered',

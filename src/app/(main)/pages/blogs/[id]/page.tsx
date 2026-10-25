@@ -5,6 +5,7 @@ import JsonLd from "@/component/global/JsonLd";
 import { fetchBlog } from "@/lib/blogApi";
 import { blogExcerpt, blogPath, blogTitle, idFromBlogParam } from "@/utils/blog";
 import { blogPostingJsonLd, breadcrumbJsonLd } from "@/utils/schema";
+import { SHARED_OPEN_GRAPH, SHARED_TWITTER } from "@/utils/seo";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -20,11 +21,14 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const path = blogPath(post);
   const title = blogTitle(post.title);
   const description = blogExcerpt(post.content);
+  // Fall back to the site logo when a post has no image, so shares always have one.
+  const images = post.images.length > 0 ? post.images.slice(0, 1) : SHARED_OPEN_GRAPH.images;
   return {
     title,
     description,
     alternates: { canonical: path },
-    openGraph: { type: "article", title, description, url: path, images: post.images.slice(0, 1) },
+    openGraph: { ...SHARED_OPEN_GRAPH, type: "article", title, description, url: path, images },
+    twitter: { ...SHARED_TWITTER, title, description, images },
   };
 }
 

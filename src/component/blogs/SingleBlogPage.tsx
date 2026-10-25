@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 import Link from "next/link";
 import { listBlogs } from "@/store/blogsSlice";
 import { FaTimes, FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import { blogPath, type BlogPost as Blog } from "@/utils/blog";
+import { blogPath, formatBlogDate, type BlogPost as Blog } from "@/utils/blog";
 
 interface Props {
   post: Blog;
@@ -170,13 +170,7 @@ export default function BlogPostPage({ post }: Props) {
               <div className="ml-4">
                 <p className="font-medium text-gray-900">{post.author}</p>
                 <p className="text-sm text-gray-500">
-                  {post.created_at
-                    ? new Date(post.created_at).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
-                    : "Recent"}
+                  {post.created_at ? formatBlogDate(post.created_at) : "Recent"}
                 </p>
               </div>
             </div>
@@ -218,11 +212,7 @@ export default function BlogPostPage({ post }: Props) {
                       {relatedPost.title}
                     </h3>
                     <p className="text-sm text-gray-500 mb-1">
-                      {new Date(relatedPost.created_at).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {formatBlogDate(relatedPost.created_at, "short")}
                     </p>
                     <div className="flex items-center mt-2">
                       <div className="bg-teal-100 rounded-full w-6 h-6 flex items-center justify-center">

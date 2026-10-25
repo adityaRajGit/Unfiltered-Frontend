@@ -87,6 +87,27 @@ export function parseBlogList(json: unknown): { blogs: BlogPost[]; total: number
   return { blogs, total: data?.totalCount ?? data?.blogCount ?? blogs.length };
 }
 
+// Dates render on the server (UTC on Vercel) and again in the visitor's browser;
+// pinning the timezone keeps both identical, so hydration never mismatches.
+export function formatBlogDate(iso: string, month: 'long' | 'short' = 'long'): string {
+  return new Date(iso).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month,
+    day: 'numeric',
+    timeZone: 'Asia/Kolkata',
+  });
+}
+
+type BlogResponse = { ok: boolean; status: number; json(): Promise<unknown> };
+
+// A 404 means the post really doesn't exist. Any other failure is thrown, so an
+// outage shows an error page instead of telling search engines a live post is gone.
+export async function readBlogResponse(res: BlogResponse): Promise<BlogPost | null> {
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Blog API responded ${res.status}`);
+  return parseBlog(await res.json());
+}
+
 export function parseBlog(json: unknown): BlogPost | null {
   const blog = (json as { data?: { blog?: BlogPost } } | null)?.data?.blog;
   return blog && typeof blog._id === 'string' ? blog : null;

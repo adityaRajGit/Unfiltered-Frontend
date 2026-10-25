@@ -32,6 +32,13 @@ test('copy makes no unsupported superlatives or statistics', () => {
   }
 });
 
+test('pageMetadata gives each page its own share card text', () => {
+  const twitter = pageMetadata('/pages/faq').twitter as { title?: string; description?: string; card?: string };
+  assert.equal(twitter.title, PAGE_SEO['/pages/faq'].title);
+  assert.equal(twitter.description, PAGE_SEO['/pages/faq'].description);
+  assert.equal(twitter.card, 'summary_large_image');
+});
+
 test('pageMetadata points the canonical at the page itself', () => {
   const meta = pageMetadata('/pages/faq');
   assert.equal(meta.alternates?.canonical, '/pages/faq');

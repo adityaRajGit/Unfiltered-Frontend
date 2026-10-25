@@ -4,7 +4,9 @@ import {
   blogExcerpt,
   blogPath,
   blogTitle,
+  formatBlogDate,
   idFromBlogParam,
+  readBlogResponse,
   isBlogId,
   parseBlog,
   parseBlogList,
@@ -107,6 +109,31 @@ test('parseBlogList returns an empty result for anything unexpected', () => {
   assert.deepEqual(parseBlogList(null), empty);
   assert.deepEqual(parseBlogList({}), empty);
   assert.deepEqual(parseBlogList({ data: { message: 'err' } }), empty);
+});
+
+const response = (status: number, body: unknown = {}) => ({
+  ok: status >= 200 && status < 300,
+  status,
+  json: async () => body,
+});
+
+test('readBlogResponse returns the post on success', async () => {
+  assert.deepEqual(await readBlogResponse(response(200, { data: { blog: post } })), post);
+});
+
+test('readBlogResponse returns null only when the post does not exist', async () => {
+  assert.equal(await readBlogResponse(response(404)), null);
+});
+
+test('readBlogResponse throws on a backend failure so a live post is not served as 404', async () => {
+  await assert.rejects(() => readBlogResponse(response(503)));
+  await assert.rejects(() => readBlogResponse(response(500)));
+});
+
+test('formatBlogDate shows the India calendar date regardless of server timezone', () => {
+  // 20:00 UTC on 1 Sep is 01:30 IST on 2 Sep.
+  assert.equal(formatBlogDate('2026-09-01T20:00:00.000Z'), 'September 2, 2026');
+  assert.equal(formatBlogDate('2026-09-01T10:00:00.000Z'), 'September 1, 2026');
 });
 
 test('parseBlog reads the post or returns null', () => {

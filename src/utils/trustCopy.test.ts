@@ -21,6 +21,7 @@ const BANNED: { label: string; pattern: RegExp }[] = [
   { label: 'unsourced 68% statistic', pattern: /68%/ },
   { label: 'unsourced 3-5x ROI', pattern: /3-5x/ },
   { label: 'fake urgency countdown', pattern: /disappears in/ },
+  { label: 'fake urgency countdown', pattern: /OFFER ENDS IN/i },
   { label: 'money-back guarantee without terms', pattern: /Money-Back/i },
   { label: 'unsourced 500+ figure', pattern: /500\+/ },
 ];
