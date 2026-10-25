@@ -15,6 +15,7 @@ const BANNED: { label: string; pattern: RegExp }[] = [
   { label: 'placeholder company TechNova', pattern: /TechNova/ },
   { label: 'placeholder company Global Finance Co.', pattern: /Global Finance Co\./ },
   { label: 'placeholder company HealthFirst Providers', pattern: /HealthFirst Providers/ },
+  { label: 'placeholder contact address (use hello@stayunfiltered.com)', pattern: /wellnesspro\.com|contact@stayunfiltered\.com/ },
   { label: "World's Leading superlative", pattern: /world's leading/i },
   { label: 'unsourced 42% statistic', pattern: /42%/ },
   { label: 'unsourced 35% statistic', pattern: /35%/ },
