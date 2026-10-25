@@ -92,9 +92,9 @@ test('blog posting falls back to the creation date when never updated', () => {
 });
 
 test('jsonLdString cannot be broken out of by a hostile title', () => {
-  const data = { headline: '</script><script>alert(1)</script> & <!--  ' };
+  const data = { headline: '</script><script>alert(1)</script> & <!-- \u2028' };
   const out = jsonLdString(data);
-  assert.doesNotMatch(out, /[<>&  ]/);
+  assert.doesNotMatch(out, /[<>&\u2028\u2029]/);
   assert.deepEqual(JSON.parse(out), data);
 });
 
