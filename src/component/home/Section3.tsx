@@ -111,6 +111,7 @@ function Section3() {
                                                     src={reviews[current].image}
                                                     width={300}
                                                     height={300}
+                                                    sizes="56px"
                                                     alt={reviews[current].author}
                                                     className="w-14 h-14 rounded-full object-cover border-2 border-teal-500"
                                                 />

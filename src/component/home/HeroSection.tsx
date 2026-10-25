@@ -303,6 +303,7 @@ function HeroSection() {
                         alt={slideData.imageAlt}
                         width={600}
                         height={600}
+                        sizes="(max-width: 1024px) 100vw, 600px"
                         className="w-full object-cover"
                         priority={index === 0}
                       />
