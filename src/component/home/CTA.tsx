@@ -71,7 +71,7 @@ const CorporateCTA = () => {
           <div className="mt-12 flex flex-wrap justify-center gap-4 max-w-2xl mx-auto">
             <div className="flex items-center text-sm bg-white px-4 py-2 rounded-full border border-teal-100 shadow-sm">
               <div className="w-2 h-2 bg-teal-500 rounded-full mr-2"></div>
-              HIPAA Compliant & Secure
+              DPDP Act 2023 Protected
             </div>
             <div className="flex items-center text-sm bg-white px-4 py-2 rounded-full border border-teal-100 shadow-sm">
               <div className="w-2 h-2 bg-teal-500 rounded-full mr-2"></div>

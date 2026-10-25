@@ -1,6 +1,13 @@
 
 
+type Testimonial = { name: string; role: string; quote: string };
+
+// Only verified client testimonials, used with permission, belong here. The earlier
+// entries named placeholder companies, so the section is hidden until real ones exist.
+const testimonials: Testimonial[] = [];
+
 function Testimonials() {
+    if (testimonials.length === 0) return null;
     return (
         <section className="py-16 px-4 bg-gradient-to-b from-teal-700 to-teal-800 text-white">
             <div className="max-w-7xl mx-auto">
@@ -14,23 +21,7 @@ function Testimonials() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {[
-                        {
-                            name: "Sarah Johnson",
-                            role: "HR Director, TechNova Inc.",
-                            quote: "Our employee satisfaction scores increased by 32% after implementing their therapy program. The customized approach for our tech teams made all the difference in engagement.",
-                        },
-                        {
-                            name: "Michael Torres",
-                            role: "CEO, Global Finance Co.",
-                            quote: "We reduced turnover by 18% in the first year. The confidential counseling services have been invaluable for our high-pressure environment.",
-                        },
-                        {
-                            name: "Dr. Lisa Chen",
-                            role: "Medical Director, HealthFirst Providers",
-                            quote: "Essential support for our healthcare staff. The specialized trauma counseling has helped our teams process difficult experiences effectively.",
-                        }
-                    ].map((testimonial, index) => (
+                    {testimonials.map((testimonial, index) => (
                         <div
                             key={index}
                             className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 hover:border-white/40 transition-all duration-300"

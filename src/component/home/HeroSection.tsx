@@ -17,7 +17,7 @@ function HeroSection() {
         main: "Elevate Your",
         highlight: "Workforce Wellbeing. Boost Productivity."
       },
-      description: "Corporate therapy packages designed to reduce burnout by 42%, decrease turnover by 35%, and increase employee satisfaction by 68%.",
+      description: "Confidential counselling, manager training and wellbeing workshops that help your teams manage stress and prevent burnout.",
       primaryButton: {
         text: "Request Corporate Demo",
         href: "/pages/corporate#corporate-contact"
@@ -26,8 +26,8 @@ function HeroSection() {
       imageAlt: "Corporate therapy dashboard showing employee wellbeing metrics",
       floatingCard: {
         icon: "check",
-        title: "Proven Results",
-        subtitle: "42% lower burnout"
+        title: "Built for Teams",
+        subtitle: "Confidential, expert-led support"
       }
     },
     {
@@ -40,7 +40,7 @@ function HeroSection() {
       description: "Work through stress, anxiety, and personal challenges in a safe and supportive space. Our licensed therapists provide confidential, one-on-one sessions tailored to your unique needs.",
       primaryButton: {
         text: "Start Therapy Today",
-        href: "pages/one-on-one"
+        href: "/pages/one-on-one"
       },
       // secondaryButton: {
       //   text: "Meet Our Therapists"
@@ -73,7 +73,7 @@ function HeroSection() {
       description: "Access free webinars covering stress management, work-life balance, team building, and workplace mental health. Learn from certified professionals and improve your team's wellbeing.",
       primaryButton: {
         text: "Browse Free Webinars",
-        href: "pages/webinar#webinarForm"
+        href: "/pages/webinar#webinarForm"
       },
       secondaryButton: {
         text: "Schedule Demo",
@@ -84,7 +84,7 @@ function HeroSection() {
       floatingCard: {
         icon: "users",
         title: "Live Sessions",
-        subtitle: "Join 500+ professionals"
+        subtitle: "Learn with your team"
       }
     },
     {

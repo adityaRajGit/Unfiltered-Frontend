@@ -18,7 +18,7 @@ function Faq() {
 
                     <div className="bg-white p-6 rounded-xl shadow-sm">
                         <h3 className="text-xl font-bold mb-2">What is the typical ROI for these programs?</h3>
-                        <p className="text-gray-700">Companies typically see a 3-5x return through reduced absenteeism, increased productivity, and improved employee retention.</p>
+                        <p className="text-gray-700">Returns vary by organization. Companies typically see gains through reduced absenteeism, increased productivity and improved employee retention, which we help you measure.</p>
                     </div>
 
                     <div className="bg-white p-6 rounded-xl shadow-sm">

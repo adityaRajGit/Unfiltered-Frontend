@@ -110,6 +110,13 @@ function Footer() {
                 {/* Divider */}
                 <div className="border-t border-gray-800 my-10"></div>
 
+                {/* Crisis line: shown on every page of a mental-health site. The number is
+                    plain text because tel: links don't work for every visitor. */}
+                <p className="text-gray-300 text-sm text-center mb-8">
+                    In crisis? Call Tele-MANAS <strong className="text-white select-all">14416</strong> (24×7, free).
+                    {' '}Stay Unfiltered is not an emergency service.
+                </p>
+
                 {/* Bottom Row */}
                 <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
                     <p className="text-gray-500 text-sm text-center md:text-left">
