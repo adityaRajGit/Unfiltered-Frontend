@@ -5,6 +5,18 @@ import { absoluteUrl, SITE_URL } from './site.ts';
 
 const CONTEXT = 'https://schema.org';
 
+// Serializes JSON-LD for an inline <script>. Blog titles come from the CMS, so
+// characters that could end the script element are written as \uXXXX escapes;
+// the result is still valid JSON that parses back to the same data.
+export function jsonLdString(data: object): string {
+  return JSON.stringify(data)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(/ /g, '\\u2028')
+    .replace(/ /g, '\\u2029');
+}
+
 export const ORG_ID = `${SITE_URL}/#org`;
 export const WEBSITE_ID = `${SITE_URL}/#website`;
 

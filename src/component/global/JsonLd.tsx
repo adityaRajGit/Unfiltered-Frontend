@@ -1,9 +1,6 @@
-// Renders one JSON-LD block. "<" is escaped so content can never close the script tag.
+import { jsonLdString } from "@/utils/schema";
+
+// Renders one JSON-LD block; jsonLdString escapes anything that could close the tag.
 export default function JsonLd({ data }: { data: object }) {
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, '\u003c') }}
-    />
-  );
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(data) }} />;
 }

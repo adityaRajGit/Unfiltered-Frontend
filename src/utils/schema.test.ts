@@ -6,6 +6,7 @@ import {
   blogPostingJsonLd,
   breadcrumbJsonLd,
   faqPageJsonLd,
+  jsonLdString,
   serviceJsonLd,
   siteGraph,
 } from './schema.ts';
@@ -88,6 +89,13 @@ test('blog posting dates, publisher and page come from the post', () => {
 test('blog posting falls back to the creation date when never updated', () => {
   const out = blogPostingJsonLd({ ...post, updated_at: undefined }, '/pages/blogs/x');
   assert.equal(out.dateModified, post.created_at);
+});
+
+test('jsonLdString cannot be broken out of by a hostile title', () => {
+  const data = { headline: '</script><script>alert(1)</script> & <!--  ' };
+  const out = jsonLdString(data);
+  assert.doesNotMatch(out, /[<>&  ]/);
+  assert.deepEqual(JSON.parse(out), data);
 });
 
 test('breadcrumb positions count from 1', () => {
