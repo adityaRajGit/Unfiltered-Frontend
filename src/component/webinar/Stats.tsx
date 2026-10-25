@@ -65,7 +65,7 @@ function Stats() {
           </span>
           <h3 className="text-3xl font-bold mb-4">Proven ROI for Your Business</h3>
           <p className="text-lg md:text-xl leading-snug mb-6 max-w-3xl mx-auto">
-            Companies achieve an average <span className="font-black bg-white/10 px-3 py-1 rounded-lg">3-5x ROI</span> through reduced absenteeism, increased productivity, and higher retention.
+            Mental wellness programs help companies reduce absenteeism, increase productivity and improve retention.
           </p>
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
             <div className="bg-white/10 rounded-xl py-4 px-4">

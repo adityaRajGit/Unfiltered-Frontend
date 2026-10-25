@@ -17,17 +17,17 @@ function HeroSection() {
         main: "Elevate Your",
         highlight: "Workforce Wellbeing. Boost Productivity."
       },
-      description: "Corporate therapy packages designed to reduce burnout by 42%, decrease turnover by 35%, and increase employee satisfaction by 68%.",
+      description: "Confidential counselling, manager training and wellbeing workshops that help your teams manage stress and prevent burnout.",
       primaryButton: {
         text: "Request Corporate Demo",
-        href: "pages/corporate#corporate-contact"
+        href: "/pages/corporate#corporate-contact"
       },
       image: "/landing.jpeg",
       imageAlt: "Corporate therapy dashboard showing employee wellbeing metrics",
       floatingCard: {
         icon: "check",
-        title: "Proven Results",
-        subtitle: "42% lower burnout"
+        title: "Built for Teams",
+        subtitle: "Confidential, expert-led support"
       }
     },
     {
@@ -40,7 +40,7 @@ function HeroSection() {
       description: "Work through stress, anxiety, and personal challenges in a safe and supportive space. Our licensed therapists provide confidential, one-on-one sessions tailored to your unique needs.",
       primaryButton: {
         text: "Start Therapy Today",
-        href: "pages/one-on-one"
+        href: "/pages/one-on-one"
       },
       // secondaryButton: {
       //   text: "Meet Our Therapists"
@@ -73,7 +73,7 @@ function HeroSection() {
       description: "Access free webinars covering stress management, work-life balance, team building, and workplace mental health. Learn from certified professionals and improve your team's wellbeing.",
       primaryButton: {
         text: "Browse Free Webinars",
-        href: "pages/webinar#webinarForm"
+        href: "/pages/webinar#webinarForm"
       },
       secondaryButton: {
         text: "Schedule Demo",
@@ -84,7 +84,7 @@ function HeroSection() {
       floatingCard: {
         icon: "users",
         title: "Live Sessions",
-        subtitle: "Join 500+ professionals"
+        subtitle: "Learn with your team"
       }
     },
     {
@@ -220,16 +220,22 @@ function HeroSection() {
                       {slideData.badge}
                     </div>
 
-                    <h1
-                      className={`text-4xl font-bold leading-tight text-gray-900 sm:text-4xl md:text-5xl font-pj transition-all duration-700 ${index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-                        }`}
-                      style={{ transitionDelay: index === currentSlide ? '300ms' : '0ms' }}
-                    >
-                      <span className="block">{slideData.title.main}</span>
-                      <span className="relative inline-block mt-2 text-teal-600">
-                        {slideData.title.highlight}
-                      </span>
-                    </h1>
+                    {/* Only the first slide's title is the page H1; the rest are H2s. */}
+                    {(() => {
+                      const Heading = index === 0 ? 'h1' : 'h2';
+                      return (
+                        <Heading
+                          className={`text-4xl font-bold leading-tight text-gray-900 sm:text-4xl md:text-5xl font-pj transition-all duration-700 ${index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                            }`}
+                          style={{ transitionDelay: index === currentSlide ? '300ms' : '0ms' }}
+                        >
+                          <span className="block">{slideData.title.main}</span>{' '}
+                          <span className="relative inline-block mt-2 text-teal-600">
+                            {slideData.title.highlight}
+                          </span>
+                        </Heading>
+                      );
+                    })()}
 
                     <p
                       className={`max-w-xl mt-6 text-lg text-gray-700 md:mt-8 mx-auto md:text-xl font-inter transition-all duration-700 ${index === currentSlide ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
@@ -297,6 +303,7 @@ function HeroSection() {
                         alt={slideData.imageAlt}
                         width={600}
                         height={600}
+                        sizes="(max-width: 1024px) 100vw, 600px"
                         className="w-full object-cover"
                         priority={index === 0}
                       />

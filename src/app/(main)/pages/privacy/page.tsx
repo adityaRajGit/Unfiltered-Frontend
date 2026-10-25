@@ -1,3 +1,5 @@
+import type { Metadata } from 'next';
+import { pageMetadata } from '@/utils/seo';
 import React from 'react';
 import { FaLock, FaUserCheck, FaDatabase, FaTrash, FaShieldAlt, FaExchangeAlt, FaTools, FaBell, FaSync, FaInfoCircle, FaCookie, FaGavel, FaHistory, FaClipboardList } from 'react-icons/fa';
 
@@ -630,5 +632,7 @@ const PrivacyPolicyPage = () => {
         </div>
     );
 };
+
+export const metadata: Metadata = pageMetadata('/pages/privacy');
 
 export default PrivacyPolicyPage;

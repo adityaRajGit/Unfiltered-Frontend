@@ -4,50 +4,12 @@ import Link from "next/link";
 import { useState } from "react";
 import { FaQuoteLeft, FaChevronLeft, FaChevronRight, FaUsers, FaHeart, FaGlobeAsia, FaChartLine, FaUserMd } from "react-icons/fa";
 
-const reviews = [
-    {
-        text: "After struggling with anxiety for years, I finally found relief through StayUnfiltered. My therapist Priya helped me develop coping strategies that actually work.",
-        author: "Rajesh M.",
-        therapist: "Dr. Priya Sharma (Clinical Psychologist)",
-        location: "Mumbai, India",
-        image: '/people/testimonial1.jpg',
-    },
-    {
-        text: "The community support I found here changed my life. Being able to share anonymously made me feel safe to express my deepest struggles for the first time.",
-        author: "Ananya P.",
-        therapist: "Sanjay Kumar (Counselor)",
-        location: "Delhi, India",
-        image: '/people/testimonial5.jpg',
-    },
-    {
-        text: "As a college student dealing with depression, StayUnfiltered made therapy affordable and accessible. My counselor Vikram understood my cultural context perfectly.",
-        author: "Arjun S.",
-        therapist: "Vikram Patel (LCSW)",
-        location: "Bangalore, India",
-        image: '/people/testimonial2.jpg',
-    },
-    {
-        text: "After my divorce, I felt completely lost. The combination of therapy and community support helped me rebuild my confidence and find joy again.",
-        author: "Priyanka R.",
-        therapist: "Dr. Meera Desai (PhD)",
-        location: "Chennai, India",
-        image: '/people/indian4.jpg',
-    },
-    {
-        text: "As a working mother, I never had time for therapy. StayUnfiltered's flexible sessions made it possible for me to prioritize my mental health.",
-        author: "Sunita K.",
-        therapist: "Anjali Mehta (Counseling Psychologist)",
-        location: "Hyderabad, India",
-        image: '/people/indian5.jpg',
-    },
-    {
-        text: "I was skeptical about online therapy, but my experience with Dr. Kapoor exceeded all expectations. He helped me overcome social anxiety I've had since childhood.",
-        author: "Rahul D.",
-        therapist: "Dr. Amit Kapoor (Psychiatrist)",
-        location: "Kolkata, India",
-        image: '/people/testimonial3.jpg',
-    }
-];
+type Review = { text: string; author: string; therapist: string; location: string; image: string };
+
+// Only verified, consented testimonials belong here. The earlier entries could not
+// be verified (one credited a US-only licence), so they were removed. The
+// testimonial block is hidden while this list is empty.
+const reviews: Review[] = [];
 
 function Section3() {
     const [current, setCurrent] = useState(0);
@@ -125,80 +87,83 @@ function Section3() {
                 </div>
 
                 {/* Testimonial Section */}
-                <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden max-w-5xl mx-auto border border-teal-100">
-                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-teal-500 to-cyan-500"></div>
+                {total > 0 && (
+                    <div className="relative bg-white rounded-2xl shadow-xl overflow-hidden max-w-5xl mx-auto border border-teal-100">
+                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-teal-500 to-cyan-500"></div>
 
-                    <div className="py-12 px-6 md:px-16">
-                        <div className="flex justify-center mb-8">
-                            <div className="bg-teal-100 p-4 rounded-full">
-                                <FaQuoteLeft className="text-3xl text-teal-600" />
+                        <div className="py-12 px-6 md:px-16">
+                            <div className="flex justify-center mb-8">
+                                <div className="bg-teal-100 p-4 rounded-full">
+                                    <FaQuoteLeft className="text-3xl text-teal-600" />
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="relative min-h-[200px] md:min-h-[180px]">
-                            <div className="text-center">
-                                <p className="text-xl md:text-2xl text-gray-800 font-medium mb-8 leading-relaxed max-w-3xl mx-auto">
-                                    {reviews[current].text}
-                                </p>
+                            <div className="relative min-h-[200px] md:min-h-[180px]">
+                                <div className="text-center">
+                                    <p className="text-xl md:text-2xl text-gray-800 font-medium mb-8 leading-relaxed max-w-3xl mx-auto">
+                                        {reviews[current].text}
+                                    </p>
 
-                                <div className="flex flex-col items-center">
-                                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-3">
-                                        <div className="relative">
-                                            <Image
-                                                src={reviews[current].image}
-                                                width={300}
-                                                height={300}
-                                                alt={reviews[current].author}
-                                                className="w-14 h-14 rounded-full object-cover border-2 border-teal-500"
-                                            />
-                                            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center">
-                                                <FaGlobeAsia className="text-xs text-white" />
+                                    <div className="flex flex-col items-center">
+                                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-3">
+                                            <div className="relative">
+                                                <Image
+                                                    src={reviews[current].image}
+                                                    width={300}
+                                                    height={300}
+                                                    sizes="56px"
+                                                    alt={reviews[current].author}
+                                                    className="w-14 h-14 rounded-full object-cover border-2 border-teal-500"
+                                                />
+                                                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center">
+                                                    <FaGlobeAsia className="text-xs text-white" />
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="text-center sm:text-left">
-                                            <p className="font-semibold text-gray-900">{reviews[current].author}</p>
-                                            <p className="text-sm text-gray-600">{reviews[current].location}</p>
-                                            <p className="text-xs text-teal-600 mt-1">with {reviews[current].therapist}</p>
+                                            <div className="text-center sm:text-left">
+                                                <p className="font-semibold text-gray-900">{reviews[current].author}</p>
+                                                <p className="text-sm text-gray-600">{reviews[current].location}</p>
+                                                <p className="text-xs text-teal-600 mt-1">with {reviews[current].therapist}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Navigation */}
-                        <div className="flex justify-between items-center mt-8">
-                            {/* Dots */}
-                            <div className="flex justify-center gap-2">
-                                {reviews.map((_, idx) => (
+                            {/* Navigation */}
+                            <div className="flex justify-between items-center mt-8">
+                                {/* Dots */}
+                                <div className="flex justify-center gap-2">
+                                    {reviews.map((_, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => setCurrent(idx)}
+                                            className={`w-3 h-3 rounded-full ${idx === current ? "bg-teal-600" : "bg-gray-300"}`}
+                                            aria-label={`Go to testimonial ${idx + 1}`}
+                                        />
+                                    ))}
+                                </div>
+
+                                {/* Arrows */}
+                                <div className="flex gap-4">
                                     <button
-                                        key={idx}
-                                        onClick={() => setCurrent(idx)}
-                                        className={`w-3 h-3 rounded-full ${idx === current ? "bg-teal-600" : "bg-gray-300"}`}
-                                        aria-label={`Go to testimonial ${idx + 1}`}
-                                    />
-                                ))}
-                            </div>
-
-                            {/* Arrows */}
-                            <div className="flex gap-4">
-                                <button
-                                    onClick={prevSlide}
-                                    className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 hover:bg-teal-200 transition-colors"
-                                    aria-label="Previous testimonial"
-                                >
-                                    <FaChevronLeft />
-                                </button>
-                                <button
-                                    onClick={nextSlide}
-                                    className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 hover:bg-teal-200 transition-colors"
-                                    aria-label="Next testimonial"
-                                >
-                                    <FaChevronRight />
-                                </button>
+                                        onClick={prevSlide}
+                                        className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 hover:bg-teal-200 transition-colors"
+                                        aria-label="Previous testimonial"
+                                    >
+                                        <FaChevronLeft />
+                                    </button>
+                                    <button
+                                        onClick={nextSlide}
+                                        className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 hover:bg-teal-200 transition-colors"
+                                        aria-label="Next testimonial"
+                                    >
+                                        <FaChevronRight />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* Additional Stats */}
                 <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">

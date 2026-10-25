@@ -39,7 +39,7 @@ function Section4() {
             description:
                 "End-to-end encrypted sessions ensure your privacy is protected at all times.",
             fullDescription:
-                "We understand that privacy is the foundation of trust in therapy. That’s why we employ enterprise-grade, end-to-end encryption across all communication channels. Your video, audio, and chat sessions are never recorded or stored. Additionally, our platform is compliant with HIPAA and GDPR standards, ensuring strict confidentiality. You can focus entirely on your healing, knowing that your sensitive information is safe and respected.",
+                "We understand that privacy is the foundation of trust in therapy. That’s why we employ enterprise-grade, end-to-end encryption across all communication channels. Your video, audio, and chat sessions are never recorded or stored. Your data is protected under India's Digital Personal Data Protection Act, 2023. You can focus entirely on your healing, knowing that your sensitive information is safe and respected.",
             linkText: "Learn about security"
         },
         {

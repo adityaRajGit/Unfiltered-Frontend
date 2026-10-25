@@ -1,65 +1,22 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getSingleBlog, listBlogs } from "@/store/blogsSlice";
-import { toast } from "react-toastify";
+import { listBlogs } from "@/store/blogsSlice";
 import { FaTimes, FaChevronLeft, FaChevronRight } from "react-icons/fa";
-
-interface Blog {
-  _id: string;
-  title: string;
-  images: string[];
-  content: string;
-  author: string;
-  category: string;
-  is_deleted: boolean;
-  created_at: string;
-  updated_at: string;
-}
+import { blogPath, formatBlogDate, type BlogPost as Blog } from "@/utils/blog";
 
 interface Props {
-  id: string;
+  post: Blog;
 }
 
-export default function BlogPostPage({ id }: Props) {
+// The post is fetched on the server (pages/blogs/[id]/page.tsx), so its content is
+// in the first HTML response. Only related posts load on the client.
+export default function BlogPostPage({ post }: Props) {
   const dispatch = useDispatch();
-  const router = useRouter();
-  const [post, setPost] = useState<Blog | null>(null);
   const [relatedPosts, setRelatedPosts] = useState<Blog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-
-  // Fetch single blog
-  useEffect(() => {
-    const fetchBlog = async () => {
-      if (!id) return;
-      try {
-        setLoading(true);
-        const resultAction = await dispatch(getSingleBlog(id as any) as any);
-        if (getSingleBlog.fulfilled.match(resultAction)) {
-          const blogData = resultAction.payload.data.blog;
-          setPost(blogData);
-          setError(null);
-        } else {
-          const errorMsg = resultAction.error?.message || "Failed to load blog";
-          throw new Error(errorMsg);
-        }
-      } catch (err: any) {
-        console.error(err);
-        const errorMsg = err.message || "Failed to load blog";
-        setError(errorMsg);
-        toast.error(errorMsg);
-        setTimeout(() => router.push("/pages/blogs"), 2000);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchBlog();
-  }, [dispatch, id, router]);
 
   // Fetch related posts
   useEffect(() => {
@@ -95,27 +52,6 @@ export default function BlogPostPage({ id }: Props) {
   const prevImage = () => {
     setSelectedImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
-      </div>
-    );
-  }
-
-  if (error || !post) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error || "Blog not found"}</p>
-          <Link href="/pages/blogs" className="text-teal-600 hover:underline">
-            ← Back to all blogs
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#d7fcf4] to-[#00968910] py-16 px-4">
@@ -234,13 +170,7 @@ export default function BlogPostPage({ id }: Props) {
               <div className="ml-4">
                 <p className="font-medium text-gray-900">{post.author}</p>
                 <p className="text-sm text-gray-500">
-                  {post.created_at
-                    ? new Date(post.created_at).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
-                    : "Recent"}
+                  {post.created_at ? formatBlogDate(post.created_at) : "Recent"}
                 </p>
               </div>
             </div>
@@ -265,7 +195,7 @@ export default function BlogPostPage({ id }: Props) {
               {relatedPosts.map((relatedPost) => (
                 <Link
                   key={relatedPost._id}
-                  href={`/pages/blogs/${relatedPost._id}`}
+                  href={blogPath(relatedPost)}
                   className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow"
                 >
                   <div className="h-32 bg-gradient-to-r from-teal-500 to-teal-600 relative">
@@ -282,11 +212,7 @@ export default function BlogPostPage({ id }: Props) {
                       {relatedPost.title}
                     </h3>
                     <p className="text-sm text-gray-500 mb-1">
-                      {new Date(relatedPost.created_at).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {formatBlogDate(relatedPost.created_at, "short")}
                     </p>
                     <div className="flex items-center mt-2">
                       <div className="bg-teal-100 rounded-full w-6 h-6 flex items-center justify-center">

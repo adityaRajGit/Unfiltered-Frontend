@@ -69,6 +69,7 @@ function Section2() {
                                     src={therapy.img}
                                     alt={therapy.title}
                                     fill style={{ objectFit: 'cover' }}
+                                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
                                     className="w-full"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />

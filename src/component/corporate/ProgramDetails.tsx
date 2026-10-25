@@ -69,7 +69,7 @@ function ProgramDetails() {
                                         <div>
                                             <h3 className="text-xl font-bold text-gray-900 mb-2">Secure Platform</h3>
                                             <p className="text-gray-700">
-                                                HIPAA-compliant technology ensuring complete privacy and confidentiality
+                                                Your data is protected under India&apos;s Digital Personal Data Protection Act, 2023.
                                             </p>
                                         </div>
                                     </div>

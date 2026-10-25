@@ -1,5 +1,8 @@
 import { MetadataRoute } from 'next'
+import { absoluteUrl } from '@/utils/site'
 
+// One rule for every crawler, AI crawlers included (GPTBot, ClaudeBot,
+// Google-Extended and the rest all follow the * group).
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
@@ -8,32 +11,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: '/',
         disallow: ['/admin/', '/api/', '/pages/login/', '/pages/account/'],
       },
-      {
-        userAgent: 'GPTBot', // OpenAI's crawler for ChatGPT
-        allow: '/',
-        disallow: ['/admin/', '/api/', '/pages/login/', '/pages/account/'],
-      },
-      {
-        userAgent: 'Google-Extended', // Google's AI crawler
-        allow: '/',
-        disallow: ['/admin/', '/api/', '/pages/login/', '/pages/account/'],
-      },
-      {
-        userAgent: 'anthropic-ai', // Anthropic's Claude crawler
-        allow: '/',
-        disallow: ['/admin/', '/api/', '/pages/login/', '/pages/account/'],
-      },
-      {
-        userAgent: 'ClaudeBot', // Claude's crawler
-        allow: '/',
-        disallow: ['/admin/', '/api/', '/pages/login/', '/pages/account/'],
-      },
-      {
-        userAgent: 'ChatGPT-User', // ChatGPT user agent
-        allow: '/',
-        disallow: ['/admin/', '/api/', '/pages/login/', '/pages/account/'],
-      },
     ],
-    sitemap: 'https://stayunfiltered.com/sitemap.xml',
+    sitemap: absoluteUrl('/sitemap.xml'),
   }
 }

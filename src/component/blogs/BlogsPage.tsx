@@ -5,19 +5,9 @@ import { useDispatch } from "react-redux";
 import { listBlogs } from "@/store/blogsSlice";
 import { toast } from "react-toastify";
 
-// Types
-interface BlogPost {
-    _id: string;
-    title: string;
-    images: string[];
-    content: string;
-    author: string;
-    category: string;
-    is_deleted: boolean;
-    created_at: string;
-    updated_at: string;
-}
+import { blogPath, formatBlogDate, type BlogPost } from "@/utils/blog";
 
+// Types
 interface PaginationMeta {
     pageNum: number;
     pageSize: number;
@@ -35,21 +25,32 @@ function useDebounce<T>(value: T, delay: number): T {
     return debouncedValue;
 }
 
-export default function BlogsPage() {
+// The first page arrives server-rendered (initialBlogs) so crawlers see real post
+// links; search, filters and pagination still fetch on the client.
+export default function BlogsPage({
+    initialBlogs = [],
+    initialTotal = 0,
+}: {
+    initialBlogs?: BlogPost[];
+    initialTotal?: number;
+}) {
     const dispatch = useDispatch();
 
     // UI state
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<string>("all");
     const [loading, setLoading] = useState(false);
-    const [blogs, setBlogs] = useState<BlogPost[]>([]);
+    const [blogs, setBlogs] = useState<BlogPost[]>(initialBlogs);
     const [pagination, setPagination] = useState<PaginationMeta>({
         pageNum: 1,
         pageSize: 10,
-        totalPages: 1,
-        totalItems: 0,
+        totalPages: Math.max(1, Math.ceil(initialTotal / 10)),
+        totalItems: initialTotal,
     });
-    const [categories, setCategories] = useState<string[]>(["all"]);
+    const [categories, setCategories] = useState<string[]>(() => [
+        "all",
+        ...new Set(initialBlogs.map((blog) => blog.category)),
+    ]);
 
     // Debounced search term (500ms delay)
     const debouncedSearch = useDebounce(searchTerm, 500);
@@ -202,7 +203,7 @@ export default function BlogsPage() {
                             {blogs.map((post) => (
                                 <Link
                                     key={post._id}
-                                    href={`/pages/blogs/${post._id}`}
+                                    href={blogPath(post)}
                                     className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
                                 >
                                     <div className="h-48 bg-gradient-to-r from-[#009689] to-[#00b8a9] relative">
@@ -220,11 +221,7 @@ export default function BlogsPage() {
                                                 {post.category}
                                             </span>
                                             <span className="text-sm text-gray-500">
-                                                {new Date(post.created_at).toLocaleDateString("en-US", {
-                                                    year: "numeric",
-                                                    month: "short",
-                                                    day: "numeric",
-                                                })}
+                                                {formatBlogDate(post.created_at, "short")}
                                             </span>
                                         </div>
                                         <h2 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">

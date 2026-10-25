@@ -110,7 +110,7 @@ function ContactForm() {
                                         <div className="bg-white/20 p-2 rounded-lg mr-4">
                                             <FaEnvelope className="h-5 w-5" />
                                         </div>
-                                        <span>corporate@wellnesspro.com</span>
+                                        <span>hello@stayunfiltered.com</span>
                                     </div>
                                     <div className="flex items-center">
                                         <div className="bg-white/20 p-2 rounded-lg mr-4">
