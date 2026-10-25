@@ -26,7 +26,7 @@ const CorporateWellnessPage = () => {
         <Benefits />
         <ProgramDetails />
         <Testimonials />
-        <div id="corporate-contact">
+        <div id="corporate-contact" className="scroll-mt-28">
           <ContactForm />
         </div>
       </div>

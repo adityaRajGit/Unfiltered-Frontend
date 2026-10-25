@@ -2,7 +2,7 @@ function OneonOneHeader() {
     return (
         <header className="bg-[#03978a] text-white py-6">
             <div className="container mx-auto px-4 text-center">
-                <h1 className="text-4xl md:text-5xl font-bold mb-4">Struggling With Mental Health?</h1>
+                <p className="text-4xl md:text-5xl font-bold mb-4">Struggling With Mental Health?</p>
                 <h1 className="text-4xl md:text-5xl font-bold mb-4">Transform Your Life with One-on-One Therapy</h1>
                 <p className="text-xl opacity-90">Professional guidance tailored to your unique journey,</p>
                 <div className="flex flex-wrap justify-center gap-2 mb-6 mt-4">

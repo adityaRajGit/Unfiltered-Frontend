@@ -91,9 +91,9 @@ export default function VideoPlayer() {
             >
                 {/* Header */}
                 <div className="text-center space-y-3">
-                    <h1 className="text-3xl md:text-4xl font-bold text-[#009689]">
+                    <h2 className="text-3xl md:text-4xl font-bold text-[#009689]">
                         How to Book a Session
-                    </h1>
+                    </h2>
                     <p className="text-gray-600 text-lg">
                         Watch this quick tutorial to learn how to easily book your next session with us.
                     </p>
