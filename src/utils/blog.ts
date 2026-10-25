@@ -69,6 +69,14 @@ export function truncateTitle(title: string, max = 60): string {
   return truncateWords(title.trim(), max);
 }
 
+const BRAND_SUFFIX = ' | Stay Unfiltered';
+
+// Post <title>: the brand is appended only when the whole thing still fits in 60.
+export function blogTitle(title: string): string {
+  const base = truncateTitle(title);
+  return base.length + BRAND_SUFFIX.length <= 60 ? base + BRAND_SUFFIX : base;
+}
+
 type ListData = { blogList?: BlogPost[]; blogs?: BlogPost[]; totalCount?: number; blogCount?: number };
 
 // Mirrors the response handling in BlogsPage.tsx: the API has used both shapes.

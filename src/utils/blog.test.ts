@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   blogExcerpt,
   blogPath,
+  blogTitle,
   idFromBlogParam,
   isBlogId,
   parseBlog,
@@ -87,6 +88,13 @@ test('truncateTitle leaves short titles alone and trims long ones', () => {
   const out = truncateTitle('anxiety '.repeat(12));
   assert.ok(out.length <= 60, `${out.length}`);
   assert.match(out, /anxiety…$/);
+});
+
+test('blogTitle adds the brand only when it still fits in 60 characters', () => {
+  assert.equal(blogTitle('Remote Work'), 'Remote Work | Stay Unfiltered');
+  const long = 'Mindfulness Practices for Busy Corporate Professionals';
+  assert.equal(blogTitle(long), long);
+  assert.ok(blogTitle('anxiety '.repeat(12)).length <= 60);
 });
 
 test('parseBlogList reads either response shape', () => {
