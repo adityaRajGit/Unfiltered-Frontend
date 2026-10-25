@@ -61,8 +61,8 @@ function Footer() {
                             <h3 className="font-semibold mb-2">Have a question?</h3>
                             <p className="text-gray-400">
                                 Email us anytime:{" "}
-                                <a href="mailto:contact@stayunfiltered.com" className="text-teal-400 hover:text-teal-300 transition-colors">
-                                    contact@stayunfiltered.com
+                                <a href="mailto:hello@stayunfiltered.com" className="text-teal-400 hover:text-teal-300 transition-colors">
+                                    hello@stayunfiltered.com
                                 </a>
                             </p>
                         </div>
