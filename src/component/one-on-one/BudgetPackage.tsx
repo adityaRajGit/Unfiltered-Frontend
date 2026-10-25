@@ -1,7 +1,7 @@
 // components/BudgetPackage.tsx
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check, Star, Zap, Calendar, TrendingUp } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { listPackage } from '@/store/packageSlice';
@@ -15,22 +15,32 @@ import { bookPackage } from '@/store/paymentSlice';
 import axios from 'axios';
 import { fbPurchase } from '@/lib/PixelHelpers';
 import TherapyPopupForm from './PopupForm';
+import { savingsPercent, type PackageSummary } from '@/utils/pricing';
 
 const backend = process.env.NEXT_PUBLIC_BACKEND_URL
 const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
 
-export default function BudgetPackage() {
-    const [loading, setLoading] = useState(true);
-    const [packageDetails, setPackageDetails] = useState({
-        id: "",
-        name: '',
-        total_sessions: 0,
-        realPrice: 0,
-        discountedPrice: 0,
-        description: '',
-        points: [],
-        resultCheck: ''
-    });
+const EMPTY_PACKAGE: PackageSummary = {
+    id: "",
+    name: '',
+    total_sessions: 0,
+    realPrice: 0,
+    discountedPrice: 0,
+    description: '',
+    points: [],
+    resultCheck: ''
+};
+
+// Stands in for a price until a real one is known, so the HTML never says ₹0 or NaN%.
+function PricePlaceholder({ className = "w-16 h-5" }: { className?: string }) {
+    return <span aria-hidden="true" className={`inline-block align-middle rounded bg-current opacity-20 animate-pulse ${className}`} />;
+}
+
+export default function BudgetPackage({ initialPackage = null }: { initialPackage?: PackageSummary | null }) {
+    const [loading, setLoading] = useState(!initialPackage);
+    const [packageDetails, setPackageDetails] = useState<PackageSummary>(initialPackage ?? EMPTY_PACKAGE);
+    // The server already fetched the 1-session package; skip refetching it on mount.
+    const skipInitialFetch = useRef(initialPackage !== null);
     const [currency, setCurrency] = useState<CurrencyInfo>({ code: 'INR', symbol: '₹', conversionRate: 1 });
 
     const dispatch = useDispatch();
@@ -57,9 +67,8 @@ export default function BudgetPackage() {
         setPopup(true)
     }
 
-    const calculateSavingsPercentage = () => {
-        return Math.round(((packageDetails.realPrice - packageDetails.discountedPrice) / packageDetails.realPrice) * 100);
-    };
+    const savings = savingsPercent(packageDetails.realPrice, packageDetails.discountedPrice);
+    const priceKnown = savings !== null;
 
     const convertPrice = (priceInINR: number): number => {
         return Math.round(priceInINR * currency.conversionRate);
@@ -221,6 +230,10 @@ export default function BudgetPackage() {
     };
 
     useEffect(() => {
+        if (skipInitialFetch.current) {
+            skipInitialFetch.current = false
+            return
+        }
         fetchSinglePackages()
     }, [sessions])
 
@@ -269,7 +282,9 @@ export default function BudgetPackage() {
                             {/* Header Content */}
                             <div className="mb-6">
                                 <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1 inline-block mb-4">
-                                    <span className="font-bold">Save {calculateSavingsPercentage()}%</span>
+                                    {priceKnown
+                                        ? <span className="font-bold">Save {savings}%</span>
+                                        : <PricePlaceholder className="w-20 h-5" />}
                                 </div>
 
                                 <h2 className="text-3xl font-bold mb-4">{packageDetails.name}</h2>
@@ -277,7 +292,9 @@ export default function BudgetPackage() {
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-2">
                                         <TrendingUp className="w-5 h-5" />
-                                        <span className="text-white/90">{packageDetails.total_sessions} sessions included</span>
+                                        {priceKnown
+                                            ? <span className="text-white/90">{packageDetails.total_sessions} sessions included</span>
+                                            : <PricePlaceholder className="w-36 h-5" />}
                                     </div>
                                 </div>
                             </div>
@@ -285,11 +302,20 @@ export default function BudgetPackage() {
                             {/* Price Section on Left */}
                             <div className="mt-auto">
                                 <div className="mb-4">
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="text-4xl font-bold">₹{packageDetails.discountedPrice}</span>
-                                        <span className="text-white/70 line-through">₹{packageDetails.realPrice}</span>
-                                    </div>
-                                    <p className="text-white/80 mt-2">Save ₹{(packageDetails.realPrice - packageDetails.discountedPrice).toFixed(2)}</p>
+                                    {priceKnown ? (
+                                        <>
+                                            <div className="flex items-baseline gap-2">
+                                                <span className="text-4xl font-bold">₹{packageDetails.discountedPrice}</span>
+                                                <span className="text-white/70 line-through">₹{packageDetails.realPrice}</span>
+                                            </div>
+                                            <p className="text-white/80 mt-2">Save ₹{(packageDetails.realPrice - packageDetails.discountedPrice).toFixed(2)}</p>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <PricePlaceholder className="w-32 h-10" />
+                                            <p className="mt-2"><PricePlaceholder className="w-24 h-5" /></p>
+                                        </>
+                                    )}
                                 </div>
 
                                 {/* Features List in Teal Section */}
@@ -388,15 +414,17 @@ export default function BudgetPackage() {
                                 <div className="flex flex-col sm:flex-row gap-6 items-center justify-between">
                                     <div className="text-center sm:text-left">
                                         <p className="text-2xl font-bold text-gray-900 mb-1">
-                                            Total: ₹{packageDetails.discountedPrice}
+                                            {priceKnown ? <>Total: ₹{packageDetails.discountedPrice}</> : <PricePlaceholder className="w-36 h-7" />}
                                         </p>
                                         <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
                                             <p className="text-gray-600">
                                                 {sessions} session{sessions > 1 ? 's' : ''}
                                             </p>
-                                            <span className="text-sm font-medium text-[#009689] bg-[#009689]/10 px-2 py-1 rounded">
-                                                {calculateSavingsPercentage()}% savings
-                                            </span>
+                                            {priceKnown && (
+                                                <span className="text-sm font-medium text-[#009689] bg-[#009689]/10 px-2 py-1 rounded">
+                                                    {savings}% savings
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                     <button
