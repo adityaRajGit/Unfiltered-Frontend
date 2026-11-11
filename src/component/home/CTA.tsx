@@ -3,10 +3,11 @@ import { FaChevronRight, FaHandshake, FaChartLine, FaLightbulb } from "react-ico
 
 const CorporateCTA = () => {
   return (
-    <div className="relative bg-gradient-to-br from-teal-50 to-teal-100 py-16 md:py-20">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-b from-cyan-50 to-teal-50 opacity-30"></div>
-        <div className="absolute bottom-0 left-0 w-1/4 h-1/2 bg-gradient-to-t from-teal-50 to-cyan-50 opacity-40"></div>
+    <div className="relative bg-white py-16 md:py-20">
+      {/* Faint teal haze: soft blurred glows on white, so no hard edges show */}
+      <div className="absolute inset-0 overflow-hidden" aria-hidden>
+        <div className="absolute -top-24 -right-24 w-[32rem] h-[32rem] rounded-full bg-teal-100 opacity-40 blur-3xl"></div>
+        <div className="absolute -bottom-24 -left-24 w-[26rem] h-[26rem] rounded-full bg-cyan-100 opacity-40 blur-3xl"></div>
       </div>
 
       <div className="relative px-4 mx-auto max-w-5xl">
